@@ -18,7 +18,7 @@ The code is organized as follows:
   - On Linux, ensure that you have packages `libc6-dev` and `build-essentials`
 
 ### Installation instructions
-  1. [On Linux] Run `apt-get install -y libc6-dev build-essentials` to check if the Linux needed packages are installed.
+  1. [On Linux] Install Linux packages: `apt-get install -y libc6-dev build-essentials`.
   2. Install `Miniconda` for `Python 3.5+` [here](https://conda.io/miniconda.html).
   3. Create the virtual environment: `conda create -n cotraining --file requirements.txt`
   4. Activate the virtual environment: `source activate cotraining`.
