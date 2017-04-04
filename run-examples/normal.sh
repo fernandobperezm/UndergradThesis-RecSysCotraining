@@ -24,7 +24,7 @@
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/k-fold-cotraining.py \
+python3 ../scripts/k-fold.py \
     ../Datasets/ml100k/ratings.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
@@ -33,7 +33,7 @@ python3 ../scripts/k-fold-cotraining.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --k_fold 2 \
-    --number_iterations 30 \
+    --number_iterations 10 \
     --number_positives 1 \
     --number_negatives 3 \
     --number_unlabeled 75 \

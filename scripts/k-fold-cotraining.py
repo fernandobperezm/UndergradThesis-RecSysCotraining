@@ -131,6 +131,8 @@ logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 
 # compute the k-fold split
 logger.info('Computing the {:.0f}% {}-fold cross-validation split'.format(args.holdout_perc * 100, args.k_fold))
+roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(
+    args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold)
 i_fold = 0
 # TODO: Partition the dataset in Train, Validation and Testing for k-fold cross
 #       validation as stated by Professor Restelli Marcello.
@@ -229,9 +231,7 @@ for train_df, test_df in k_fold_cv(dataset,
                 u_prime[rnd_user, rnd_item] = 1.0
                 i += 1
 
-
     # evaluate the ranking quality
-    roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     at = args.rec_length
     n_eval = 0
     for test_user in range(nusers):
@@ -243,25 +243,26 @@ for train_df, test_df in k_fold_cv(dataset,
             # this will rank **all** items
             recommended_items = h1.recommend(user_id=test_user, exclude_seen=True)
             # evaluate the recommendation list with ranking metrics ONLY
-            roc_auc_ += roc_auc(recommended_items, relevant_items)
-            precision_ += precision(recommended_items, relevant_items, at=at)
-            recall_ += recall(recommended_items, relevant_items, at=at)
-            map_ += map(recommended_items, relevant_items, at=at)
-            mrr_ += rr(recommended_items, relevant_items, at=at)
-            ndcg_ += ndcg(recommended_items, relevant_items, relevance=test[test_user].data, at=at)
-    roc_auc_ /= n_eval
-    precision_ /= n_eval
-    recall_ /= n_eval
-    map_ /= n_eval
-    mrr_ /= n_eval
-    ndcg_ /= n_eval
+            roc_auc_[i_fold] += roc_auc(recommended_items, relevant_items)
+            precision_[i_fold] += precision(recommended_items, relevant_items, at=at)
+            recall_[i_fold] += recall(recommended_items, relevant_items, at=at)
+            map_[i_fold] += map(recommended_items, relevant_items, at=at)
+            mrr_[i_fold] += rr(recommended_items, relevant_items, at=at)
+            ndcg_[i_fold] += ndcg(recommended_items, relevant_items, relevance=test[test_user].data, at=at)
 
-    logger.info('\t\tRanking quality')
-    logger.info('\t\t\tROC-AUC: {:.4f}'.format(roc_auc_))
-    logger.info('\t\t\tPrecision@{}: {:.4f}'.format(at, precision_))
-    logger.info('\t\t\tRecall@{}: {:.4f}'.format(at, recall_))
-    logger.info('\t\t\tMAP@{}: {:.4f}'.format(at, map_))
-    logger.info('\t\t\tMRR@{}: {:.4f}'.format(at, mrr_))
-    logger.info('\t\t\tNDCG@{}: {:.4f}'.format(at, ndcg_))
+    roc_auc_[i_fold] /= n_eval
+    precision_[i_fold] /= n_eval
+    recall_[i_fold] /= n_eval
+    map_[i_fold] /= n_eval
+    mrr_[i_fold] /= n_eval
+    ndcg_[i_fold] /= n_eval
 
     i_fold += 1
+
+logger.info('Ranking quality')
+logger.info('ROC-AUC: {:.4f}'.format(roc_auc_.mean()))
+logger.info('Precision@{}: {:.4f}'.format(at, precision_.mean()))
+logger.info('Recall@{}: {:.4f}'.format(at, recall_.mean()))
+logger.info('MAP@{}: {:.4f}'.format(at, map_.mean()))
+logger.info('MRR@{}: {:.4f}'.format(at, mrr_.mean()))
+logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_.mean()))
