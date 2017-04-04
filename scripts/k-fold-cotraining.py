@@ -29,7 +29,7 @@ import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr
+from implementation.utils.data_utils import read_dataset, df_to_csr, results_to_file
 from implementation.utils.split import k_fold_cv
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 
@@ -61,6 +61,7 @@ available_recommenders = OrderedDict([
 # let's use an ArgumentParser to read input arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset')
+parser.add_argument('--results_path', type=str, default='')
 parser.add_argument('--is_binary', action='store_true', default=False)
 parser.add_argument('--make_binary', action='store_true', default=False)
 parser.add_argument('--binary_th', type=float, default=4.0)
@@ -299,3 +300,15 @@ logger.info('Recall@{}: {:.4f}'.format(at, recall_2.mean()))
 logger.info('MAP@{}: {:.4f}'.format(at, map_2.mean()))
 logger.info('MRR@{}: {:.4f}'.format(at, mrr_2.mean()))
 logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_2.mean()))
+
+results_to_file(filepath=args.results_path,
+                cv=True,
+                k_folds=args.k_fold,
+                cotraining=True,
+                iterations=args.number_iterations,
+                recommender1=h1,
+                recommender2=h2,
+                evaluation1=[roc_auc_.mean(), precision_.mean(), recall_.mean(), map_.mean(), mrr_.mean(), ndcg_.mean()],
+                evaluation2=[roc_auc_2.mean(), precision_2.mean(), recall_2.mean(), map_2.mean(), mrr_2.mean(), ndcg_2.mean()],
+                at=at
+                )

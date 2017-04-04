@@ -110,3 +110,44 @@ def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     # using the 4th constructor of csr_matrix
     # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html
     return sps.csr_matrix((ratings, (rows, columns)), shape=shape)
+
+def results_to_file(filepath,
+                    cv=True,
+                    k_folds=10,
+                    cotraining=False,
+                    iterations=0,
+                    recommender1=None,
+                    recommender2=None,
+                    evaluation1=None,
+                    evaluation2=None,
+                    at=5
+                ):
+
+    with open(filepath, 'w') as f:
+        f.write("Evaluation type: {}\n".format("{}-fold-cross-validation".format(k_folds)))
+        f.write("Uses Co-Training: {}\n".format("Yes" if cotraining else "No"))
+        f.write("# of Iterations: {}\n".format(iterations))
+
+        # Recommender 1.
+        f.write("Recommender 1: \n")
+        f.write("\tName: {}\n\n".format(recommender1.__str__()))
+        f.write("\tEvaluation:\n")
+        f.write('\t\tROC-AUC: {:.4f}\n'.format(evaluation1[0]))
+        f.write('\t\tPrecision@{}: {:.4f}\n'.format(at, evaluation1[1]))
+        f.write('\t\tRecall@{}: {:.4f}\n'.format(at, evaluation1[2]))
+        f.write('\t\tMAP@{}: {:.4f}\n'.format(at, evaluation1[3]))
+        f.write('\t\tMRR@{}: {:.4f}\n'.format(at, evaluation1[4]))
+        f.write('\t\tNDCG@{}: {:.4f}\n'.format(at, evaluation1[5]))
+
+        # Recommender 2.
+        f.write("Recommender 2: \n")
+        f.write("\tName: {}\n\n".format(recommender2.__str__()))
+        f.write("\tEvaluation:\n")
+        f.write('\t\tROC-AUC: {:.4f}\n'.format(evaluation2[0]))
+        f.write('\t\tPrecision@{}: {:.4f}\n'.format(at, evaluation2[1]))
+        f.write('\t\tRecall@{}: {:.4f}\n'.format(at, evaluation2[2]))
+        f.write('\t\tMAP@{}: {:.4f}\n'.format(at, evaluation2[3]))
+        f.write('\t\tMRR@{}: {:.4f}\n'.format(at, evaluation2[4]))
+        f.write('\t\tNDCG@{}: {:.4f}\n'.format(at, evaluation2[5]))
+
+        f.close()
