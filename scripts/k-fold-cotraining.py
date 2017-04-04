@@ -186,7 +186,7 @@ for train_df, test_df in k_fold_cv(dataset,
         rnd_user = np.random.randint(0, high=nusers, dtype='l')
         rnd_item = np.random.randint(0, high=nitems, dtype='l')
         if (train[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-            u_prime[rnd_user, rnd_item] = 1.0
+            u_prime[rnd_user, rnd_item] = 1
             i += 1
 
     # Co-Training iterations begin here.
@@ -209,25 +209,20 @@ for train_df, test_df in k_fold_cv(dataset,
         logger.info('\t\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h2))
 
         # Label positively and negatively examples from U' for both recommenders.
-        # TODO: Instead of a random user, find a way to know which are the p-most probably possitive
-        #       and n-most probably negative labels (can be rating or ranking).
-
-        u1 = get_rnd_user(u_prime) # TODO: implement this function.
+        unlabeled = u_prime.keys()
         # TODO: Make ALL recommender to have the member function label which must return
         #       a list of Triplets (user_idx, item_idx, predicted label)
-        labeled1 = h1.label(user_id=u1, exclude_seen=True, p=args.number_positives, n=args.number_negatives)
-
-        u2 = get_rnd_user(u_prime)
-        labeled2 = h2.label(user_id=u2, exclude_seen=True, p=args.number_positives, n=args.number_negatives)
+        labeled1 = h1.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
+        labeled2 = h2.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
 
         # Add the labeled examples into L (and eliminate them from U' as they aren't unlabeled anymore).
-        for user_idx, item_idx, rating in (labeled1 + labeled2):
-            train[user_idx, item_idx] = rating
-            u_prime[user_idx, item_idx] = 0.0
+        for user_idx, item_idx, label in (labeled1 + labeled2):
+            train[user_idx, item_idx] = label
+            u_prime[user_idx, item_idx] = 0
 
         # Replenish U' with 2*p + 2*n samples from U.
         i = 0
-        while (i < (2*p + 2*n) ):
+        while (i < (2*args.number_positives + 2*args.number_negatives) ):
             rnd_user = np.random.randint(0, high=nusers, dtype='l')
             rnd_item = np.random.randint(0, high=nitems, dtype='l')
             if (train[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)

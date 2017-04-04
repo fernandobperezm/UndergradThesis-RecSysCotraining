@@ -58,15 +58,23 @@ class UserKNNRecommender(ItemKNNRecommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, user_id, n=None, exclude_seen=True, p_most=1, n_most=3):
-        # For this recommender, all the sparse_weights and normalization is made
-        # on the fit function instead of recommendation.
-        scores = self.scores[user_id]
-        ranking = scores[user_id].argsort()[::-1]
-        if exclude_seen:
-            ranking = self._filter_seen(user_id, ranking)
+    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
 
-        # Label process, we're going to return a list of triplets [(user_idx, item_idx, predicted_label)]
-        labels = [(user_id, item, label) for item, label in zip(ranking[:p_most], scores[ranking[:p_most]])] + \
-                 [(user_id, item, label) for item, label in zip(ranking[-1:-n_most:-1], scores[ranking[-1:-n_most:-1]])]
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # For this recommender, all the sparse_weights and normalization is made
+            # on the fit function instead of recommendation.
+            scores = self.scores[user_idx]
+            if (scores[item_idx] != 0.0):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+                
+            if (number_labeled == p_most + n_most):
+                break
+
         return labels

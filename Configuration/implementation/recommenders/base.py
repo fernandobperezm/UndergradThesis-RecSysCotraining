@@ -53,7 +53,7 @@ class Recommender(object):
     def recommend(self, user_id, n=None, exclude_seen=True):
         pass
 
-    def label(self, user_id, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
         pass
 
     def _filter_seen(self, user_id, ranking):
