@@ -113,3 +113,31 @@ class ItemKNNRecommender(Recommender):
             unseen_mask = np.in1d(ranking, seen, assume_unique=True, invert=True)
             ranking = ranking[unseen_mask]
         return ranking[:n]
+
+    def label(self, user_id, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # compute the scores using the dot product
+        user_profile = self._get_user_ratings(user_id)
+        if self.sparse_weights:
+            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        else:
+            scores = user_profile.dot(self.W).ravel()
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            scores /= den
+        # rank items
+        ranking = scores.argsort()[::-1] # Holds the item indices that sorts the scores for this user. (it's a list)
+        if exclude_seen:
+            ranking = self._filter_seen(user_id, ranking)
+
+        # Label process, we're going to return a list of triplets [(user_idx, item_idx, predicted_label)]
+        labels = [(user_id, item, label) for item, label in zip(ranking[:p_most], scores[ranking[:p_most]])] + \
+                 [(user_id, item, label) for item, label in zip(ranking[-1:-n_most:-1], scores[ranking[-1:-n_most:-1]])]
+        return labels
