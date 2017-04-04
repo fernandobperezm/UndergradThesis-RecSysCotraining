@@ -215,10 +215,10 @@ for train_df, test_df in k_fold_cv(dataset,
         u1 = get_rnd_user(u_prime) # TODO: implement this function.
         # TODO: Make ALL recommender to have the member function label which must return
         #       a list of Triplets (user_idx, item_idx, predicted label)
-        labeled1 = h1.label(user_id=u1, exclude_seen=True, p= args.number_positives, n= args.number_negatives)
+        labeled1 = h1.label(user_id=u1, exclude_seen=True, p=args.number_positives, n=args.number_negatives)
 
         u2 = get_rnd_user(u_prime)
-        labeled2 = h2.label(user_id=u2, exclude_seen=True, p= args.number_positives, n= args.number_negatives)
+        labeled2 = h2.label(user_id=u2, exclude_seen=True, p=args.number_positives, n=args.number_negatives)
 
         # Add the labeled examples into L (and eliminate them from U' as they aren't unlabeled anymore).
         for user_idx, item_idx, rating in (labeled1 + labeled2):

@@ -57,3 +57,16 @@ class UserKNNRecommender(ItemKNNRecommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def label(self, user_id, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # For this recommender, all the sparse_weights and normalization is made
+        # on the fit function instead of recommendation.
+        scores = self.scores[user_id]
+        ranking = scores[user_id].argsort()[::-1]
+        if exclude_seen:
+            ranking = self._filter_seen(user_id, ranking)
+
+        # Label process, we're going to return a list of triplets [(user_idx, item_idx, predicted_label)]
+        labels = [(user_id, item, label) for item, label in zip(ranking[:p_most], scores[ranking[:p_most]])] + \
+                 [(user_id, item, label) for item, label in zip(ranking[-1:-n_most:-1], scores[ranking[-1:-n_most:-1]])]
+        return labels
