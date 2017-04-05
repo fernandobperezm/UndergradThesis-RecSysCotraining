@@ -1,4 +1,4 @@
-#usr/bin/
+#!/bin/bash
 
 # Combination:
 #  Rec1 -> top_pop
@@ -26,7 +26,7 @@
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/k-fold-cotraining.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/cotraining.txt \
+    --results_path ../Results/cotraining-knn.txt \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -39,6 +39,6 @@ python3 ../scripts/k-fold-cotraining.py \
     --number_negatives 3 \
     --number_unlabeled 75 \
     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
-    --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True 
+    --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
