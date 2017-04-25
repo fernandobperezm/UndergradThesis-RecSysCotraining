@@ -88,7 +88,7 @@ class FunkSVD(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
@@ -100,7 +100,9 @@ class FunkSVD(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.U[user_idx], self.V.T)
 
-            if (scores[item_idx] != 0.0):
+            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+                or \
+                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 
@@ -181,7 +183,7 @@ class AsySVD(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
@@ -193,7 +195,9 @@ class AsySVD(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.X, self.U[user_idx].T)
 
-            if (scores[item_idx] != 0.0):
+            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+                or \
+                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 
@@ -303,7 +307,7 @@ class IALS_numpy(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
@@ -315,7 +319,8 @@ class IALS_numpy(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.X[user_idx], self.Y.T)
 
-            if (scores[item_idx] != 0.0):
+            # As IALS only works with binary ratings, we only bound for binary ratings.
+            if (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 
@@ -470,7 +475,7 @@ class BPRMF(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
