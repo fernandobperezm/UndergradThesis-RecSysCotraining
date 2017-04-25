@@ -108,6 +108,28 @@ class SLIM(Recommender):
             ranking = ranking[unseen_mask]
         return ranking[:n]
 
+    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            user_profile = self._get_user_ratings(user_idx)
+            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+
+            if (scores[item_idx] != 0.0):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels
+
 
 from multiprocessing import Pool
 from functools import partial
