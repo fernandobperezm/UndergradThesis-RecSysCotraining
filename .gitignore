@@ -1,5 +1,6 @@
 # Ignoring datasets (Github size limit)
 Datasets/
+run-examples/commands.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
