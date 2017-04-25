@@ -112,8 +112,7 @@ def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     return sps.csr_matrix((ratings, (rows, columns)), shape=shape)
 
 def results_to_file(filepath,
-                    cv=True,
-                    k_folds=10,
+                    evaluation_type,
                     cotraining=False,
                     iterations=0,
                     recommender1=None,
@@ -124,9 +123,10 @@ def results_to_file(filepath,
                 ):
 
     with open(filepath, 'w') as f:
-        f.write("Evaluation type: {}\n".format("{}-fold-cross-validation".format(k_folds)))
+        f.write("Evaluation type: {}\n".format(evaluation_type))
         f.write("Uses Co-Training: {}\n".format("Yes" if cotraining else "No"))
-        f.write("# of Iterations: {}\n".format(iterations))
+        if cotraining:
+            f.write("# of Co-Training Iterations: {}\n".format(iterations))
 
         # Recommender 1.
         f.write("Recommender 1: \n")

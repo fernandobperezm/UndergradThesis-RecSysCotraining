@@ -302,8 +302,7 @@ logger.info('MRR@{}: {:.4f}'.format(at, mrr_2.mean()))
 logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_2.mean()))
 
 results_to_file(filepath=args.results_path,
-                cv=True,
-                k_folds=args.k_fold,
+                evaluation_type='{}-fold cross-validation split'.format(args.k_fold),
                 cotraining=True,
                 iterations=args.number_iterations,
                 recommender1=h1,
