@@ -122,7 +122,7 @@ def results_to_file(filepath,
                     at=5
                 ):
 
-    with open(filepath, 'w') as f:
+    with open(filepath, 'a') as f:
         f.write("Evaluation type: {}\n".format(evaluation_type))
         f.write("Uses Co-Training: {}\n".format("Yes" if cotraining else "No"))
         if cotraining:
@@ -150,4 +150,5 @@ def results_to_file(filepath,
         f.write('\t\tMRR@{}: {:.4f}\n'.format(at, evaluation2[4]))
         f.write('\t\tNDCG@{}: {:.4f}\n'.format(at, evaluation2[5]))
 
+        f.write('---------------------------------------------------\n---------------------------------------------------\n')
         f.close()
