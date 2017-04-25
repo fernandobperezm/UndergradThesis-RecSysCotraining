@@ -71,9 +71,9 @@ class UserKNNRecommender(ItemKNNRecommender):
             # For this recommender, all the sparse_weights and normalization is made
             # on the fit function instead of recommendation.
             scores = self.scores[user_idx]
-            if (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0 \
+            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
                 or \
-                binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
+                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 

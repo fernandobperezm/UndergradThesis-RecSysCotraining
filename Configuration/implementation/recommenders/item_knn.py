@@ -148,9 +148,9 @@ class ItemKNNRecommender(Recommender):
                 den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
                 scores /= den
 
-            if (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0 \
+            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
                 or \
-                binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
+                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 
