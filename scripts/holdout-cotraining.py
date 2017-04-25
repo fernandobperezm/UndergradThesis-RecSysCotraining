@@ -212,8 +212,8 @@ for i_iter in range(args.number_iterations):
     unlabeled = u_prime.keys()
     # TODO: Make ALL recommender to have the member function label which must return
     #       a list of Triplets (user_idx, item_idx, predicted label)
-    labeled1 = h1.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
-    labeled2 = h2.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
+    labeled1 = h1.label(unlabeled_list=list(unlabeled), binary_ratings=args.is_binary, exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
+    labeled2 = h2.label(unlabeled_list=list(unlabeled), binary_ratings=args.is_binary, exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
 
     # Add the labeled examples into L (and eliminate them from U' as they aren't unlabeled anymore).
     for user_idx, item_idx, label in (labeled1 + labeled2):

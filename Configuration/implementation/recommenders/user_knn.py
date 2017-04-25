@@ -14,6 +14,7 @@ Last modified on 25/03/2017.
 
 from .item_knn import ItemKNNRecommender
 import numpy as np
+import pdb
 
 
 class UserKNNRecommender(ItemKNNRecommender):
@@ -58,7 +59,7 @@ class UserKNNRecommender(ItemKNNRecommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
@@ -70,10 +71,12 @@ class UserKNNRecommender(ItemKNNRecommender):
             # For this recommender, all the sparse_weights and normalization is made
             # on the fit function instead of recommendation.
             scores = self.scores[user_idx]
-            if (scores[item_idx] != 0.0):
+            if (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0 \
+                or \
+                binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
-                
+
             if (number_labeled == p_most + n_most):
                 break
 

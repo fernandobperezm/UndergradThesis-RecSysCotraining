@@ -18,6 +18,7 @@ import scipy.sparse as sps
 from .base import Recommender, check_matrix
 from .similarity import Cosine, Pearson, AdjustedCosine
 
+import pdb
 
 
 class ItemKNNRecommender(Recommender):
@@ -69,10 +70,12 @@ class ItemKNNRecommender(Recommender):
     def recommend(self, user_id, n=None, exclude_seen=True):
         # compute the scores using the dot product
         user_profile = self._get_user_ratings(user_id)
+
         if self.sparse_weights:
             scores = user_profile.dot(self.W_sparse).toarray().ravel()
         else:
             scores = user_profile.dot(self.W).ravel()
+
         if self.normalize:
             # normalization will keep the scores in the same range
             # of value of the ratings in dataset
@@ -117,7 +120,7 @@ class ItemKNNRecommender(Recommender):
             ranking = ranking[unseen_mask]
         return ranking[:n]
 
-    def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
 
@@ -145,10 +148,12 @@ class ItemKNNRecommender(Recommender):
                 den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
                 scores /= den
 
-            if (scores[item_idx] != 0.0):
+            if (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0 \
+                or \
+                binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
-                
+
             if (number_labeled == p_most + n_most):
                 break
 
