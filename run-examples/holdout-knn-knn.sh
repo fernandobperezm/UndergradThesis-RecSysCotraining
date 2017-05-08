@@ -5,7 +5,7 @@
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/knn-holdout.txt \
+    --results_path ../Results/holdout-knn-knn.txt \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -13,9 +13,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 10 \
-    --number_positives 1 \
-    --number_negatives 3 \
-    --number_unlabeled 75 \
+    --number_positives 40 \
+    --number_negatives 120 \
+    --number_unlabeled 3000 \
     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
@@ -26,7 +26,7 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/knn-holdout.txt \
+    --results_path ../Results/holdout-knn-knn.txt \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -34,9 +34,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 10 \
-    --number_positives 1 \
-    --number_negatives 3 \
-    --number_unlabeled 75 \
+    --number_positives 40 \
+    --number_negatives 120 \
+    --number_unlabeled 3000 \
     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
@@ -47,7 +47,7 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/knn-holdout.txt \
+    --results_path ../Results/holdout-knn-knn.txt \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -55,9 +55,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 10 \
-    --number_positives 1 \
-    --number_negatives 3 \
-    --number_unlabeled 75 \
+    --number_positives 40 \
+    --number_negatives 120 \
+    --number_unlabeled 3000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
