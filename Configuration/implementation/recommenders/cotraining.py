@@ -133,8 +133,11 @@ class COTRAINING(object):
                     u_prime[rnd_user, rnd_item] = 1
                     i += 1
 
-            # Evaluate the recommender in this iteration.
-            pass
+            # Evaluate the recommenders in this iteration.
+            self.eval1.eval(X1)
+            self.eval2.eval(X2)
+            self.eval1.log_by_index(i_iter)
+            self.eval2.log_by_index(i_iter)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         # compute the scores using the dot product
