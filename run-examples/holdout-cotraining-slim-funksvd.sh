@@ -1,8 +1,8 @@
 #!/bin/bash
 
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-slim-funksvd.txt \
+    --results_path ../Results/holdout-slim-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \

@@ -15,8 +15,7 @@ import numpy as np
 import unittest
 
 def rmse(predictions,targets):
-    return 0
-    # return np.sqrt(np.mean((predictions-targets)**2))
+    return np.sqrt(np.mean((predictions-targets)**2))
 
 def roc_auc(ranked_list, pos_items):
     is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)

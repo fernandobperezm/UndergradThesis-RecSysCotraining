@@ -120,6 +120,29 @@ class ItemKNNRecommender(Recommender):
             ranking = ranking[unseen_mask]
         return ranking[:n]
 
+    def predict(self, user_id, rated_indices):
+        # compute the scores using the dot product
+        user_profile = self._get_user_ratings(user_id)
+
+        if self.sparse_weights:
+            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        else:
+            scores = user_profile.dot(self.W).ravel()
+
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            scores /= den
+        # rank items
+        return scores[rated_indices]
+
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
@@ -148,6 +171,7 @@ class ItemKNNRecommender(Recommender):
                 den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
                 scores /= den
 
+            # pdb.set_trace()
             if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
                 or \
                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):

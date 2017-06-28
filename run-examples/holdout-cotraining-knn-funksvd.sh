@@ -3,9 +3,9 @@
 # Combination:
 #  Rec1 -> item_knn with num_factors=20,lrate=0.01,reg=0.0
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -24,9 +24,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with num_factors=20,lrate=0.01,reg=0.0
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -45,9 +45,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with num_factors=20,lrate=0.01,reg=0.0
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -72,9 +72,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -93,9 +93,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -114,9 +114,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -141,9 +141,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -162,9 +162,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with adj-cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -183,9 +183,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-funksvd.txt \
+    --results_path ../Results/holdout-knn-funksvd.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \

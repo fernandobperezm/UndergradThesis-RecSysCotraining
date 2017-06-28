@@ -74,7 +74,7 @@ class ContentBasedRecommender(Recommender):
     def recommend(self, user_id, n=None, exclude_seen=True):
         '''
             Makes a recommendation list based on the item similarities and the
-            actual rating of the item. 
+            actual rating of the item.
         '''
 
         # compute the scores using the dot product

@@ -98,6 +98,12 @@ class SLIM(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
+    def predict(self, user_id, rated_indices):
+        # compute the scores using the dot product
+        user_profile = self._get_user_ratings(user_id)
+        scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        return scores[rated_indices]
+
     def recommend_new_user(self, user_profile, n=None, exclude_seen=True):
         assert user_profile.shape[1] == self.W_sparse.shape[0], 'The number of items does not match!'
         # compute the scores using the dot product

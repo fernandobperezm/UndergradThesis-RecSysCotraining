@@ -17,6 +17,8 @@ from .base import Recommender, check_matrix
 from .._cython._mf import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 import logging
 
+import pdb
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -88,6 +90,10 @@ class FunkSVD(Recommender):
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
 
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.U[user_id], self.V.T)
+        return scores[rated_indices]
+
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         np.random.shuffle(unlabeled_list)
@@ -100,6 +106,7 @@ class FunkSVD(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.U[user_idx], self.V.T)
 
+            pdb.set_trace()
             if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
                 or \
                  (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
@@ -182,6 +189,10 @@ class AsySVD(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X, self.U[user_id].T)
+        return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
@@ -306,6 +317,10 @@ class IALS_numpy(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X[user_id], self.Y.T)
+        return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
@@ -474,6 +489,10 @@ class BPRMF(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X[user_id], self.Y.T)
+        return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).

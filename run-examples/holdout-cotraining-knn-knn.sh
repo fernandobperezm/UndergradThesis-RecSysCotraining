@@ -24,9 +24,9 @@
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -45,9 +45,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-30.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -66,9 +66,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-10.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -93,9 +93,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -114,9 +114,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-30.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -135,9 +135,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-10.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -162,9 +162,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -183,9 +183,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with adj-cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-30.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -204,9 +204,9 @@ python3 ../scripts/holdout-cotraining.py \
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-knn-knn.txt \
+    --results_path ../Results/holdout-knn-knn-10.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \

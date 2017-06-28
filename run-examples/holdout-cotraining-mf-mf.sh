@@ -3,9 +3,9 @@
 # # Combination:
 # #  Rec1 -> FunkSVD with number of factors = 20,learning rate = 0.01 and regularization = 0.0
 # #  Rec2 -> AsySVD with number of factors = 20,learning rate = 0.01, regularization = 0.015, and 10 iterations.
-python3 ../scripts/holdout-cotraining.py \
+python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-cotraining-mf-mf.txt \
+    --results_path ../Results/holdout-mf-mf.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -29,9 +29,9 @@ python3 ../scripts/holdout-cotraining.py \
 #  Rec2 -> BPRMF with num_factors=20,lrate=0.1,user_reg=0.1,pos_reg=0.001,neg_reg=0.0015,iters=10,
 #                     sample_with_replacement=True,sampling_type=user_uniform_item_uniform,
 #                     init_mean=0.0,init_std=0.1,lrate_decay=1.0,rnd_seed=42
-# python3 ../scripts/holdout-cotraining.py \
+# python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-cotraining-mf-mf.txt \ \
+#     --results_path ../Results/holdout-mf-mf.csv \ \
 #     --is_binary --make_binary --binary_th 4.0 \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \

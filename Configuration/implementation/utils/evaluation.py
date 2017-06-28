@@ -15,8 +15,11 @@ import random as random
 import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
+
+import pdb
 
 class Evaluation(object):
     """ EVALUATION class for RecSys"""
@@ -62,15 +65,16 @@ class Evaluation(object):
 
                 # recommender recommendation.
                 # this will rank **all** items
-                recommended_items = self.recommender.recommend(user_id=test_user, exclude_seen=True)
+                ranked_items = self.recommender.recommend(user_id=test_user, exclude_seen=True)
+                predicted_relevant_items = self.recommender.predict(user_id=test_user, rated_indices=relevant_items)
                 # evaluate the recommendation list with ranking metrics ONLY
-                rmse_ += metrics.rmse(recommended_items, relevant_items)
-                roc_auc_ += metrics.roc_auc(recommended_items, relevant_items)
-                precision_ += metrics.precision(recommended_items, relevant_items, at=at)
-                recall_ += metrics.recall(recommended_items, relevant_items, at=at)
-                map_ += metrics.map(recommended_items, relevant_items, at=at)
-                mrr_ += metrics.rr(recommended_items, relevant_items, at=at)
-                ndcg_ += metrics.ndcg(recommended_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
+                rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
+                roc_auc_ += metrics.roc_auc(ranked_items, relevant_items)
+                precision_ += metrics.precision(ranked_items, relevant_items, at=at)
+                recall_ += metrics.recall(ranked_items, relevant_items, at=at)
+                map_ += metrics.map(ranked_items, relevant_items, at=at)
+                mrr_ += metrics.rr(ranked_items, relevant_items, at=at)
+                ndcg_ += metrics.ndcg(ranked_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
 
         # Recommender evaluations
         self.rmse.append(rmse_ / n_eval)
@@ -103,50 +107,60 @@ class Evaluation(object):
         # rmse
         plt.subplot(4,2,1)
         plt.plot(self.rmse)
-        plt.ylabel('RMSE')
-        plt.xlabel('Iterations')
+        plt.title('RMSE')
+        # plt.ylabel('RMSE')
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
         # roc_auc
         plt.subplot(4,2,2)
         plt.plot(self.roc_auc)
-        plt.ylabel('ROC-AUC@{}'.format(self.at))
-        plt.xlabel('Iterations')
+        plt.title('ROC-AUC@{}'.format(self.at))
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
         # precision
         plt.subplot(4,2,3)
         plt.plot(self.precision)
-        plt.ylabel('PRECISION@{}'.format(self.at))
-        plt.xlabel('Iterations')
+        plt.title('PRECISION@{}'.format(self.at))
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
         # recall
         plt.subplot(4,2,4)
         plt.plot(self.recall)
-        plt.ylabel('RECALL@{}'.format(self.at))
-        plt.xlabel('Iterations')
+        plt.title('RECALL@{}'.format(self.at))
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
         # map
         plt.subplot(4,2,5)
         plt.plot(self.map)
-        plt.ylabel('MAP@{}'.format(self.at))
-        plt.xlabel('Iterations')
+        plt.title('MAP@{}'.format(self.at))
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
         # mrr
         plt.subplot(4,2,6)
         plt.plot(self.mrr)
-        plt.ylabel('MRR@{}'.format(self.at))
+        plt.title('MRR@{}'.format(self.at))
         plt.xlabel('Iterations')
         plt.grid(True)
 
         # ndcg
         plt.subplot(4,2,7)
         plt.plot(self.ndcg)
-        plt.ylabel('NDCG@{}'.format(self.at))
-        plt.xlabel('Iterations')
+        plt.title('NDCG@{}'.format(self.at))
+        # plt.xlabel('Iterations')
         plt.grid(True)
 
-        plt.show()
+        # Format the minor tick labels of the y-axis into empty strings with
+        # 'NullFormatter', to avoid cumbering the axis with too many labels.
+        plt.gca().yaxis.set_minor_formatter(NullFormatter())
+        # Adjust the subplot layout, because the logit one may take more space
+        # than usual, due to y-tick labels like "1 - 10^{-3}"
+        plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.3,
+                            wspace=0.5)
+
+        plt.savefig("{}iter_{}.png".format(len(self.rmse),self.recommender.__str__()))
+        # plt.show()

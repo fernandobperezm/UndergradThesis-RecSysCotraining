@@ -81,3 +81,7 @@ class UserKNNRecommender(ItemKNNRecommender):
                 break
 
         return labels
+
+    def predict(self, user_id, rated_indices):
+        # return the scores for the rated items.
+        return self.scores[user_id,rated_indices]

@@ -56,6 +56,9 @@ class Recommender(object):
     def label(self, unlabeled_list, n=None, exclude_seen=True, p_most=1, n_most=3):
         pass
 
+    def predict(self, user_id):
+        pass
+
     def _filter_seen(self, user_id, ranking):
         user_profile = self._get_user_ratings(user_id)
         seen = user_profile.indices
