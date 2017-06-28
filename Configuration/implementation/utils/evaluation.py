@@ -14,6 +14,7 @@ import random as random
 
 import numpy as np
 import scipy.sparse as sps
+import matplotlib.pyplot as plt
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
 
@@ -93,3 +94,59 @@ class Evaluation(object):
                         evaluation1=[self.rmse[index], self.roc_auc[index], self.precision[index], self.recall[index], self.map[index], self.mrr[index], self.ndcg[index]],
                         at=self.at
                         )
+
+    def plot_all(self,number_figure):
+        # plot with various axes scales
+        plt.figure(number_figure)
+        plt.title(self.recommender.__str__())
+
+        # rmse
+        plt.subplot(4,2,1)
+        plt.plot(self.rmse)
+        plt.ylabel('RMSE')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # roc_auc
+        plt.subplot(4,2,2)
+        plt.plot(self.roc_auc)
+        plt.ylabel('ROC-AUC@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # precision
+        plt.subplot(4,2,3)
+        plt.plot(self.precision)
+        plt.ylabel('PRECISION@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # recall
+        plt.subplot(4,2,4)
+        plt.plot(self.recall)
+        plt.ylabel('RECALL@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # map
+        plt.subplot(4,2,5)
+        plt.plot(self.map)
+        plt.ylabel('MAP@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # mrr
+        plt.subplot(4,2,6)
+        plt.plot(self.mrr)
+        plt.ylabel('MRR@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        # ndcg
+        plt.subplot(4,2,7)
+        plt.plot(self.ndcg)
+        plt.ylabel('NDCG@{}'.format(self.at))
+        plt.xlabel('Iterations')
+        plt.grid(True)
+
+        plt.show()

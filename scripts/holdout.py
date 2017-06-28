@@ -188,3 +188,9 @@ eval2.log_by_index(0)
 
 # Cotraining fitting and evaluation.
 cotraining.fit(train, eval_iter = True, number_unlabeled = 75)
+
+# Plotting.
+# eval1.plot_all()
+# eval2.plot_all()
+eval1_ctr.plot_all(1)
+eval2_ctr.plot_all(2)
