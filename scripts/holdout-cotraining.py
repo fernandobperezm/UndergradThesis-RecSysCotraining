@@ -39,6 +39,7 @@ from implementation.recommenders.user_knn import UserKNNRecommender
 from implementation.recommenders.slim import SLIM, MultiThreadSLIM
 from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
 from implementation.recommenders.non_personalized import TopPop, GlobalEffects
+from implementation.recommenders.content import ContentBasedRecommender
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -50,6 +51,7 @@ available_recommenders = OrderedDict([
     ('global_effects', GlobalEffects),
     ('item_knn', ItemKNNRecommender),
     ('user_knn', UserKNNRecommender),
+    ('content', ContentBasedRecommender),
     ('SLIM', SLIM),
     ('SLIM_mt', MultiThreadSLIM),
     ('FunkSVD', FunkSVD),

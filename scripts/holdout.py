@@ -3,8 +3,9 @@
 Politecnico di Milano.
 k-fold-cotraining.py
 
-Description: This file contains the fitting and evaluation of two recsys.
-             Using holdout.
+Description: This file contains the fitting and evaluation of two
+            It makes an evaluation using Co-Training and without it, the
+            evaluation metrics are RMSE, roc_auc, precision, recall, map, ndcg, rr.
 
 Modified by Fernando Pérez.
 
@@ -26,6 +27,7 @@ import scipy as sp
 from implementation.utils.data_utils import read_dataset, df_to_csr, results_to_file
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
+from implementation.utils.evaluation import Evaluation
 
 # Import recommenders classes.
 from implementation.recommenders.item_knn import ItemKNNRecommender
@@ -33,6 +35,8 @@ from implementation.recommenders.user_knn import UserKNNRecommender
 from implementation.recommenders.slim import SLIM, MultiThreadSLIM
 from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
 from implementation.recommenders.non_personalized import TopPop, GlobalEffects
+from implementation.recommenders.content import ContentBasedRecommender
+from implementation.recommenders.cotraining import CoTraining
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -42,6 +46,7 @@ logging.basicConfig(
 available_recommenders = OrderedDict([
     ('top_pop', TopPop),
     ('global_effects', GlobalEffects),
+    ('content', ContentBasedRecommender),
     ('item_knn', ItemKNNRecommender),
     ('user_knn', UserKNNRecommender),
     ('SLIM', SLIM),
@@ -154,91 +159,32 @@ test = df_to_csr(test_df,
                  user_key='user_idx',
                  rating_key=args.rating_key)
 
+# Recommenders alone.
 h1 = RecommenderClass_1(**init_args_recomm_1)
 h2 = RecommenderClass_2(**init_args_recomm_2)
 
-logger.info('\tRecommender: {}'.format(h1))
-tic = dt.now()
-logger.info('\t\tTraining started for recommender: {}'.format(h1))
+# Evaluations alone.
+eval1 = Evaluation(recommender=h1, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
+eval2 = Evaluation(recommender=h2, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
+
+# Co-Trained recommenders.
+h1_ctr = RecommenderClass_1(**init_args_recomm_1)
+h2_ctr = RecommenderClass_2(**init_args_recomm_2)
+
+# Evaluations cotrained.
+eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+
+cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = None, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+
+# Recommender fitting.
 h1.fit(train)
-logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h1))
-
-logger.info('\tRecommender: {}'.format(h2))
-tic = dt.now()
-logger.info('\t\tTraining started for recommender: {}'.format(h2))
 h2.fit(train)
-logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h2))
+# Recommender evaluation.
+eval1.eval(train)
+eval2.eval(train)
+eval1.log_by_index(0)
+eval2.log_by_index(0)
 
-# evaluate the ranking quality
-at = args.rec_length
-n_eval = 0
-for test_user in range(nusers):
-    user_profile = train[test_user]
-    relevant_items = test[test_user].indices
-    if len(relevant_items) > 0:
-        n_eval += 1
-
-        # H1 recommendation.
-        # this will rank **all** items
-        recommended_items = h1.recommend(user_id=test_user, exclude_seen=True)
-        # evaluate the recommendation list with ranking metrics ONLY
-        roc_auc_ += roc_auc(recommended_items, relevant_items)
-        precision_ += precision(recommended_items, relevant_items, at=at)
-        recall_ += recall(recommended_items, relevant_items, at=at)
-        map_ += map(recommended_items, relevant_items, at=at)
-        mrr_ += rr(recommended_items, relevant_items, at=at)
-        ndcg_ += ndcg(recommended_items, relevant_items, relevance=test[test_user].data, at=at)
-
-        # H2 recommendation.
-        # this will rank **all** items
-        recommended_items_2 = h2.recommend(user_id=test_user, exclude_seen=True)
-        # evaluate the recommendation list with ranking metrics ONLY
-        roc_auc_2 += roc_auc(recommended_items_2, relevant_items)
-        precision_2 += precision(recommended_items_2, relevant_items, at=at)
-        recall_2 += recall(recommended_items_2, relevant_items, at=at)
-        map_2 += map(recommended_items_2, relevant_items, at=at)
-        mrr_2 += rr(recommended_items_2, relevant_items, at=at)
-        ndcg_2 += ndcg(recommended_items_2, relevant_items, relevance=test[test_user].data, at=at)
-
-# H1 evaluation
-roc_auc_ /= n_eval
-precision_ /= n_eval
-recall_ /= n_eval
-map_ /= n_eval
-mrr_ /= n_eval
-ndcg_ /= n_eval
-
-# H2 evaluation.
-roc_auc_2 /= n_eval
-precision_2 /= n_eval
-recall_2 /= n_eval
-map_2 /= n_eval
-mrr_2 /= n_eval
-ndcg_2 /= n_eval
-
-logger.info('Ranking quality for H1')
-logger.info('ROC-AUC: {:.4f}'.format(roc_auc_))
-logger.info('Precision@{}: {:.4f}'.format(at, precision_))
-logger.info('Recall@{}: {:.4f}'.format(at, recall_))
-logger.info('MAP@{}: {:.4f}'.format(at, map_))
-logger.info('MRR@{}: {:.4f}'.format(at, mrr_))
-logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_))
-
-logger.info('Ranking quality for H2')
-logger.info('ROC-AUC: {:.4f}'.format(roc_auc_2))
-logger.info('Precision@{}: {:.4f}'.format(at, precision_2))
-logger.info('Recall@{}: {:.4f}'.format(at, recall_2))
-logger.info('MAP@{}: {:.4f}'.format(at, map_2))
-logger.info('MRR@{}: {:.4f}'.format(at, mrr_2))
-logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_2))
-
-results_to_file(filepath=args.results_path,
-                evaluation_type="holdout at {}".format(args.holdout_perc),
-                cotraining=False,
-                iterations=0,
-                recommender1=h1,
-                recommender2=h2,
-                evaluation1=[roc_auc_, precision_, recall_, map_, mrr_, ndcg_],
-                evaluation2=[roc_auc_2, precision_2, recall_2, map_2, mrr_2, ndcg_2],
-                at=at
-                )
+# Cotraining fitting and evaluation.
+cotraining.fit(train, eval_iter = True, number_unlabeled = 75)

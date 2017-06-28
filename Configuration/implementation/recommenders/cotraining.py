@@ -13,17 +13,12 @@ Last modified on 25/03/2017.
 import random as random
 
 import numpy as np
-import scipy.sparse as sps
-from .base import Recommender, check_matrix
-from .similarity import Cosine, Pearson, AdjustedCosine
+import scipy as sp
 
-import pdb
-
-
-class COTRAINING(object):
+class CoTraining(object):
     """ CO-TRAINING environment for RecSys"""
 
-    def __init__(self, rec_1, rec_2, eval_obj1, eval_obj2, eval_obj_aggr, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3):
+    def __init__(self, rec_1, rec_2, eval_obj1, eval_obj2, eval_obj_aggr, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3, seed=1024):
         '''
             Args:
                 * rec_1: A Recommender Class object that represents the first
@@ -40,7 +35,7 @@ class COTRAINING(object):
                 * n_labels: The number of elements to label in each Co-Training
                             iteration.
         '''
-        super(COTRAINING, self).__init__()
+        super(CoTraining, self).__init__()
         self.rec_1 = rec_1
         self.rec_2 = rec_2
         self.eval1 = eval_obj1
@@ -50,6 +45,7 @@ class COTRAINING(object):
         self.n_labels = n_labels
         self.p_most = p_most
         self.n_most = n_most
+        self.seed = seed
 
     def __str__(self):
         return "CoTrainingEnv(Rec1={}\n,Rec2={}\n,N Iterations={})".format(
@@ -73,6 +69,7 @@ class COTRAINING(object):
 
         '''
         nusers, nitems = X1.shape
+        rng = np.random.RandomState(self.seed)
 
         # Create the pool of examples.
         # Using a DoK matrix to have a A[row[k], col[k]] = Data[k] representation
@@ -82,8 +79,8 @@ class COTRAINING(object):
         # Feed U' with unlabeled samples.
         i = 0
         while (i < number_unlabeled):
-            rnd_user = np.random.randint(0, high=nusers, dtype='l')
-            rnd_item = np.random.randint(0, high=nitems, dtype='l')
+            rnd_user = rng.randint(0, high=nusers, dtype='l')
+            rnd_item = rng.randint(0, high=nitems, dtype='l')
             if (X1[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
                 u_prime[rnd_user, rnd_item] = 1
                 i += 1
@@ -92,8 +89,8 @@ class COTRAINING(object):
         X2 = X1.copy()
 
         # Co-Training iterations begin here.
-        for i_iter in self.n_iters:
-            logger.info(("Iteration: {}".format(i_iter)))
+        for i_iter in range(self.n_iters):
+            # logger.info(("Iteration: {}".format(i_iter)))
 
             # logger.info('\tRecommender: {}'.format(self.rec_1))
             # tic = dt.now()
@@ -111,8 +108,8 @@ class COTRAINING(object):
             unlabeled = u_prime.keys()
             # TODO: Make ALL recommender to have the member function label which must return
             #       a list of Triplets (user_idx, item_idx, predicted label)
-            labeled1 = self.rec_1.label(X_unlabeled_list=list(unlabeled), binary_ratings=args.is_binary, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
-            labeled2 = self.rec_2.label(X_unlabeled_list=list(unlabeled), binary_ratings=args.is_binary, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            labeled1 = self.rec_1.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            labeled2 = self.rec_2.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             for user_idx, item_idx, label in labeled1:
@@ -127,8 +124,8 @@ class COTRAINING(object):
             # Replenish U' with 2*p + 2*n samples from U.
             i = 0
             while (i < (2*self.p_most + 2*self.n_most) ):
-                rnd_user = np.random.randint(0, high=nusers, dtype='l')
-                rnd_item = np.random.randint(0, high=nitems, dtype='l')
+                rnd_user = rng.randint(0, high=nusers, dtype='l')
+                rnd_item = rng.randint(0, high=nitems, dtype='l')
                 if (X1[rnd_user, rnd_item] == 0.0 and X2[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
                     u_prime[rnd_user, rnd_item] = 1
                     i += 1

@@ -14,25 +14,20 @@ import random as random
 
 import numpy as np
 import scipy.sparse as sps
-from .base import Recommender, check_matrix
-from .similarity import Cosine, Pearson, AdjustedCosine
-import metrics
-import data_utils
+import implementation.utils.metrics as metrics
+import implementation.utils.data_utils as data_utils
 
-import pdb
-
-
-class EVALUATION(object):
+class Evaluation(object):
     """ EVALUATION class for RecSys"""
 
-    def __init__(self, recommender, results_path, nusers, test_set, val_set = None, at = 10):
+    def __init__(self, recommender, results_path, nusers, test_set, val_set = None, at = 10, co_training=False):
         '''
             Args:
                 * recommender: A Recommender Class object that represents the first
                          recommender.
                 * nusers: The number of users to evaluate. It represents user indices.
         '''
-        super(EVALUATION, self).__init__()
+        super(Evaluation, self).__init__()
         self.recommender = recommender
         self.results_path = results_path
         self.nusers = nusers
@@ -46,6 +41,7 @@ class EVALUATION(object):
         self.map = list()
         self.mrr = list()
         self.ndcg = list()
+        self.cotraining = co_training
 
 
     def __str__(self):
@@ -59,13 +55,13 @@ class EVALUATION(object):
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         for test_user in range(self.nusers):
             user_profile = train_set[test_user]
-            relevant_items = test_set[test_user].indices
+            relevant_items = self.test_set[test_user].indices
             if len(relevant_items) > 0:
                 n_eval += 1
 
                 # recommender recommendation.
                 # this will rank **all** items
-                recommended_items = recommender.recommend(user_id=test_user, exclude_seen=True)
+                recommended_items = self.recommender.recommend(user_id=test_user, exclude_seen=True)
                 # evaluate the recommendation list with ranking metrics ONLY
                 rmse_ += metrics.rmse(recommended_items, relevant_items)
                 roc_auc_ += metrics.roc_auc(recommended_items, relevant_items)
@@ -73,7 +69,7 @@ class EVALUATION(object):
                 recall_ += metrics.recall(recommended_items, relevant_items, at=at)
                 map_ += metrics.map(recommended_items, relevant_items, at=at)
                 mrr_ += metrics.rr(recommended_items, relevant_items, at=at)
-                ndcg_ += metrics.ndcg(recommended_items, relevant_items, relevance=test_set[test_user].data, at=at)
+                ndcg_ += metrics.ndcg(recommended_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
 
         # Recommender evaluations
         self.rmse.append(rmse_ / n_eval)
@@ -84,16 +80,16 @@ class EVALUATION(object):
         self.mrr.append(mrr_ / n_eval)
         self.ndcg.append(ndcg_ / n_eval)
 
-    def log_all():
+    def log_all(self):
         for index in range(len(self.rmse)):
             self.log_by_index(index)
 
-    def log_by_index(index):
+    def log_by_index(self,index):
         data_utils.results_to_file(filepath=self.results_path,
                         evaluation_type="holdout at 80%",
-                        cotraining=False,
-                        iterations=0,
-                        recommender1=self.recommender
+                        cotraining=self.cotraining,
+                        iterations=index,
+                        recommender1=self.recommender,
                         evaluation1=[self.rmse[index], self.roc_auc[index], self.precision[index], self.recall[index], self.map[index], self.mrr[index], self.ndcg[index]],
-                        at=at
-                        ))
+                        at=self.at
+                        )
