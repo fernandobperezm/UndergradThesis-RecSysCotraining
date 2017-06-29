@@ -82,6 +82,9 @@ class FunkSVD(Recommender):
                                      self.init_std,
                                      self.lrate_decay, self.rnd_seed)
 
+    def user_score(self, user_id):
+        return np.dot(self.U[user_id], self.V.T)
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.U[user_id], self.V.T)
         ranking = scores.argsort()[::-1]
@@ -181,6 +184,9 @@ class AsySVD(Recommender):
         # precompute the user factors
         M = R.shape[0]
         self.U = np.vstack([AsySVD_compute_user_factors(R[i], self.Y) for i in range(M)])
+
+    def user_score(self, user_id):
+        return np.dot(self.X, self.U[user_id].T)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X, self.U[user_id].T)
@@ -309,6 +315,9 @@ class IALS_numpy(Recommender):
             self.X = self._lsq_solver_fast(C, self.X, self.Y, self.reg)
             self.Y = self._lsq_solver_fast(Ct, self.Y, self.X, self.reg)
             logger.debug('Finished iter {}'.format(it + 1))
+
+    def user_score(self, user_id):
+        return np.dot(self.X[user_id], self.Y.T)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X[user_id], self.Y.T)
@@ -481,6 +490,9 @@ class BPRMF(Recommender):
                                    lrate_decay=self.lrate_decay,
                                    rnd_seed=self.rnd_seed,
                                    verbose=self.verbose)
+
+    def user_score(self, user_id):
+        return np.dot(self.X[user_id], self.Y.T)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X[user_id], self.Y.T)

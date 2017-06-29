@@ -48,10 +48,10 @@ class CoTraining(object):
         self.seed = seed
 
     def __str__(self):
-        return "CoTrainingEnv(Rec1={}\n,Rec2={}\n,N Iterations={})".format(
-            self.rec1.__str__, self.rec2.__str__, self.n_iters)
+        return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
+            self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)
 
-    def fit(self, X1, eval_iter = False, number_unlabeled = 75):
+    def fit(self, X1, eval_iter = False):
         '''
             Depending of the Co-Training approach, you can have two views or
             use different learners, in the case of X2 == None, it's supposed
@@ -68,6 +68,7 @@ class CoTraining(object):
                            joint at each iteration.
 
         '''
+        self.eval_aggr.recommender = self
         nusers, nitems = X1.shape
         rng = np.random.RandomState(self.seed)
 
@@ -78,7 +79,7 @@ class CoTraining(object):
 
         # Feed U' with unlabeled samples.
         i = 0
-        while (i < number_unlabeled):
+        while (i < self.n_labels):
             rnd_user = rng.randint(0, high=nusers, dtype='l')
             rnd_item = rng.randint(0, high=nitems, dtype='l')
             if (X1[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
@@ -103,6 +104,14 @@ class CoTraining(object):
             # logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
             self.rec_2.fit(X2)
             # logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+
+            # Evaluate the recommenders in this iteration.
+            self.eval1.eval(X1)
+            self.eval2.eval(X2)
+            self.eval_aggr.eval(X1) # TODO: change this.
+            self.eval1.log_by_index(i_iter)
+            self.eval2.log_by_index(i_iter)
+            self.eval_aggr.log_by_index(i_iter)
 
             # Label positively and negatively examples from U' for both recommenders.
             unlabeled = u_prime.keys()
@@ -130,55 +139,23 @@ class CoTraining(object):
                     u_prime[rnd_user, rnd_item] = 1
                     i += 1
 
-            # Evaluate the recommenders in this iteration.
-            self.eval1.eval(X1)
-            self.eval2.eval(X2)
-            self.eval1.log_by_index(i_iter)
-            self.eval2.log_by_index(i_iter)
-
     def recommend(self, user_id, n=None, exclude_seen=True):
-        # compute the scores using the dot product
-        user_profile1 = self.rec_1._get_user_ratings(user_id)
-        user_profile2 = self.rec_2._get_user_ratings(user_id)
+        scores1 = self.rec_1.user_score(user_id=user_id)
+        scores2 = self.rec_2.user_score(user_id=user_id)
+        scores = (scores1 + scores2) / 2.0 # Averaging the score.
 
-        if self.sparse_weights:
-            scores1 = user_profile1.dot(self.rec_1.W_sparse).toarray().ravel()
-            scores2 = user_profile2.dot(self.rec_2.W_sparse).toarray().ravel()
-        else:
-            scores1 = user_profile1.dot(self.rec_1.W).ravel()
-            scores2 = user_profile2.dot(self.rec_2.W).ravel()
-
-        if self.rec_1.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated1 = user_profile1.copy()
-            rated1.data = np.ones_like(rated1.data)
-            if self.rec_1.sparse_weights:
-                den1 = rated.dot(self.rec_1.W_sparse).toarray().ravel()
-            else:
-                den1 = rated.dot(self.rec_1.W).ravel()
-            den1[np.abs(den1) < 1e-6] = 1.0  # to avoid NaNs
-            scores1 /= den1
-
-        if self.rec_2.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated2 = user_profile2.copy()
-            rated2.data = np.ones_like(rated2.data)
-            if self.rec_2.sparse_weights:
-                den2 = rated.dot(self.rec_2.W_sparse).toarray().ravel()
-            else:
-                den2 = rated.dot(self.rec_2.W).ravel()
-            den2[np.abs(den2) < 1e-6] = 1.0  # to avoid NaNs
-            scores2 /= den2
-
-        # Creating the score by averaging the scores.
-        scores = (scores1 + scores2) / 2
+        # rank items
         ranking = scores.argsort()[::-1]
-
         if exclude_seen:
             ranking = self.rec_1._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        predict1 = self.rec_1.predict(user_id, rated_indices)
+        predict2 = self.rec_2.predict(user_id, rated_indices)
+
+        predict = (predict1 + predict2) / 2.0 # Averaging the scores.
+        return predict
 
 
     def random_user_sample_random_item_sample(self, dataset, n_samples = 75):

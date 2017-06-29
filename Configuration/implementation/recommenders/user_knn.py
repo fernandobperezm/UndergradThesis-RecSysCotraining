@@ -53,6 +53,9 @@ class UserKNNRecommender(ItemKNNRecommender):
                 den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
                 self.scores[:, i] /= den
 
+    def user_score(self, user_id):
+        return self.scores[user_id]
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         ranking = self.scores[user_id].argsort()[::-1]
         if exclude_seen:

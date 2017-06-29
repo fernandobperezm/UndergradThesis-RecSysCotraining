@@ -24,7 +24,7 @@ import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr, results_to_file
+from implementation.utils.data_utils import read_dataset, df_to_csr
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 from implementation.utils.evaluation import Evaluation
@@ -61,6 +61,7 @@ available_recommenders = OrderedDict([
 parser = argparse.ArgumentParser()
 parser.add_argument('dataset')
 parser.add_argument('--results_path', type=str, default='')
+parser.add_argument('--results_file', type=str, default='')
 parser.add_argument('--is_binary', action='store_true', default=False)
 parser.add_argument('--make_binary', action='store_true', default=False)
 parser.add_argument('--binary_th', type=float, default=4.0)
@@ -164,18 +165,18 @@ h1 = RecommenderClass_1(**init_args_recomm_1)
 h2 = RecommenderClass_2(**init_args_recomm_2)
 
 # Evaluations alone.
-eval1 = Evaluation(recommender=h1, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
-eval2 = Evaluation(recommender=h2, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
+eval1 = Evaluation(recommender=h1, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
+eval2 = Evaluation(recommender=h2, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
 
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Evaluations cotrained.
-eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-
-cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = None, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
 
 # Recommender fitting.
 h1.fit(train)
@@ -187,10 +188,11 @@ eval1.log_by_index(0)
 eval2.log_by_index(0)
 
 # Cotraining fitting and evaluation.
-cotraining.fit(train, eval_iter = True, number_unlabeled = 75)
+cotraining.fit(train, eval_iter = True)
 
 # Plotting.
 # eval1.plot_all()
 # eval2.plot_all()
 eval1_ctr.plot_all(1)
 eval2_ctr.plot_all(2)
+cotraining.eval_aggr.plot_all(3)

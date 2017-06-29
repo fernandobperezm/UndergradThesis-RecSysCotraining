@@ -88,6 +88,11 @@ class SLIM(Recommender):
         # generate the sparse weight matrix
         self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(n_items, n_items), dtype=np.float32)
 
+    def user_score(self, user_id):
+        user_profile = self._get_user_ratings(user_id)
+        scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        return scores
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         # compute the scores using the dot product
         user_profile = self._get_user_ratings(user_id)

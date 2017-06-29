@@ -67,6 +67,28 @@ class ItemKNNRecommender(Recommender):
                 cols.extend(np.ones(self.k) * i)
             self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
+    def user_score(self, user_id):
+        # compute the scores using the dot product
+        user_profile = self._get_user_ratings(user_id)
+
+        if self.sparse_weights:
+            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        else:
+            scores = user_profile.dot(self.W).ravel()
+
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            scores /= den
+        return scores
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         # compute the scores using the dot product
         user_profile = self._get_user_ratings(user_id)

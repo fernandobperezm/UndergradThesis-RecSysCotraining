@@ -24,7 +24,7 @@ import pdb
 class Evaluation(object):
     """ EVALUATION class for RecSys"""
 
-    def __init__(self, recommender, results_path, nusers, test_set, val_set = None, at = 10, co_training=False):
+    def __init__(self, recommender, results_path, results_file, nusers, test_set, val_set = None, at = 10, co_training=False):
         '''
             Args:
                 * recommender: A Recommender Class object that represents the first
@@ -34,6 +34,7 @@ class Evaluation(object):
         super(Evaluation, self).__init__()
         self.recommender = recommender
         self.results_path = results_path
+        self.results_file = results_file
         self.nusers = nusers
         self.test_set = test_set
         self.val_set = val_set
@@ -65,7 +66,7 @@ class Evaluation(object):
 
                 # recommender recommendation.
                 # this will rank **all** items
-                ranked_items = self.recommender.recommend(user_id=test_user, exclude_seen=True)
+                ranked_items = self.recommender.recommend(user_id=test_user, n=self.at, exclude_seen=True)
                 predicted_relevant_items = self.recommender.predict(user_id=test_user, rated_indices=relevant_items)
                 # evaluate the recommendation list with ranking metrics ONLY
                 rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
@@ -90,7 +91,8 @@ class Evaluation(object):
             self.log_by_index(index)
 
     def log_by_index(self,index):
-        data_utils.results_to_file(filepath=self.results_path,
+        filepath = self.results_path + self.results_file
+        data_utils.results_to_file(filepath=filepath,
                         evaluation_type="holdout at 80%",
                         cotraining=self.cotraining,
                         iterations=index,
@@ -162,5 +164,6 @@ class Evaluation(object):
         plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.3,
                             wspace=0.5)
 
-        plt.savefig("../Results/figures/{}iter_{}.png".format(len(self.rmse),self.recommender.__str__()))
+        savepath = self.results_path + "{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        plt.savefig(savepath)
         # plt.show()
