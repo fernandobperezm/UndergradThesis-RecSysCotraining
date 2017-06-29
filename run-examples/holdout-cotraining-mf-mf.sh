@@ -13,7 +13,7 @@ python3 ../scripts/holdout.py \
     --recommender_1 FunkSVD --rec_length 10 \
     --recommender_2 AsySVD --rec_length 10 \
     --k_fold 2 \
-    --number_iterations 30 \
+    --number_iterations 50 \
     --number_positives 40 \
     --number_negatives 120 \
     --number_unlabeled 3000 \
