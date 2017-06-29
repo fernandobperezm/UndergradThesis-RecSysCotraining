@@ -2,7 +2,8 @@
 
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-slim-funksvd.csv \
+    --results_path ../Results/slim-funksvd-1/ \
+    --results_file holdout-slim-funksvd-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \

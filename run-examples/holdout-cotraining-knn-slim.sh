@@ -5,7 +5,8 @@
 #  Rec2 -> SLIM_mt with l2_penalty=0.1,l1_penalty=0.001
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-slim.csv \
+    --results_path ../Results/knn-slim-1/ \
+    --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -26,7 +27,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with l2_penalty=0.1,l1_penalty=0.001
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-1/ \
+#     --results_file holdout-knn-slim-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -47,7 +49,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with l2_penalty=0.1,l1_penalty=0.001
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-1/ \
+#     --results_file holdout-knn-slim-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -74,7 +77,8 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-slim.csv \
+    --results_path ../Results/knn-slim-2/ \
+    --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -95,7 +99,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-2/ \
+#     --results_file holdout-knn-slim-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -116,7 +121,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-2/ \
+#     --results_file holdout-knn-slim-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -143,7 +149,8 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-slim.csv \
+    --results_path ../Results/knn-slim-3/ \
+    --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -164,7 +171,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-3/ \
+#     --results_file holdout-knn-slim-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -185,7 +193,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-slim.csv \
+#     --results_path ../Results/knn-slim-3/ \
+#     --results_file holdout-knn-slim-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \

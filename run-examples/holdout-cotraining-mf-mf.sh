@@ -5,7 +5,8 @@
 # #  Rec2 -> AsySVD with number of factors = 20,learning rate = 0.01, regularization = 0.015, and 10 iterations.
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-mf-mf.csv \
+    --results_path ../Results/mf-mf-1/ \
+    --results_file holdout-mf-mf-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -31,7 +32,8 @@ python3 ../scripts/holdout.py \
 #                     init_mean=0.0,init_std=0.1,lrate_decay=1.0,rnd_seed=42
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-mf-mf.csv \ \
+#     --results_path ../Results/mf-mf-2/ \
+#     --results_file holdout-mf-mf-50.csv \
 #     --is_binary --make_binary --binary_th 4.0 \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
@@ -40,7 +42,7 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 BPRMF --rec_length 10 \
 #     --recommender_2 BPRMF --rec_length 10 \
 #     --k_fold 2 \
-#     --number_iterations 30 \
+#     --number_iterations 50 \
 #     --number_positives 40 \
 #     --number_negatives 120 \
 #     --number_unlabeled 3000 \

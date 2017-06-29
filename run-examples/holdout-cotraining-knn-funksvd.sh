@@ -5,7 +5,8 @@
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-funksvd.csv \
+    --results_path ../Results/knn-funksvd-1/ \
+    --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -26,7 +27,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-1/ \
+#     --results_file holdout-knn-funksvd-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -47,7 +49,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-1/ \
+#     --results_file holdout-knn-funksvd-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -74,7 +77,8 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-funksvd.csv \
+    --results_path ../Results/knn-funksvd-2/ \
+    --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -95,7 +99,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-2/ \
+#     --results_file holdout-knn-funksvd-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -116,7 +121,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-2/ \
+#     --results_file holdout-knn-funksvd-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -143,7 +149,8 @@ python3 ../scripts/holdout.py \
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 python3 ../scripts/holdout.py \
     ../Datasets/ml100k/ratings.csv \
-    --results_path ../Results/holdout-knn-funksvd.csv \
+    --results_path ../Results/knn-funksvd-3/ \
+    --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
     --header 0 --sep , \
     --user_key user_id --item_key item_id --rating_key rating \
@@ -164,7 +171,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-3/ \
+#     --results_file holdout-knn-funksvd-30.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
@@ -185,7 +193,8 @@ python3 ../scripts/holdout.py \
 # #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.0
 # python3 ../scripts/holdout.py \
 #     ../Datasets/ml100k/ratings.csv \
-#     --results_path ../Results/holdout-knn-funksvd.csv \
+#     --results_path ../Results/knn-funksvd-3/ \
+#     --results_file holdout-knn-funksvd-10.csv \
 #     --holdout_perc 0.8 \
 #     --header 0 --sep , \
 #     --user_key user_id --item_key item_id --rating_key rating \
