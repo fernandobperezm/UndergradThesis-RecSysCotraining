@@ -162,7 +162,7 @@ class MultiThreadSLIM(SLIM):
         self.workers = workers
 
     def __str__(self):
-        return "SLIM_mt (l1_penalty={},l2_penalty={},positive_only={},workers={})".format(
+        return "SLIM_mt(l1_penalty={},l2_penalty={},positive_only={},workers={})".format(
             self.l1_penalty, self.l2_penalty, self.positive_only, self.workers
         )
 

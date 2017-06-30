@@ -17,8 +17,6 @@ from .base import Recommender, check_matrix
 from .._cython._mf import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 import logging
 
-import pdb
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -69,8 +67,8 @@ class FunkSVD(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "FunkSVD(num_factors={}, lrate={}, reg={}, iters={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={})".format(
+        return "FunkSVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={})".format(
             self.num_factors, self.lrate, self.reg, self.iters, self.init_mean, self.init_std, self.lrate_decay,
             self.rnd_seed
         )
@@ -109,10 +107,9 @@ class FunkSVD(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.U[user_idx], self.V.T)
 
-            pdb.set_trace()
-            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
                 or \
-                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
+                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
                 labels.append( (user_idx, item_idx, scores[item_idx]) )
                 number_labeled += 1
 
@@ -169,8 +166,8 @@ class AsySVD(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "AsySVD(num_factors={}, lrate={}, reg={}, iters={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={})".format(
+        return "AsySVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={})".format(
             self.num_factors, self.lrate, self.reg, self.iters, self.init_mean, self.init_std, self.lrate_decay,
             self.rnd_seed
         )
@@ -276,8 +273,8 @@ class IALS_numpy(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "WRMF-iALS(num_factors={},  reg={}, iters={}, scaling={}, alpha={}, episilon={}, init_mean={}, " \
-               "init_std={}, rnd_seed={})".format(
+        return "WRMF-iALS(num_factors={},reg={},iters={},scaling={},alpha={},episilon={},init_mean={}," \
+               "init_std={},rnd_seed={})".format(
             self.num_factors, self.reg, self.iters, self.scaling, self.alpha, self.epsilon, self.init_mean,
             self.init_std, self.rnd_seed
         )
@@ -459,9 +456,9 @@ class BPRMF(Recommender):
         self.verbose = verbose
 
     def __str__(self):
-        return "BPRMF(num_factors={}, lrate={}, user_reg={}. pos_reg={}, neg_reg={}, iters={}, " \
-               "sampling_type={}, sample_with_replacement={}, use_resampling={}, sampling_pop_alpha={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={}, verbose={})".format(
+        return "BPRMF(num_factors={},lrate={},user_reg={},pos_reg={},neg_reg={},iters={}," \
+               "sampling_type={},sample_with_replacement={},use_resampling={},sampling_pop_alpha={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={},verbose={})".format(
             self.num_factors, self.lrate, self.user_reg, self.pos_reg, self.neg_reg, self.iters,
             self.sampling_type, self.sample_with_replacement, self.use_resampling, self.sampling_pop_alpha,
             self.init_mean,
