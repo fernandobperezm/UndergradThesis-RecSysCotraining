@@ -17,6 +17,8 @@ from .base import Recommender, check_matrix
 from .._cython._mf import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 import logging
 
+import pdb
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -66,6 +68,9 @@ class FunkSVD(Recommender):
         self.lrate_decay = lrate_decay
         self.rnd_seed = rnd_seed
 
+    def short_str(self):
+        return "FunkSVD"
+
     def __str__(self):
         return "FunkSVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
                "init_std={},lrate_decay={},rnd_seed={})".format(
@@ -97,23 +102,33 @@ class FunkSVD(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
-        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
-        #       original algorithm says.
         labels = []
-        number_labeled = 0
+        number_p_most_labeled = 0
+        number_n_most_labeled = 0
         for user_idx, item_idx in unlabeled_list:
             # compute the scores using the dot product
+            #TODO: Ask if it's possible that the scores can be negative (like -0.05)
+            #      or less than 5.0, or if it's already normalized.
             scores = np.dot(self.U[user_idx], self.V.T)
 
-            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
-                or \
-                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
-                labels.append( (user_idx, item_idx, scores[item_idx]) )
-                number_labeled += 1
+            if (number_p_most_labeled < p_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 4.0 and scores[item_idx] <= 5.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 1.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_p_most_labeled += 1
 
-            if (number_labeled == p_most + n_most):
+            if (number_n_most_labeled < n_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 3.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 0.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_n_most_labeled += 1
+
+            if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
                 break
 
         return labels
@@ -165,6 +180,9 @@ class AsySVD(Recommender):
         self.lrate_decay = lrate_decay
         self.rnd_seed = rnd_seed
 
+    def short_str(self):
+        return "AsySVD"
+
     def __str__(self):
         return "AsySVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
                "init_std={},lrate_decay={},rnd_seed={})".format(
@@ -199,23 +217,32 @@ class AsySVD(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
-        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
-        #       original algorithm says.
         labels = []
-        number_labeled = 0
+        number_p_most_labeled = 0
+        number_n_most_labeled = 0
         for user_idx, item_idx in unlabeled_list:
             # compute the scores using the dot product
             scores = np.dot(self.X, self.U[user_idx].T)
 
-            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
-                or \
-                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
-                labels.append( (user_idx, item_idx, scores[item_idx]) )
-                number_labeled += 1
+            pdb.set_trace()
+            if (number_p_most_labeled < p_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 4.0 and scores[item_idx] <= 5.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 1.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_p_most_labeled += 1
 
-            if (number_labeled == p_most + n_most):
+            if (number_n_most_labeled < n_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 3.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 0.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_n_most_labeled += 1
+
+            if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
                 break
 
         return labels
@@ -271,6 +298,9 @@ class IALS_numpy(Recommender):
         self.init_mean = init_mean
         self.init_std = init_std
         self.rnd_seed = rnd_seed
+
+    def short_str(self):
+        return "WRMK-iALS"
 
     def __str__(self):
         return "WRMF-iALS(num_factors={},reg={},iters={},scaling={},alpha={},episilon={},init_mean={}," \
@@ -330,22 +360,29 @@ class IALS_numpy(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
-        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
-        #       original algorithm says.
         labels = []
-        number_labeled = 0
+        number_p_most_labeled = 0
+        number_n_most_labeled = 0
         for user_idx, item_idx in unlabeled_list:
             # compute the scores using the dot product
             scores = np.dot(self.X[user_idx], self.Y.T)
 
             # As IALS only works with binary ratings, we only bound for binary ratings.
-            if (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
-                labels.append( (user_idx, item_idx, scores[item_idx]) )
-                number_labeled += 1
+            pdb.set_trace()
+            if (number_p_most_labeled < p_most):
+                if (binary_ratings and scores[item_idx] == 1.0):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_p_most_labeled += 1
 
-            if (number_labeled == p_most + n_most):
+            if (number_n_most_labeled < n_most):
+                if (binary_ratings and scores[item_idx] == 0.0):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_n_most_labeled += 1
+
+            if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
                 break
 
         return labels
@@ -455,6 +492,9 @@ class BPRMF(Recommender):
         self.rnd_seed = rnd_seed
         self.verbose = verbose
 
+    def short_str(self):
+        return "BPRMF"
+
     def __str__(self):
         return "BPRMF(num_factors={},lrate={},user_reg={},pos_reg={},neg_reg={},iters={}," \
                "sampling_type={},sample_with_replacement={},use_resampling={},sampling_pop_alpha={},init_mean={}," \
@@ -505,21 +545,16 @@ class BPRMF(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
-        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
-        #       original algorithm says.
         labels = []
-        number_labeled = 0
+        number_p_most_labeled = 0
+        number_n_most_labeled = 0
         for user_idx, item_idx in unlabeled_list:
             # compute the scores using the dot product
             scores = np.dot(self.X[user_idx], self.Y.T)
 
-            if (scores[item_idx] != 0.0):
-                labels.append( (user_idx, item_idx, scores[item_idx]) )
-                number_labeled += 1
-
-            if (number_labeled == p_most + n_most):
-                break
+            #TODO: fill this.
 
         return labels

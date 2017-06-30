@@ -47,6 +47,9 @@ class CoTraining(object):
         self.n_most = n_most
         self.seed = seed
 
+    def short_str(self):
+        return "CoTraining"
+
     def __str__(self):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
             self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)

@@ -20,7 +20,6 @@ from .similarity import Cosine, Pearson, AdjustedCosine
 
 import pdb
 
-
 class ItemKNNRecommender(Recommender):
     """ ItemKNN recommender"""
 
@@ -40,6 +39,9 @@ class ItemKNNRecommender(Recommender):
             self.distance = AdjustedCosine(shrinkage=self.shrinkage)
         else:
             raise NotImplementedError('Distance {} not implemented'.format(similarity))
+
+    def short_str(self):
+        return "ItemKNN"
 
     def __str__(self):
         return "ItemKNN(similarity={},k={},shrinkage={},normalize={},sparse_weights={})".format(
@@ -167,12 +169,12 @@ class ItemKNNRecommender(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
-        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
-        #       original algorithm says.
         labels = []
-        number_labeled = 0
+        number_p_most_labeled = 0
+        number_n_most_labeled = 0
         for user_idx, item_idx in unlabeled_list:
             # compute the scores using the dot product
             user_profile = self._get_user_ratings(user_idx)
@@ -194,13 +196,23 @@ class ItemKNNRecommender(Recommender):
                 scores /= den
 
             # pdb.set_trace()
-            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
-                or \
-                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
-                labels.append( (user_idx, item_idx, scores[item_idx]) )
-                number_labeled += 1
+            # positive ratings: [4,5]
+            # negative ratings: [1,2,3]
+            if (number_p_most_labeled < p_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 4.0 and scores[item_idx] <= 5.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 1.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_p_most_labeled += 1
 
-            if (number_labeled == p_most + n_most):
+            if (number_n_most_labeled < n_most):
+                if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 3.0) \
+                    or \
+                    (binary_ratings and scores[item_idx] == 0.0) ):
+                    labels.append( (user_idx, item_idx, scores[item_idx]) )
+                    number_n_most_labeled += 1
+
+            if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
                 break
 
         return labels
