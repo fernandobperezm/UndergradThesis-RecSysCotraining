@@ -67,8 +67,8 @@ class FunkSVD(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "FunkSVD(num_factors={}, lrate={}, reg={}, iters={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={})".format(
+        return "FunkSVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={})".format(
             self.num_factors, self.lrate, self.reg, self.iters, self.init_mean, self.init_std, self.lrate_decay,
             self.rnd_seed
         )
@@ -80,6 +80,9 @@ class FunkSVD(Recommender):
                                      self.init_std,
                                      self.lrate_decay, self.rnd_seed)
 
+    def user_score(self, user_id):
+        return np.dot(self.U[user_id], self.V.T)
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.U[user_id], self.V.T)
         ranking = scores.argsort()[::-1]
@@ -87,6 +90,33 @@ class FunkSVD(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.U[user_id], self.V.T)
+        return scores[rated_indices]
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            scores = np.dot(self.U[user_idx], self.V.T)
+
+            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+                or \
+                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels
 
 
 class AsySVD(Recommender):
@@ -136,8 +166,8 @@ class AsySVD(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "AsySVD(num_factors={}, lrate={}, reg={}, iters={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={})".format(
+        return "AsySVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={})".format(
             self.num_factors, self.lrate, self.reg, self.iters, self.init_mean, self.init_std, self.lrate_decay,
             self.rnd_seed
         )
@@ -152,6 +182,9 @@ class AsySVD(Recommender):
         M = R.shape[0]
         self.U = np.vstack([AsySVD_compute_user_factors(R[i], self.Y) for i in range(M)])
 
+    def user_score(self, user_id):
+        return np.dot(self.X, self.U[user_id].T)
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X, self.U[user_id].T)
         ranking = scores.argsort()[::-1]
@@ -159,6 +192,33 @@ class AsySVD(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X, self.U[user_id].T)
+        return scores[rated_indices]
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            scores = np.dot(self.X, self.U[user_idx].T)
+
+            if ( (not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+                or \
+                 (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels
 
 
 class IALS_numpy(Recommender):
@@ -213,8 +273,8 @@ class IALS_numpy(Recommender):
         self.rnd_seed = rnd_seed
 
     def __str__(self):
-        return "WRMF-iALS(num_factors={},  reg={}, iters={}, scaling={}, alpha={}, episilon={}, init_mean={}, " \
-               "init_std={}, rnd_seed={})".format(
+        return "WRMF-iALS(num_factors={},reg={},iters={},scaling={},alpha={},episilon={},init_mean={}," \
+               "init_std={},rnd_seed={})".format(
             self.num_factors, self.reg, self.iters, self.scaling, self.alpha, self.epsilon, self.init_mean,
             self.init_std, self.rnd_seed
         )
@@ -253,6 +313,9 @@ class IALS_numpy(Recommender):
             self.Y = self._lsq_solver_fast(Ct, self.Y, self.X, self.reg)
             logger.debug('Finished iter {}'.format(it + 1))
 
+    def user_score(self, user_id):
+        return np.dot(self.X[user_id], self.Y.T)
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X[user_id], self.Y.T)
         ranking = scores.argsort()[::-1]
@@ -260,6 +323,32 @@ class IALS_numpy(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X[user_id], self.Y.T)
+        return scores[rated_indices]
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            scores = np.dot(self.X[user_idx], self.Y.T)
+
+            # As IALS only works with binary ratings, we only bound for binary ratings.
+            if (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels
 
     def _lsq_solver(self, C, X, Y, reg):
         # precompute YtY
@@ -367,9 +456,9 @@ class BPRMF(Recommender):
         self.verbose = verbose
 
     def __str__(self):
-        return "BPRMF(num_factors={}, lrate={}, user_reg={}. pos_reg={}, neg_reg={}, iters={}, " \
-               "sampling_type={}, sample_with_replacement={}, use_resampling={}, sampling_pop_alpha={}, init_mean={}, " \
-               "init_std={}, lrate_decay={}, rnd_seed={}, verbose={})".format(
+        return "BPRMF(num_factors={},lrate={},user_reg={},pos_reg={},neg_reg={},iters={}," \
+               "sampling_type={},sample_with_replacement={},use_resampling={},sampling_pop_alpha={},init_mean={}," \
+               "init_std={},lrate_decay={},rnd_seed={},verbose={})".format(
             self.num_factors, self.lrate, self.user_reg, self.pos_reg, self.neg_reg, self.iters,
             self.sampling_type, self.sample_with_replacement, self.use_resampling, self.sampling_pop_alpha,
             self.init_mean,
@@ -399,6 +488,9 @@ class BPRMF(Recommender):
                                    rnd_seed=self.rnd_seed,
                                    verbose=self.verbose)
 
+    def user_score(self, user_id):
+        return np.dot(self.X[user_id], self.Y.T)
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores = np.dot(self.X[user_id], self.Y.T)
         ranking = scores.argsort()[::-1]
@@ -406,3 +498,28 @@ class BPRMF(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        scores = np.dot(self.X[user_id], self.Y.T)
+        return scores[rated_indices]
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            scores = np.dot(self.X[user_idx], self.Y.T)
+
+            if (scores[item_idx] != 0.0):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels

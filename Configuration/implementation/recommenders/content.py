@@ -1,14 +1,13 @@
 '''
 Politecnico di Milano.
-item_knn.py
+content.py
 
-Description: This file contains the definition and implementation of a
-             ItemKNN-based Recommender.
+Description: This file contains the definition of an abstract content-based
+             recommender.
 
-Created by: Massimo Quadrana.
-Modified by Fernando Pérez.
+Created and modified by Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 22/05/2017.
 '''
 
 import random as random
@@ -20,12 +19,11 @@ from .similarity import Cosine, Pearson, AdjustedCosine
 
 import pdb
 
-
-class ItemKNNRecommender(Recommender):
-    """ ItemKNN recommender"""
+class ContentBasedRecommender(Recommender):
+    """ Content-Based recommender"""
 
     def __init__(self, k=50, shrinkage=100, similarity='cosine', normalize=False, sparse_weights=True):
-        super(ItemKNNRecommender, self).__init__()
+        super(ContentBasedRecommender, self).__init__()
         self.k = k
         self.shrinkage = shrinkage
         self.normalize = normalize
@@ -42,10 +40,16 @@ class ItemKNNRecommender(Recommender):
             raise NotImplementedError('Distance {} not implemented'.format(similarity))
 
     def __str__(self):
-        return "ItemKNN(similarity={},k={},shrinkage={},normalize={},sparse_weights={})".format(
+        return "Content(similarity={},k={},shrinkage={},normalize={},sparse_weights={})".format(
             self.similarity_name, self.k, self.shrinkage, self.normalize, self.sparse_weights)
 
     def fit(self, X):
+        '''
+            Fits the model given the Item Content Matrix X.
+            This computes the similarity based on the distance given in the
+            initialization part. After that, it holds only the k-most scored
+            items similarities.
+        '''
         self.dataset = X
         item_weights = self.distance.compute(X)
         # for each column, keep only the top-k scored items
@@ -67,29 +71,12 @@ class ItemKNNRecommender(Recommender):
                 cols.extend(np.ones(self.k) * i)
             self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
-    def user_score(self, user_id):
-        # compute the scores using the dot product
-        user_profile = self._get_user_ratings(user_id)
-
-        if self.sparse_weights:
-            scores = user_profile.dot(self.W_sparse).toarray().ravel()
-        else:
-            scores = user_profile.dot(self.W).ravel()
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = user_profile.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
-            else:
-                den = rated.dot(self.W).ravel()
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
-        return scores
-
     def recommend(self, user_id, n=None, exclude_seen=True):
+        '''
+            Makes a recommendation list based on the item similarities and the
+            actual rating of the item.
+        '''
+
         # compute the scores using the dot product
         user_profile = self._get_user_ratings(user_id)
 
@@ -141,29 +128,6 @@ class ItemKNNRecommender(Recommender):
             unseen_mask = np.in1d(ranking, seen, assume_unique=True, invert=True)
             ranking = ranking[unseen_mask]
         return ranking[:n]
-
-    def predict(self, user_id, rated_indices):
-        # compute the scores using the dot product
-        user_profile = self._get_user_ratings(user_id)
-
-        if self.sparse_weights:
-            scores = user_profile.dot(self.W_sparse).toarray().ravel()
-        else:
-            scores = user_profile.dot(self.W).ravel()
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = user_profile.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
-            else:
-                den = rated.dot(self.W).ravel()
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
-        # rank items
-        return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).

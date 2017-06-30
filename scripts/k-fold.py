@@ -3,13 +3,7 @@
 Politecnico di Milano.
 k-fold-cotraining.py
 
-Description: This file contains the implementation of the co-training algorithm
-             as stated in:
-             Blum, A., & Mitchell, T. (1998, July). Combining labeled and
-             unlabeled data with co-training. In Proceedings of the eleventh
-             annual conference on Computational learning theory (pp. 92-100).
-             ACM.
-             Available here: http://repository.cmu.edu/cgi/viewcontent.cgi?article=1181&context=compsci
+Description: This file contains the fitting and evaluation of two recsys.
              Using k-fold cross-validaton.
 
 Modified by Fernando Pérez.
@@ -134,7 +128,6 @@ logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 logger.info('Computing the {:.0f}% {}-fold cross-validation split'.format(args.holdout_perc * 100, args.k_fold))
 roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(
     args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold)
-
 roc_auc_2, precision_2, recall_2, map_2, mrr_2, ndcg_2 = np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(
     args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold), np.zeros(args.k_fold)
 i_fold = 0
@@ -148,21 +141,6 @@ for train_df, test_df in k_fold_cv(dataset,
                               clean_test=True):
     logger.info(("Fold: {}".format(i_fold)))
 
-    # TODO: Modularize Co-training.
-    '''
-        Co-Training begins here.
-        As the Co-Training algorith states:
-        L: a set of labeled samples.
-        U: a set of unlabeled samples.
-        L union U === train: a set of labeled and unlabeled samples.
-        U' === u_prime: pool of examples.
-        u === args.number_unlabeled number of samples to take from U when creating U'.
-        k === args.number_iterations number of Co-Training iterations
-        h1 === h1: first classifier/regressor.
-        h2 === h2: second classifier/regressor.
-        p === number_positives: number of positives examples to label from U'
-        n === number_negatives: number of negative examples to label from U'
-    '''
     # Create our label and unlabeled samples set.
     train = df_to_csr(train_df,
                       is_binary=args.is_binary,
@@ -181,59 +159,20 @@ for train_df, test_df in k_fold_cv(dataset,
                      user_key='user_idx',
                      rating_key=args.rating_key)
 
-    # Create the pool of examples.
-    # Using a DoK matrix to have a A[row[k], col[k]] = Data[k] representation
-    # without having an efficiency tradeoff.
-    u_prime = sp.sparse.dok_matrix((nusers,nitems), dtype=np.int32)
+    h1 = RecommenderClass_1(**init_args_recomm_1)
+    h2 = RecommenderClass_2(**init_args_recomm_2)
 
-    # Feed U' with unlabeled samples.
-    i = 0
-    while (i < args.number_unlabeled):
-        rnd_user = np.random.randint(0, high=nusers, dtype='l')
-        rnd_item = np.random.randint(0, high=nitems, dtype='l')
-        if (train[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-            u_prime[rnd_user, rnd_item] = 1
-            i += 1
+    logger.info('\t\tRecommender: {}'.format(h1))
+    tic = dt.now()
+    logger.info('\t\t\tTraining started for recommender: {}'.format(h1))
+    h1.fit(train)
+    logger.info('\t\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h1))
 
-    # Co-Training iterations begin here.
-    for i_iter in range(args.number_iterations):
-        logger.info(("\tIteration: {}".format(i_iter)))
-        # train the recommenders
-        h1 = RecommenderClass_1(**init_args_recomm_1)
-        h2 = RecommenderClass_2(**init_args_recomm_2)
-
-        logger.info('\t\tRecommender: {}'.format(h1))
-        tic = dt.now()
-        logger.info('\t\t\tTraining started for recommender: {}'.format(h1))
-        h1.fit(train)
-        logger.info('\t\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h1))
-
-        logger.info('\t\tRecommender: {}'.format(h2))
-        tic = dt.now()
-        logger.info('\t\t\tTraining started for recommender: {}'.format(h2))
-        h2.fit(train)
-        logger.info('\t\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h2))
-
-        # Label positively and negatively examples from U' for both recommenders.
-        unlabeled = u_prime.keys()
-        # TODO: Make ALL recommender to have the member function label which must return
-        #       a list of Triplets (user_idx, item_idx, predicted label)
-        labeled1 = h1.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
-        labeled2 = h2.label(unlabeled_list=list(unlabeled), exclude_seen=True, p_most=args.number_positives, n_most=args.number_negatives)
-
-        # Add the labeled examples into L (and eliminate them from U' as they aren't unlabeled anymore).
-        for user_idx, item_idx, label in (labeled1 + labeled2):
-            train[user_idx, item_idx] = label
-            u_prime[user_idx, item_idx] = 0
-
-        # Replenish U' with 2*p + 2*n samples from U.
-        i = 0
-        while (i < (2*args.number_positives + 2*args.number_negatives) ):
-            rnd_user = np.random.randint(0, high=nusers, dtype='l')
-            rnd_item = np.random.randint(0, high=nitems, dtype='l')
-            if (train[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                u_prime[rnd_user, rnd_item] = 1.0
-                i += 1
+    logger.info('\t\tRecommender: {}'.format(h2))
+    tic = dt.now()
+    logger.info('\t\t\tTraining started for recommender: {}'.format(h2))
+    h2.fit(train)
+    logger.info('\t\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, h2))
 
     # evaluate the ranking quality
     at = args.rec_length
@@ -303,8 +242,8 @@ logger.info('NDCG@{}: {:.4f}'.format(at, ndcg_2.mean()))
 
 results_to_file(filepath=args.results_path,
                 evaluation_type='{}-fold cross-validation split'.format(args.k_fold),
-                cotraining=True,
-                iterations=args.number_iterations,
+                cotraining=False,
+                iterations=0,
                 recommender1=h1,
                 recommender2=h2,
                 evaluation1=[roc_auc_.mean(), precision_.mean(), recall_.mean(), map_.mean(), mrr_.mean(), ndcg_.mean()],

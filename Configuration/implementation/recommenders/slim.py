@@ -16,6 +16,8 @@ import scipy.sparse as sps
 from .base import Recommender, check_matrix
 from sklearn.linear_model import ElasticNet
 
+import pdb
+
 
 class SLIM(Recommender):
     """
@@ -86,6 +88,11 @@ class SLIM(Recommender):
         # generate the sparse weight matrix
         self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(n_items, n_items), dtype=np.float32)
 
+    def user_score(self, user_id):
+        user_profile = self._get_user_ratings(user_id)
+        scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        return scores
+
     def recommend(self, user_id, n=None, exclude_seen=True):
         # compute the scores using the dot product
         user_profile = self._get_user_ratings(user_id)
@@ -95,6 +102,12 @@ class SLIM(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices):
+        # compute the scores using the dot product
+        user_profile = self._get_user_ratings(user_id)
+        scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        return scores[rated_indices]
 
     def recommend_new_user(self, user_profile, n=None, exclude_seen=True):
         assert user_profile.shape[1] == self.W_sparse.shape[0], 'The number of items does not match!'
@@ -107,6 +120,30 @@ class SLIM(Recommender):
             unseen_mask = np.in1d(ranking, seen, assume_unique=True, invert=True)
             ranking = ranking[unseen_mask]
         return ranking[:n]
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
+        np.random.shuffle(unlabeled_list)
+
+        # TODO: Instead of just labeling p + n items, label p_most and n_most as the
+        #       original algorithm says.
+        labels = []
+        number_labeled = 0
+        for user_idx, item_idx in unlabeled_list:
+            # compute the scores using the dot product
+            user_profile = self._get_user_ratings(user_idx)
+            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+
+            if ((not(binary_ratings) and scores[item_idx] >= 1.0 and scores[item_idx] <= 5.0) \
+                or \
+                (binary_ratings and scores[item_idx] >= 0.0 and scores[item_idx] <= 1.0) ):
+                labels.append( (user_idx, item_idx, scores[item_idx]) )
+                number_labeled += 1
+
+            if (number_labeled == p_most + n_most):
+                break
+
+        return labels
 
 
 from multiprocessing import Pool
@@ -125,7 +162,7 @@ class MultiThreadSLIM(SLIM):
         self.workers = workers
 
     def __str__(self):
-        return "SLIM_mt (l1_penalty={},l2_penalty={},positive_only={},workers={})".format(
+        return "SLIM_mt(l1_penalty={},l2_penalty={},positive_only={},workers={})".format(
             self.l1_penalty, self.l2_penalty, self.positive_only, self.workers
         )
 
