@@ -227,7 +227,7 @@ class AsySVD(Recommender):
             # compute the scores using the dot product
             scores = np.dot(self.X, self.U[user_idx].T)
 
-            pdb.set_trace()
+            # pdb.set_trace()
             if (number_p_most_labeled < p_most):
                 if ((not(binary_ratings) and scores[item_idx] >= 4.0 and scores[item_idx] <= 5.0) \
                     or \

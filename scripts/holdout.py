@@ -193,7 +193,7 @@ cotraining.fit(train, eval_iter = True)
 # Plotting.
 # eval1.plot_all()
 # eval2.plot_all()
-# eval1_ctr.plot_all(1)
-# eval2_ctr.plot_all(2)
-# cotraining.eval_aggr.plot_all(3)
-cotraining.eval_aggr.plot_all_recommenders(eval1_ctr, eval2_ctr)
+cotraining.eval_aggr.plot_all_recommenders(eval1_ctr, eval2_ctr) # First 7 figures.
+eval1_ctr.plot_all() # Second 7 figures.
+eval2_ctr.plot_all() # Third 7 figures.
+cotraining.eval_aggr.plot_all() # Fourth 7 figures.
