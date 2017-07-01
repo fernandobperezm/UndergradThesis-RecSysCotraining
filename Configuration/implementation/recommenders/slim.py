@@ -130,8 +130,6 @@ class SLIM(Recommender):
         # Labeling of p-most positive and n-most negative ratings.
         # The score function in this SLIM approach is a generic score NOT a
         # rating, the higher, the better.
-        np.random.shuffle(unlabeled_list)
-
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0

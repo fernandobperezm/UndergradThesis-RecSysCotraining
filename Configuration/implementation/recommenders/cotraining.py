@@ -119,8 +119,12 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             unlabeled = u_prime.keys()
-            labeled1 = self.rec_1.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
-            labeled2 = self.rec_2.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            unl1 = list(unlabeled)
+            unl2 = list(unlabeled)
+            rs.shuffle(unl1)
+            rs.shuffle(unl2)
+            labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             for user_idx, item_idx, label in labeled1:
