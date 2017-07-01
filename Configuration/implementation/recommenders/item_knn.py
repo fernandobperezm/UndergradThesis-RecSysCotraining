@@ -48,7 +48,10 @@ class ItemKNNRecommender(Recommender):
             self.similarity_name, self.k, self.shrinkage, self.normalize, self.sparse_weights)
 
     def fit(self, X):
-        self.dataset = X
+        '''
+            X: represents the dataset. It must be of type
+        '''
+        self.dataset = X.tocsr()
         item_weights = self.distance.compute(X)
         # for each column, keep only the top-k scored items
         idx_sorted = np.argsort(item_weights, axis=0)  # sort by column
@@ -171,8 +174,6 @@ class ItemKNNRecommender(Recommender):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
-
-
 
         labels = []
         number_p_most_labeled = 0
