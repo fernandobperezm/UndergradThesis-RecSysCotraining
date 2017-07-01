@@ -35,6 +35,7 @@ class UserKNNRecommender(ItemKNNRecommender):
             self.similarity_name, self.k, self.shrinkage, self.normalize, self.sparse_weights)
 
     def fit(self, X):
+        X = X.tocsr()
         M, N = X.shape
         Xt = X.T.tocsr()
         # fit a ItemKNNRecommender on the transposed X matrix
