@@ -48,7 +48,8 @@ class CoTraining(object):
         self.seed = seed
 
     def short_str(self):
-        return "CoTraining"
+        return "CoTraining(Rec1={},Rec2={},Iter={})".format(
+            self.rec_1.short_str(),self.rec_2.short_str(),self.n_iters)
 
     def __str__(self):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(

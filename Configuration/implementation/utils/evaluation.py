@@ -51,7 +51,7 @@ class Evaluation(object):
 
     def __str__(self):
         return "Evaluation(Rec={}\n)".format(
-            self.recommender.__str__)
+            self.recommender.__str__())
 
 
     def eval(self, train_set):
@@ -111,7 +111,7 @@ class Evaluation(object):
         plt.ylabel('RMSE')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "RMSE_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "RMSE_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -122,7 +122,7 @@ class Evaluation(object):
         plt.ylabel('ROC-AUC')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -133,7 +133,7 @@ class Evaluation(object):
         plt.ylabel('Precision')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "Precision_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "Precision_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -144,7 +144,7 @@ class Evaluation(object):
         plt.ylabel('Recall')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "Recall_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "Recall_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -155,7 +155,7 @@ class Evaluation(object):
         plt.ylabel('MAP')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "MAP_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "MAP_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -166,7 +166,7 @@ class Evaluation(object):
         plt.ylabel('MRR')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "MRR_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "MRR_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -177,7 +177,7 @@ class Evaluation(object):
         plt.ylabel('NDCG')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "NDCG_{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "NDCG_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -195,7 +195,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_RMSE_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_RMSE_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -209,7 +209,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_ROC-AUC_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_ROC-AUC_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -223,7 +223,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_Precision_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_Precision_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -237,7 +237,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_Recall_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_Recall_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -251,7 +251,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.grid(True)
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
-        savepath = self.results_path + "Together_MAP_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_MAP_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -265,7 +265,7 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_MRR_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_MRR_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
 
@@ -279,6 +279,6 @@ class Evaluation(object):
         plt.xlabel('Iterations')
         plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
         plt.grid(True)
-        savepath = self.results_path + "Together_NDCG_{}iter_{}.png".format(n_iters,self.recommender.__str__())
+        savepath = self.results_path + "Together_NDCG_{}iter_{}.png".format(n_iters,self.recommender.short_str())
         plt.savefig(savepath)
         plt.clf()
