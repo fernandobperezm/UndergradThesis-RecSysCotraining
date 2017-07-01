@@ -33,10 +33,10 @@ class Evaluation(object):
         '''
         super(Evaluation, self).__init__()
         self.recommender = recommender
+        self.test_set = test_set
         self.results_path = results_path
         self.results_file = results_file
         self.nusers = nusers
-        self.test_set = test_set
         self.val_set = val_set
         self.at = at
         self.rmse = list()
@@ -54,7 +54,7 @@ class Evaluation(object):
             self.recommender.__str__())
 
 
-    def eval(self, train_set):
+    def eval(self,train_set):
         at = self.at
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0

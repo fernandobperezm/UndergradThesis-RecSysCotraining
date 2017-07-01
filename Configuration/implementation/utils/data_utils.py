@@ -114,6 +114,55 @@ def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html
     return sps.csr_matrix((ratings, (rows, columns)), shape=shape)
 
+
+def df_to_lil(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='item_idx', rating_key='rating'):
+    """
+    Convert a pandas DataFrame to a scipy.sparse.lil_matrix.
+    This matrix is useful for constructing a sparse matrix but not for operations
+    on it.
+    """
+
+    rows = df[user_key].values
+    columns = df[item_key].values
+    ratings = df[rating_key].values if not is_binary else np.ones(df.shape[0])
+    # use floats by default
+    ratings = ratings.astype(np.float32)
+    shape = (nrows, ncols)
+
+    # Using the 3rd constructor of lil_matrix.
+    # This returns an empty lil_matrix.
+    # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.lil_matrix.html#scipy.sparse.lil_matrix
+    data = sps.lil_matrix(shape)
+    for i in range(len(ratings)):
+        data[ rows[i], cols[i] ] = ratings[i]
+
+    return data
+
+def df_to_dok(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='item_idx', rating_key='rating'):
+    """
+    Convert a pandas DataFrame to a scipy.sparse.dok_matrix.
+    This matrix is useful for constructing a sparse matrix but not for operations
+    on it. It adds a little overhead of about 10s (w.r.t. to CSR  with MovieLens10M)
+    on creation, however, the update of it's elements (useful for Co-Training) is
+    fast.
+    """
+
+    rows = df[user_key].values
+    columns = df[item_key].values
+    ratings = df[rating_key].values if not is_binary else np.ones(df.shape[0])
+    # use floats by default
+    ratings = ratings.astype(np.float32)
+    shape = (nrows, ncols)
+
+    # Using the 3rd constructor of dok_matrix.
+    # This returns an empty dok_matrix.
+    # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.lil_matrix.html#scipy.sparse.lil_matrix
+    data = sps.dok_matrix(shape)
+    for u,i,r in zip(rows,columns,ratings):
+        data.update({(u,i):r})
+
+    return data
+
 def results_to_df(filepath):
     available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
     columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics

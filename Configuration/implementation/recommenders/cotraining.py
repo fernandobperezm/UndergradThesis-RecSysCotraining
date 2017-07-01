@@ -119,8 +119,6 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             unlabeled = u_prime.keys()
-            # TODO: Make ALL recommender to have the member function label which must return
-            #       a list of Triplets (user_idx, item_idx, predicted label)
             labeled1 = self.rec_1.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             labeled2 = self.rec_2.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 

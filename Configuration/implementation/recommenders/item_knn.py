@@ -172,6 +172,8 @@ class ItemKNNRecommender(Recommender):
         # Labeling of p-most positive and n-most negative ratings.
         np.random.shuffle(unlabeled_list)
 
+
+
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0
