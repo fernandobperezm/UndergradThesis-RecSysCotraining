@@ -103,7 +103,7 @@ class FunkSVD(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
+
 
         labels = []
         number_p_most_labeled = 0
@@ -218,7 +218,7 @@ class AsySVD(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
+
 
         labels = []
         number_p_most_labeled = 0
@@ -361,7 +361,7 @@ class IALS_numpy(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
+
 
         labels = []
         number_p_most_labeled = 0
@@ -546,8 +546,7 @@ class BPRMF(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
-
+        
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0
