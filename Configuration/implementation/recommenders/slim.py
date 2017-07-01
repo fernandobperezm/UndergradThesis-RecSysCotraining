@@ -51,6 +51,7 @@ class SLIM(Recommender):
         )
 
     def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         X = check_matrix(X, 'csc', dtype=np.float32)
         n_items = X.shape[1]
@@ -204,6 +205,7 @@ class MultiThreadSLIM(SLIM):
         return values, rows, cols
 
     def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         X = check_matrix(X, 'csc', dtype=np.float32)
         n_items = X.shape[1]
