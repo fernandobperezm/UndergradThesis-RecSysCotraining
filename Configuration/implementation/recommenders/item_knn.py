@@ -51,7 +51,9 @@ class ItemKNNRecommender(Recommender):
         '''
             X: represents the dataset. It must be of type
         '''
-        self.dataset = X.tocsr()
+        # convert X to csr matrix for faster row-wise operations
+        X = check_matrix(X, 'csr', dtype=np.float32)
+        self.dataset = X
         item_weights = self.distance.compute(X)
         # for each column, keep only the top-k scored items
         idx_sorted = np.argsort(item_weights, axis=0)  # sort by column

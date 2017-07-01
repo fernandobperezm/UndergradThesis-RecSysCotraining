@@ -55,6 +55,9 @@ class Evaluation(object):
 
 
     def eval(self,train_set):
+        if (not isinstance(train_set,sps.csr_matrix)):
+            train_set = train_set.tocsr().astype(np.float32)
+
         at = self.at
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
