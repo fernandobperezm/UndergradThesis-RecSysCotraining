@@ -19,6 +19,8 @@ import pandas as pd
 import logging
 import csv
 
+import pdb
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -112,8 +114,19 @@ def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html
     return sps.csr_matrix((ratings, (rows, columns)), shape=shape)
 
+def results_to_df(filepath):
+    available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+    columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
+    sep = ' '
+    header = 0
+
+    results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
+
+    results.take(10)
+    return results
+
 def results_to_file(filepath,
-                    evaluation_type,
+                    header=False,
                     cotraining=False,
                     iterations=0,
                     recommender1=None,
@@ -125,12 +138,17 @@ def results_to_file(filepath,
 
     with open(filepath, 'a', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        csvwriter.writerow([cotraining,
-                         iterations if cotraining else "NaN",
-                         at,
-                         recommender1.__str__()
-                         ] +
-                         evaluation1)
+        if header:
+            available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+            columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
+            csvwriter.writerow(columns)
+        else:
+            csvwriter.writerow([cotraining,
+                             iterations if cotraining else "NaN",
+                             at,
+                             recommender1.__str__()
+                             ] +
+                             evaluation1)
 
 
 

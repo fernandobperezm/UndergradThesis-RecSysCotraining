@@ -93,7 +93,6 @@ class Evaluation(object):
     def log_by_index(self,index):
         filepath = self.results_path + self.results_file
         data_utils.results_to_file(filepath=filepath,
-                        evaluation_type="holdout at 80%",
                         cotraining=self.cotraining,
                         iterations=index,
                         recommender1=self.recommender,

@@ -24,7 +24,7 @@ import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr
+from implementation.utils.data_utils import read_dataset, df_to_csr, results_to_file
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 from implementation.utils.evaluation import Evaluation
@@ -181,7 +181,9 @@ cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_ob
 # Recommender fitting.
 h1.fit(train)
 h2.fit(train)
+
 # Recommender evaluation.
+results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 eval1.eval(train)
 eval2.eval(train)
 eval1.log_by_index(0)
