@@ -24,7 +24,7 @@ import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr, results_to_file
+from implementation.utils.data_utils import read_dataset, df_to_csr, df_to_dok, df_to_lil, results_to_file
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 from implementation.utils.evaluation import Evaluation
@@ -143,7 +143,9 @@ train_df, test_df = holdout(dataset,
                             clean_test=True)
 
 # Create our label and unlabeled samples set.
-train = df_to_csr(train_df,
+# As the train set will be modifed in the co-training approach, it's more
+# efficient to modify a dok_matrix than a csr_matrix.
+train = df_to_dok(train_df,
                   is_binary=args.is_binary,
                   nrows=nusers,
                   ncols=nitems,
