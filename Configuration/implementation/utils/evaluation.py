@@ -33,10 +33,10 @@ class Evaluation(object):
         '''
         super(Evaluation, self).__init__()
         self.recommender = recommender
+        self.test_set = test_set
         self.results_path = results_path
         self.results_file = results_file
         self.nusers = nusers
-        self.test_set = test_set
         self.val_set = val_set
         self.at = at
         self.rmse = list()
@@ -51,10 +51,13 @@ class Evaluation(object):
 
     def __str__(self):
         return "Evaluation(Rec={}\n)".format(
-            self.recommender.__str__)
+            self.recommender.__str__())
 
 
-    def eval(self, train_set):
+    def eval(self,train_set):
+        if (not isinstance(train_set,sps.csr_matrix)):
+            train_set = train_set.tocsr().astype(np.float32)
+
         at = self.at
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -93,7 +96,6 @@ class Evaluation(object):
     def log_by_index(self,index):
         filepath = self.results_path + self.results_file
         data_utils.results_to_file(filepath=filepath,
-                        evaluation_type="holdout at 80%",
                         cotraining=self.cotraining,
                         iterations=index,
                         recommender1=self.recommender,
@@ -101,69 +103,184 @@ class Evaluation(object):
                         at=self.at
                         )
 
-    def plot_all(self,number_figure):
+    def plot_all(self):
         # plot with various axes scales
-        plt.figure(number_figure)
-        plt.title(self.recommender.__str__())
 
         # rmse
-        plt.subplot(4,2,1)
+        plt.figure(1)
         plt.plot(self.rmse)
-        plt.title('RMSE')
-        # plt.ylabel('RMSE')
-        # plt.xlabel('Iterations')
-        plt.grid(True)
-
-        # roc_auc
-        plt.subplot(4,2,2)
-        plt.plot(self.roc_auc)
-        plt.title('ROC-AUC@{}'.format(self.at))
-        # plt.xlabel('Iterations')
-        plt.grid(True)
-
-        # precision
-        plt.subplot(4,2,3)
-        plt.plot(self.precision)
-        plt.title('PRECISION@{}'.format(self.at))
-        # plt.xlabel('Iterations')
-        plt.grid(True)
-
-        # recall
-        plt.subplot(4,2,4)
-        plt.plot(self.recall)
-        plt.title('RECALL@{}'.format(self.at))
-        # plt.xlabel('Iterations')
-        plt.grid(True)
-
-        # map
-        plt.subplot(4,2,5)
-        plt.plot(self.map)
-        plt.title('MAP@{}'.format(self.at))
-        # plt.xlabel('Iterations')
-        plt.grid(True)
-
-        # mrr
-        plt.subplot(4,2,6)
-        plt.plot(self.mrr)
-        plt.title('MRR@{}'.format(self.at))
+        plt.title('RMSE for {} recommender'.format(self.recommender.short_str()))
+        plt.ylabel('RMSE')
         plt.xlabel('Iterations')
         plt.grid(True)
+        savepath = self.results_path + "RMSE_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # roc_auc
+        plt.figure(2)
+        plt.plot(self.roc_auc)
+        plt.title('ROC-AUC@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('ROC-AUC')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # precision
+        plt.figure(3)
+        plt.plot(self.precision)
+        plt.title('Precision@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('Precision')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        savepath = self.results_path + "Precision_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # recall
+        plt.figure(4)
+        plt.plot(self.recall)
+        plt.title('Recall@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('Recall')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        savepath = self.results_path + "Recall_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # map
+        plt.figure(5)
+        plt.plot(self.map)
+        plt.title('MAP@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('MAP')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        savepath = self.results_path + "MAP_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # mrr
+        plt.figure(6)
+        plt.plot(self.mrr)
+        plt.title('MRR@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('MRR')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        savepath = self.results_path + "MRR_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
 
         # ndcg
-        plt.subplot(4,2,7)
+        plt.figure(7)
         plt.plot(self.ndcg)
-        plt.title('NDCG@{}'.format(self.at))
-        # plt.xlabel('Iterations')
+        plt.title('NDCG@{} for {} recommender'.format(self.at, self.recommender.short_str()))
+        plt.ylabel('NDCG')
+        plt.xlabel('Iterations')
         plt.grid(True)
-
-        # Format the minor tick labels of the y-axis into empty strings with
-        # 'NullFormatter', to avoid cumbering the axis with too many labels.
-        plt.gca().yaxis.set_minor_formatter(NullFormatter())
-        # Adjust the subplot layout, because the logit one may take more space
-        # than usual, due to y-tick labels like "1 - 10^{-3}"
-        plt.subplots_adjust(top=0.92, bottom=0.08, left=0.10, right=0.95, hspace=0.3,
-                            wspace=0.5)
-
-        savepath = self.results_path + "{}iter_{}.png".format(len(self.rmse),self.recommender.__str__())
+        savepath = self.results_path + "NDCG_{}iter_{}.png".format(len(self.rmse),self.recommender.short_str())
         plt.savefig(savepath)
-        # plt.show()
+        plt.clf()
+
+    def plot_all_recommenders(self, eval1, eval2):
+        iterations = np.arange(len(self.rmse))
+        n_iters = len(iterations)
+        # Plot each metric in a different file.
+        # RMSE.
+        plt.figure(1)
+        plt.title('RMSE between the recommenders.')
+        self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.rmse, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.rmse, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('RMSE')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_RMSE_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # ROC-AUC.
+        plt.figure(2)
+        plt.title('ROC-AUC@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.roc_auc, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.roc_auc, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('ROC-AUC')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_ROC-AUC_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # Precision
+        plt.figure(3)
+        plt.title('Precision@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.precision, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.precision, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('Precision')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_Precision_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # Recall
+        plt.figure(4)
+        plt.title('Recall@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.recall, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.recall, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('Recall')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_Recall_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # MAP
+        plt.figure(5)
+        plt.title('MAP@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.map, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.map, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('MAP')
+        plt.xlabel('Iterations')
+        plt.grid(True)
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        savepath = self.results_path + "Together_MAP_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # MRR
+        plt.figure(6)
+        plt.title('MRR@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.mrr, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.mrr, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('MRR')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_MRR_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()
+
+        # NDCG
+        plt.figure(7)
+        plt.title('NDCG@{} between the recommenders.'.format(self.at))
+        self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
+        eval1_plot, = plt.plot(iterations, eval1.ndcg, 'b-', label=eval1.recommender.short_str())
+        eval2_plot, = plt.plot(iterations, eval2.ndcg, 'g-', label=eval2.recommender.short_str())
+        plt.ylabel('NDCG')
+        plt.xlabel('Iterations')
+        plt.legend(handles=[self_plot,eval1_plot,eval2_plot])
+        plt.grid(True)
+        savepath = self.results_path + "Together_NDCG_{}iter_{}.png".format(n_iters,self.recommender.short_str())
+        plt.savefig(savepath)
+        plt.clf()

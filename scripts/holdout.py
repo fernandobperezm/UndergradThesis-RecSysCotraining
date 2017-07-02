@@ -24,7 +24,7 @@ import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr
+from implementation.utils.data_utils import read_dataset, df_to_csr, df_to_dok, df_to_lil, results_to_file
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 from implementation.utils.evaluation import Evaluation
@@ -143,7 +143,9 @@ train_df, test_df = holdout(dataset,
                             clean_test=True)
 
 # Create our label and unlabeled samples set.
-train = df_to_csr(train_df,
+# As the train set will be modifed in the co-training approach, it's more
+# efficient to modify a dok_matrix than a csr_matrix.
+train = df_to_dok(train_df,
                   is_binary=args.is_binary,
                   nrows=nusers,
                   ncols=nitems,
@@ -160,14 +162,6 @@ test = df_to_csr(test_df,
                  user_key='user_idx',
                  rating_key=args.rating_key)
 
-# Recommenders alone.
-h1 = RecommenderClass_1(**init_args_recomm_1)
-h2 = RecommenderClass_2(**init_args_recomm_2)
-
-# Evaluations alone.
-eval1 = Evaluation(recommender=h1, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
-eval2 = Evaluation(recommender=h2, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=False)
-
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
@@ -178,21 +172,14 @@ eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, resul
 eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
 cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
 
-# Recommender fitting.
-h1.fit(train)
-h2.fit(train)
 # Recommender evaluation.
-eval1.eval(train)
-eval2.eval(train)
-eval1.log_by_index(0)
-eval2.log_by_index(0)
+results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
 # Cotraining fitting and evaluation.
 cotraining.fit(train, eval_iter = True)
 
 # Plotting.
-# eval1.plot_all()
-# eval2.plot_all()
-eval1_ctr.plot_all(1)
-eval2_ctr.plot_all(2)
-cotraining.eval_aggr.plot_all(3)
+cotraining.eval_aggr.plot_all_recommenders(eval1_ctr, eval2_ctr) # First 7 figures.
+eval1_ctr.plot_all() # Second 7 figures.
+eval2_ctr.plot_all() # Third 7 figures.
+cotraining.eval_aggr.plot_all() # Fourth 7 figures.

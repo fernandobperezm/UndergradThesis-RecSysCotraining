@@ -47,6 +47,10 @@ class CoTraining(object):
         self.n_most = n_most
         self.seed = seed
 
+    def short_str(self):
+        return "CoTraining(Rec1={},Rec2={},Iter={})".format(
+            self.rec_1.short_str(),self.rec_2.short_str(),self.n_iters)
+
     def __str__(self):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
             self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)
@@ -80,10 +84,10 @@ class CoTraining(object):
         # Feed U' with unlabeled samples.
         i = 0
         while (i < self.n_labels):
-            rnd_user = rng.randint(0, high=nusers, dtype='l')
-            rnd_item = rng.randint(0, high=nitems, dtype='l')
-            if (X1[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                u_prime[rnd_user, rnd_item] = 1
+            rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
+            rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
+            if (X1.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
+                u_prime.update({(rnd_user,rnd_item): 1})
                 i += 1
 
         # Training set for Rec2.
@@ -115,28 +119,30 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             unlabeled = u_prime.keys()
-            # TODO: Make ALL recommender to have the member function label which must return
-            #       a list of Triplets (user_idx, item_idx, predicted label)
-            labeled1 = self.rec_1.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
-            labeled2 = self.rec_2.label(unlabeled_list=list(unlabeled), binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            unl1 = list(unlabeled)
+            unl2 = list(unlabeled)
+            rng.shuffle(unl1)
+            rng.shuffle(unl2)
+            labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             for user_idx, item_idx, label in labeled1:
-                X2[user_idx, item_idx] = label
-                u_prime[user_idx, item_idx] = 0
+                X2.update({(user_idx,item_idx): label})
+                u_prime.update({(user_idx,item_idx): 0})
 
             # Add the labeled examples from recommender2 into T1. (and eliminate them from U' as they aren't X_unlabeled anymore).
             for user_idx, item_idx, label in labeled2:
-                X1[user_idx, item_idx] = label
-                u_prime[user_idx, item_idx] = 0
+                X1.update({(user_idx,item_idx): label})
+                u_prime.update({(user_idx,item_idx): 0})
 
             # Replenish U' with 2*p + 2*n samples from U.
             i = 0
-            while (i < (2*self.p_most + 2*self.n_most) ):
-                rnd_user = rng.randint(0, high=nusers, dtype='l')
-                rnd_item = rng.randint(0, high=nitems, dtype='l')
-                if (X1[rnd_user, rnd_item] == 0.0 and X2[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                    u_prime[rnd_user, rnd_item] = 1
+            while (i < (len(labeled1) + len(labeled2)) ):
+                rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
+                rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
+                if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
+                    u_prime.update({(rnd_user,rnd_item): 1})
                     i += 1
 
     def recommend(self, user_id, n=None, exclude_seen=True):
@@ -167,8 +173,8 @@ class CoTraining(object):
         i_sample = 0
         random_pop = set()
         while (i_sample < n_samples):
-            rnd_user = np.random.randint(0, high=nusers, dtype='l')
-            rnd_item = np.random.randint(0, high=nitems, dtype='l')
+            rnd_user = np.random.randint(0, high=nusers, dtype=np.int32)
+            rnd_item = np.random.randint(0, high=nitems, dtype=np.int32)
             if (dataset[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
                 random_pop.add( (rnd_user, rnd_item) )
                 i_sample +=1

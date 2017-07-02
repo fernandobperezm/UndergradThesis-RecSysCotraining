@@ -13,9 +13,9 @@
 #     --recommender_2 top_pop --rec_length 10 \
 #     --k_fold 2 \
 #     --number_iterations 30 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     #--columns -> Comma separated names for every column.
 #     #--params_1 -> Params of the recommender 1.
 #     #--params_2 -> Params of the recommender 2.
@@ -35,9 +35,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 40 \
-    --number_negatives 120 \
-    --number_unlabeled 3000 \
+    --number_positives 10 \
+    --number_negatives 30 \
+    --number_unlabeled 750 \
     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
@@ -57,9 +57,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 30 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -79,9 +79,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 10 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -107,9 +107,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 40 \
-    --number_negatives 120 \
-    --number_unlabeled 3000 \
+    --number_positives 10 \
+    --number_negatives 30 \
+    --number_unlabeled 750 \
     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
@@ -129,9 +129,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 30 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -151,9 +151,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 10 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -179,9 +179,9 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 user_knn --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 40 \
-    --number_negatives 120 \
-    --number_unlabeled 3000 \
+    --number_positives 10 \
+    --number_negatives 30 \
+    --number_unlabeled 750 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
     #--columns -> Comma separated names for every column.
@@ -201,9 +201,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 30 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -223,9 +223,9 @@ python3 ../scripts/holdout.py \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 10 \
-#     --number_positives 40 \
-#     --number_negatives 120 \
-#     --number_unlabeled 3000 \
+#     --number_positives 10 \
+#     --number_negatives 30 \
+#     --number_unlabeled 750 \
 #     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
