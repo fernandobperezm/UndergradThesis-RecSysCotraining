@@ -73,7 +73,7 @@ class CoTraining(object):
                            joint at each iteration.
 
         '''
-        self.eval_aggr.recommender = self
+        # self.eval_aggr.recommender = self
         nusers, nitems = X1.shape
         rng = np.random.RandomState(self.seed)
 

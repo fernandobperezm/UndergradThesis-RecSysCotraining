@@ -1,4 +1,4 @@
-train_set_1'''
+'''
 Politecnico di Milano.
 evaluation.py
 
@@ -145,88 +145,90 @@ class Evaluation(object):
                         at=self.at
                         )
 
-    def plot_all(self,index,rec):
+    def plot_all(self,rec_index,rec):
         # plot with various axes scales
-        iterations = len(self.rmse[index])
+        n_iter = len(self.rmse[rec_index])
+        iterations = np.arange(n_iter)
+
         # rmse
         plt.figure(1)
-        plt.plot(self.rmse[index])
+        plt.plot(iterations,self.rmse[rec_index])
         plt.title('RMSE for {} recommender'.format(rec.short_str()))
         plt.ylabel('RMSE')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "RMSE_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "RMSE_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # roc_auc
         plt.figure(2)
-        plt.plot(self.roc_auc[index])
+        plt.plot(iterations,self.roc_auc[rec_index])
         plt.title('ROC-AUC@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('ROC-AUC')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # precision
         plt.figure(3)
-        plt.plot(self.precision[index])
+        plt.plot(iterations,self.precision[rec_index])
         plt.title('Precision@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('Precision')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "Precision_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "Precision_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # recall
         plt.figure(4)
-        plt.plot(self.recall[index])
+        plt.plot(iterations,self.recall[rec_index])
         plt.title('Recall@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('Recall')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "Recall_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "Recall_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # map
         plt.figure(5)
-        plt.plot(self.map[index])
+        plt.plot(iterations,self.map[rec_index])
         plt.title('MAP@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('MAP')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "MAP_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "MAP_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # mrr
         plt.figure(6)
-        plt.plot(self.mrr[index])
+        plt.plot(iterations,self.mrr[rec_index])
         plt.title('MRR@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('MRR')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "MRR_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "MRR_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
         # ndcg
         plt.figure(7)
-        plt.plot(self.ndcg[index])
+        plt.plot(iterations,self.ndcg[rec_index])
         plt.title('NDCG@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('NDCG')
         plt.xlabel('Iterations')
         plt.grid(True)
-        savepath = self.results_path + "NDCG_{}iter_{}.png".format(iterations,rec.short_str())
+        savepath = self.results_path + "NDCG_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
     def plot_all_recommenders(self, rec_1, rec_2):
-        iterations = np.arange(len(self.rmse))
+        iterations = np.arange(len(self.rmse[0]))
         n_iters = len(iterations)
         # Plot each metric in a different file.
         # RMSE.
