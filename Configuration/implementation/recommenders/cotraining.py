@@ -121,8 +121,8 @@ class CoTraining(object):
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
-            rs.shuffle(unl1)
-            rs.shuffle(unl2)
+            rng.shuffle(unl1)
+            rng.shuffle(unl2)
             labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 
