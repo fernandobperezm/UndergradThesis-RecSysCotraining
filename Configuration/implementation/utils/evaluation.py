@@ -61,24 +61,29 @@ class Evaluation(object):
         at = self.at
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        for test_user in range(self.nusers):
+        row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
+        relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
+        for test_user in relevant_users:
+            # Getting user_profile and it's rated items (relevant_items)
             user_profile = train_set[test_user]
             relevant_items = self.test_set[test_user].indices
-            if len(relevant_items) > 0:
-                n_eval += 1
 
-                # recommender recommendation.
-                # this will rank **all** items
-                ranked_items = self.recommender.recommend(user_id=test_user, n=self.at, exclude_seen=True)
-                predicted_relevant_items = self.recommender.predict(user_id=test_user, rated_indices=relevant_items)
-                # evaluate the recommendation list with ranking metrics ONLY
-                rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
-                roc_auc_ += metrics.roc_auc(ranked_items, relevant_items)
-                precision_ += metrics.precision(ranked_items, relevant_items, at=at)
-                recall_ += metrics.recall(ranked_items, relevant_items, at=at)
-                map_ += metrics.map(ranked_items, relevant_items, at=at)
-                mrr_ += metrics.rr(ranked_items, relevant_items, at=at)
-                ndcg_ += metrics.ndcg(ranked_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
+            # recommender recommendation.
+            # this will rank self.at (n) items
+            ranked_items = self.recommender.recommend(user_id=test_user, n=self.at, exclude_seen=True)
+            predicted_relevant_items = self.recommender.predict(user_id=test_user, rated_indices=relevant_items)
+
+            # evaluate the recommendation list with RMSE and ranking metrics.
+            rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
+            roc_auc_ += metrics.roc_auc(ranked_items, relevant_items)
+            precision_ += metrics.precision(ranked_items, relevant_items, at=at)
+            recall_ += metrics.recall(ranked_items, relevant_items, at=at)
+            map_ += metrics.map(ranked_items, relevant_items, at=at)
+            mrr_ += metrics.rr(ranked_items, relevant_items, at=at)
+            ndcg_ += metrics.ndcg(ranked_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
+
+            # Increase the number of evaluations performed.
+            n_eval += 1
 
         # Recommender evaluations
         self.rmse.append(rmse_ / n_eval)

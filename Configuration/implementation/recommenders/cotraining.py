@@ -11,9 +11,16 @@ Last modified on 25/03/2017.
 '''
 
 import random as random
+import logging
+from datetime import datetime as dt
 
 import numpy as np
 import scipy as sp
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
 class CoTraining(object):
     """ CO-TRAINING environment for RecSys"""
@@ -95,21 +102,22 @@ class CoTraining(object):
 
         # Co-Training iterations begin here.
         for i_iter in range(self.n_iters):
-            # logger.info(("Iteration: {}".format(i_iter)))
+            logger.info(("Iteration: {}".format(i_iter)))
 
-            # logger.info('\tRecommender: {}'.format(self.rec_1))
-            # tic = dt.now()
-            # logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
+            logger.info('\tRecommender: {}'.format(self.rec_1))
+            tic = dt.now()
+            logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
             self.rec_1.fit(X1)
-            # logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
+            logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
 
-            # logger.info('\tRecommender: {}'.format(self.rec_2))
-            # tic = dt.now()
-            # logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
+            logger.info('\tRecommender: {}'.format(self.rec_2))
+            tic = dt.now()
+            logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
             self.rec_2.fit(X2)
-            # logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
 
             # Evaluate the recommenders in this iteration.
+            logger.info('\tEvaluating both recommenders.')
             self.eval1.eval(X1)
             self.eval2.eval(X2)
             self.eval_aggr.eval(X1) # TODO: change this.
@@ -117,7 +125,9 @@ class CoTraining(object):
             self.eval2.log_by_index(i_iter)
             self.eval_aggr.log_by_index(i_iter)
 
+
             # Label positively and negatively examples from U' for both recommenders.
+            logger.info('\tLabeling new items.')
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
