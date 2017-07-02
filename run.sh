@@ -1,3 +1,5 @@
+# Installation of Conda and the cotraining environment if it doesn't exist.
+
 # Installation of Cython.
 cd Configuration/ ; sh install.sh ; cd ..
 
