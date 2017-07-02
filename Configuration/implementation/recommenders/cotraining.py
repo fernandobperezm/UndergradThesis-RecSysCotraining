@@ -25,19 +25,15 @@ logging.basicConfig(
 class CoTraining(object):
     """ CO-TRAINING environment for RecSys"""
 
-    def __init__(self, rec_1, rec_2, eval_obj1, eval_obj2, eval_obj_aggr, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3, seed=1024):
+    def __init__(self, rec_1, rec_2, eval_obj, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3, seed=1024):
         '''
             Args:
                 * rec_1: A Recommender Class object that represents the first
                          recommender.
                 * rec_2: A Recommender Class object that represents the second
                          recommender.
-                * eval_obj1: An Evaluation Class object that represents the evaluation
+                * eval_obj: An Evaluation Class object that represents the evaluation
                             metrics for the recommender1.
-                * eval_obj2: An Evaluation Class object that represents the evaluation
-                            metrics for the recommender2.
-                * eval_obj_aggr: An Evaluation Class object that represents the evaluation
-                            metrics for the aggregate of both recommenders.
                 * n_iters: Represents the number of Co-Training iterations.
                 * n_labels: The number of elements to label in each Co-Training
                             iteration.
@@ -45,9 +41,7 @@ class CoTraining(object):
         super(CoTraining, self).__init__()
         self.rec_1 = rec_1
         self.rec_2 = rec_2
-        self.eval1 = eval_obj1
-        self.eval2 = eval_obj2
-        self.eval_aggr = eval_obj_aggr
+        self.eval = eval_obj
         self.n_iters = n_iters
         self.n_labels = n_labels
         self.p_most = p_most
@@ -118,12 +112,12 @@ class CoTraining(object):
 
             # Evaluate the recommenders in this iteration.
             logger.info('\tEvaluating both recommenders.')
-            self.eval1.eval(X1)
-            self.eval2.eval(X2)
-            self.eval_aggr.eval(X1) # TODO: change this.
-            self.eval1.log_by_index(i_iter)
-            self.eval2.log_by_index(i_iter)
-            self.eval_aggr.log_by_index(i_iter)
+            self.eval.eval(self.rec_1, self.rec_2)
+            # self.eval2.eval(X2)
+            # self.eval_aggr.eval(X1) # TODO: change this.
+            self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
+            # self.eval2.log_by_index(i_iter)
+            # self.eval_aggr.log_by_index(i_iter)
 
 
             # Label positively and negatively examples from U' for both recommenders.
