@@ -79,8 +79,8 @@ class FunkSVD(Recommender):
         )
 
     def fit(self, X):
-        self.dataset = X
         X = check_matrix(X, 'csr', dtype=np.float32)
+        self.dataset = X
         self.U, self.V = FunkSVD_sgd(X, self.num_factors, self.lrate, self.reg, self.iters, self.init_mean,
                                      self.init_std,
                                      self.lrate_decay, self.rnd_seed)
@@ -103,7 +103,6 @@ class FunkSVD(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
 
         labels = []
         number_p_most_labeled = 0
@@ -191,8 +190,8 @@ class AsySVD(Recommender):
         )
 
     def fit(self, R):
-        self.dataset = R
         R = check_matrix(R, 'csr', dtype=np.float32)
+        self.dataset = R
         self.X, self.Y = AsySVD_sgd(R, self.num_factors, self.lrate, self.reg, self.iters, self.init_mean,
                                     self.init_std,
                                     self.lrate_decay, self.rnd_seed)
@@ -218,8 +217,6 @@ class AsySVD(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
-
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0
@@ -321,6 +318,7 @@ class IALS_numpy(Recommender):
         return C
 
     def fit(self, R):
+        R = check_matrix(R, 'csr', dtype=np.float32)
         self.dataset = R
         # compute the confidence matrix
         if self.scaling == 'linear':
@@ -361,7 +359,6 @@ class IALS_numpy(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
 
         labels = []
         number_p_most_labeled = 0
@@ -509,8 +506,8 @@ class BPRMF(Recommender):
         )
 
     def fit(self, R):
-        self.dataset = R
         R = check_matrix(R, 'csr', dtype=np.float32)
+        self.dataset = R
         self.X, self.Y = BPRMF_sgd(R,
                                    num_factors=self.num_factors,
                                    lrate=self.lrate,
@@ -546,8 +543,6 @@ class BPRMF(Recommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
-
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0

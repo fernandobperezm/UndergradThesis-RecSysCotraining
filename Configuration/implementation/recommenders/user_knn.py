@@ -13,6 +13,7 @@ Last modified on 25/03/2017.
 
 
 from .item_knn import ItemKNNRecommender
+from .base import check_matrix
 import numpy as np
 import pdb
 
@@ -35,6 +36,8 @@ class UserKNNRecommender(ItemKNNRecommender):
             self.similarity_name, self.k, self.shrinkage, self.normalize, self.sparse_weights)
 
     def fit(self, X):
+        # convert X to csr matrix for faster row-wise operations
+        X = check_matrix(X, 'csr', dtype=np.float32)
         M, N = X.shape
         Xt = X.T.tocsr()
         # fit a ItemKNNRecommender on the transposed X matrix
@@ -68,8 +71,6 @@ class UserKNNRecommender(ItemKNNRecommender):
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Shuffle the unlabeled list of tuples (user_idx, item_idx).
         # Labeling of p-most positive and n-most negative ratings.
-        np.random.shuffle(unlabeled_list)
-
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0

@@ -51,6 +51,7 @@ class SLIM(Recommender):
         )
 
     def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         X = check_matrix(X, 'csc', dtype=np.float32)
         n_items = X.shape[1]
@@ -129,8 +130,6 @@ class SLIM(Recommender):
         # Labeling of p-most positive and n-most negative ratings.
         # The score function in this SLIM approach is a generic score NOT a
         # rating, the higher, the better.
-        np.random.shuffle(unlabeled_list)
-
         labels = []
         number_p_most_labeled = 0
         number_n_most_labeled = 0
@@ -204,6 +203,7 @@ class MultiThreadSLIM(SLIM):
         return values, rows, cols
 
     def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         X = check_matrix(X, 'csc', dtype=np.float32)
         n_items = X.shape[1]

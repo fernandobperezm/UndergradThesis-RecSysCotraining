@@ -22,7 +22,12 @@ The code is organized as follows:
   2. Install `Miniconda` for `Python 3.5+` [here](https://conda.io/miniconda.html).
   3. Create the virtual environment: `conda create -n cotraining --file requirements.txt`
   4. Activate the virtual environment: `source activate cotraining`.
-  5. Install the project:
-  6. Run one of the examples:
+  5. [Installation and run separately] Install the project: `cd Configuration/ ; sh install.sh ; cd ..`
+  6. [Installation and run separately] Run one of the examples:
+    * `cd run-examples/ ; sh holdout-cotraining-knn-knn.sh ; cd ..`
+    * `cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh ;cd ..`
+    * `cd run-examples/ ; sh holdout-cotraining-mf-mf.sh ; cd ..`
+
+  7. [Installation and run integrated] Run the `run.sh` script: `sh run.sh`
 
 ## Results. ##
