@@ -17,6 +17,8 @@ from datetime import datetime as dt
 import numpy as np
 import scipy as sp
 
+import sys
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
@@ -98,17 +100,24 @@ class CoTraining(object):
         for i_iter in range(self.n_iters):
             logger.info(("Iteration: {}".format(i_iter)))
 
-            logger.info('\tRecommender: {}'.format(self.rec_1))
-            tic = dt.now()
-            logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
-            self.rec_1.fit(X1)
-            logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
+            try:
+                logger.info('\tRecommender: {}'.format(self.rec_1))
+                tic = dt.now()
+                logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
+                self.rec_1.fit(X1)
+                logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
+            except:
+                logger.info('Could not fit the recommender 1: {}'.format(sys.exe_info()[0]))
 
-            logger.info('\tRecommender: {}'.format(self.rec_2))
-            tic = dt.now()
-            logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
-            self.rec_2.fit(X2)
-            logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            try:
+                logger.info('\tRecommender: {}'.format(self.rec_2))
+                tic = dt.now()
+                logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
+                self.rec_2.fit(X2)
+                logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            except:
+                logger.info('Could not fit the recommender 2: {}'.format(sys.exe_info()[0]))
+
 
             # Evaluate the recommenders in this iteration.
             logger.info('\tEvaluating both recommenders.')
