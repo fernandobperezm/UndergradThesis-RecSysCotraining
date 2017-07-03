@@ -178,7 +178,10 @@ cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj=eval_ctr, n_iters =
 results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
 # Cotraining fitting and evaluation.
+logger.info('Beggining the Co-Training process.')
+tic = dt.now()
 cotraining.fit(train, eval_iter = True)
+logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
 
 # Plotting.
 eval_ctr.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
