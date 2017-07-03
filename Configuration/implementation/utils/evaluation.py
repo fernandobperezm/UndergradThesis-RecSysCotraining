@@ -38,13 +38,13 @@ class Evaluation(object):
         self.val_set = val_set
         self.at = at
         self.cotraining = co_training
-        self.rmse = None
-        self.roc_auc = None
-        self.precision = None
-        self.recall = None
-        self.map = None
-        self.mrr = None
-        self.ndcg = None
+        self.rmse = (list(), list())
+        self.roc_auc = (list(), list())
+        self.precision = (list(), list())
+        self.recall = (list(), list())
+        self.map = (list(), list())
+        self.mrr = (list(), list())
+        self.ndcg = (list(), list())
 
     def __str__(self):
         return "Evaluation(Rec={}\n)".format(
@@ -60,7 +60,6 @@ class Evaluation(object):
 
         at = self.at
         n_eval = 0
-        self.rmse, self.roc_auc, self.precision, self.recall, self.map, self.mrr, self.ndcg = (list(), list()), (list(), list()), (list(), list()), (list(), list()), (list(), list()), (list(), list()), (list(), list())
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         rmse2_, roc_auc2_, precision2_, recall2_, map2_, mrr2_, ndcg2_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
