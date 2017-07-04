@@ -180,7 +180,6 @@ class ItemKNNRecommender(Recommender):
             users.append(user_idx)
             items.append(item_idx)
 
-        pdb.set_trace()
         users = np.array(users,dtype=np.int32)
         items = np.array(items,dtype=np.int32)
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)

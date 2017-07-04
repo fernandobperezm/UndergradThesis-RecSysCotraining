@@ -18,6 +18,7 @@ import numpy as np
 import scipy as sp
 
 import sys
+import pdb
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -136,6 +137,7 @@ class CoTraining(object):
             unl2 = list(unlabeled)
             rng.shuffle(unl1)
             rng.shuffle(unl2)
+            # pdb.set_trace()
             labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 
