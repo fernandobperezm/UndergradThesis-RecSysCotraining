@@ -610,4 +610,7 @@ class BPRMF(Recommender):
         p_sorted_scores = sorted_filtered_scores[-p_most:]
         n_sorted_scores = sorted_filtered_scores[:n_most]
 
-        return [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+        if binary_ratings:
+            return [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
+        else:
+            return [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
