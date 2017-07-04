@@ -414,19 +414,19 @@ class IALS_numpy(Recommender):
             scores = np.dot(self.X[user_idx], self.Y.T)
 
             # As IALS only works with binary ratings, we only bound for binary ratings.
-            pdb.set_trace()
-            if (number_p_most_labeled < p_most):
-                if (binary_ratings and scores[item_idx] == 1.0):
-                    labels.append( (user_idx, item_idx, scores[item_idx]) )
-                    number_p_most_labeled += 1
-
-            if (number_n_most_labeled < n_most):
-                if (binary_ratings and scores[item_idx] == 0.0):
-                    labels.append( (user_idx, item_idx, scores[item_idx]) )
-                    number_n_most_labeled += 1
-
-            if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
-                break
+            # TODO: fill
+            # if (number_p_most_labeled < p_most):
+            #     if (binary_ratings and scores[item_idx] == 1.0):
+            #         labels.append( (user_idx, item_idx, scores[item_idx]) )
+            #         number_p_most_labeled += 1
+            #
+            # if (number_n_most_labeled < n_most):
+            #     if (binary_ratings and scores[item_idx] == 0.0):
+            #         labels.append( (user_idx, item_idx, scores[item_idx]) )
+            #         number_n_most_labeled += 1
+            #
+            # if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
+            #     break
 
         return labels
 
@@ -587,15 +587,27 @@ class BPRMF(Recommender):
         return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
-        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
-        # Labeling of p-most positive and n-most negative ratings.
-        labels = []
-        number_p_most_labeled = 0
-        number_n_most_labeled = 0
+        # Calculate the scores only one time.
+        users = []
+        items = []
         for user_idx, item_idx in unlabeled_list:
-            # compute the scores using the dot product
-            scores = np.dot(self.X[user_idx], self.Y.T)
+            users.append(user_idx)
+            items.append(item_idx)
 
-            #TODO: fill this.
+        users = np.array(users,dtype=np.int32)
+        items = np.array(items,dtype=np.int32)
+        uniq_users, user_to_idx = np.unique(users,return_inverse=True)
+        # At this point, we have all the predicted scores for the users inside
+        # U'. Now we will filter the scores by keeping only the scores of the
+        # items presented in U'. This will be an array where:
+        # filtered_scores[i] = scores[users[i],items[i]]
+        scores = np.dot(self.X[uniq_users], self.Y.T)
+        filtered_scores = scores[user_to_idx,items]
 
-        return labels
+        # Filtered the scores to have the n-most and p-most.
+        # sorted_filtered_scores is sorted incrementally
+        sorted_filtered_scores = filtered_scores.argsort()
+        p_sorted_scores = sorted_filtered_scores[-p_most:]
+        n_sorted_scores = sorted_filtered_scores[:n_most]
+
+        return [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]

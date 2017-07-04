@@ -11,7 +11,7 @@
         ],
         "depends": []
     },
-    "module_name": "Implementation._cython._similarity"
+    "module_name": "implementation._cython._similarity"
 }
 END: Cython Metadata */
 
@@ -413,8 +413,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__Implementation___cython___similarity
-#define __PYX_HAVE_API__Implementation___cython___similarity
+#define __PYX_HAVE__implementation___cython___similarity
+#define __PYX_HAVE_API__implementation___cython___similarity
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -659,9 +659,9 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "Implementation/_cython/_similarity.pyx",
+  "implementation/_cython/_similarity.pyx",
   "__init__.pxd",
-  "Configuration/stringsource",
+  "stringsource",
   "type.pxd",
 };
 /* BufferFormatStructs.proto */
@@ -2065,7 +2065,7 @@ static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
 
-/* Module declarations from 'Implementation._cython._similarity' */
+/* Module declarations from 'implementation._cython._similarity' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -2113,10 +2113,10 @@ static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t = { "float32_t"
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_int32_t = { "int32_t", NULL, sizeof(__pyx_t_5numpy_int32_t), { 0 }, 0, IS_UNSIGNED(__pyx_t_5numpy_int32_t) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_5numpy_int32_t), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_int = { "int", NULL, sizeof(int), { 0 }, 0, IS_UNSIGNED(int) ? 'U' : 'I', IS_UNSIGNED(int), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "Implementation._cython._similarity"
-int __pyx_module_is_main_Implementation___cython___similarity = 0;
+#define __Pyx_MODULE_NAME "implementation._cython._similarity"
+int __pyx_module_is_main_implementation___cython___similarity = 0;
 
-/* Implementation of 'Implementation._cython._similarity' */
+/* Implementation of 'implementation._cython._similarity' */
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_RuntimeError;
@@ -2233,14 +2233,13 @@ static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C cont
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static const char __pyx_k_Politecnico_di_Milano__similari[] = "\nPolitecnico di Milano.\n_similarity.pyx\n\nDescription: This file contains the Cython implementation of the cosine and\n             pearson correlation similarities.\n\nCreated by: Massimo Quadrana.\nModified by Fernando P\303\251rez.\n\nLast modified on 25/03/2017.\n";
-static const char __pyx_k_Users_fernandoperez_Development[] = "/Users/fernandoperez/Development/thesis/Implementation/recsys-cotraining/Implementation/_cython/_similarity.pyx";
+static const char __pyx_k_Users_fernandoperez_Development[] = "/Users/fernandoperez/Development/thesis/Implementation/recsys-cotraining/Configuration/implementation/_cython/_similarity.pyx";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static const char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
 static const char __pyx_k_Empty_shape_tuple_for_cython_arr[] = "Empty shape tuple for cython.array";
 static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
-static const char __pyx_k_Implementation__cython__similari[] = "Implementation._cython._similarity";
 static const char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions not supported";
 static const char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static const char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
@@ -2248,6 +2247,7 @@ static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on
 static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static const char __pyx_k_X_must_be_an_instance_of_scipy_s[] = "X must be an instance of scipy.sparse.csc_matrix";
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
+static const char __pyx_k_implementation__cython__similari[] = "implementation._cython._similarity";
 static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
@@ -2260,7 +2260,6 @@ static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
-static PyObject *__pyx_n_s_Implementation__cython__similari;
 static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_IndexError;
 static PyObject *__pyx_kp_s_Indirect_dimensions_not_supporte;
@@ -2313,6 +2312,7 @@ static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_ii;
 static PyObject *__pyx_n_s_ii_sum;
 static PyObject *__pyx_n_s_ij_sum;
+static PyObject *__pyx_n_s_implementation__cython__similari;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_indices;
 static PyObject *__pyx_n_s_indptr;
@@ -2378,8 +2378,8 @@ static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_x_i;
 static PyObject *__pyx_n_s_x_j;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X); /* proto */
-static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X); /* proto */
+static PyObject *__pyx_pf_14implementation_7_cython_11_similarity_cosine_common(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X); /* proto */
+static PyObject *__pyx_pf_14implementation_7_cython_11_similarity_2pearson_corr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2464,7 +2464,7 @@ static PyObject *__pyx_codeobj__24;
 static PyObject *__pyx_codeobj__25;
 static PyObject *__pyx_codeobj__26;
 
-/* "Implementation/_cython/_similarity.pyx":21
+/* "implementation/_cython/_similarity.pyx":21
  * 
  * @cython.boundscheck(False)
  * def cosine_common(X):             # <<<<<<<<<<<<<<
@@ -2473,21 +2473,21 @@ static PyObject *__pyx_codeobj__26;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_14Implementation_7_cython_11_similarity_1cosine_common(PyObject *__pyx_self, PyObject *__pyx_v_X); /*proto*/
-static char __pyx_doc_14Implementation_7_cython_11_similarity_cosine_common[] = "\n    Function that pairwise cosine similarity of the columns in X.\n    It takes only the values in common between each pair of columns\n    :param X: instance of scipy.sparse.csc_matrix\n    :return:\n        the result of co_prodsum\n        the number of co_rated elements for every column pair\n    ";
-static PyMethodDef __pyx_mdef_14Implementation_7_cython_11_similarity_1cosine_common = {"cosine_common", (PyCFunction)__pyx_pw_14Implementation_7_cython_11_similarity_1cosine_common, METH_O, __pyx_doc_14Implementation_7_cython_11_similarity_cosine_common};
-static PyObject *__pyx_pw_14Implementation_7_cython_11_similarity_1cosine_common(PyObject *__pyx_self, PyObject *__pyx_v_X) {
+static PyObject *__pyx_pw_14implementation_7_cython_11_similarity_1cosine_common(PyObject *__pyx_self, PyObject *__pyx_v_X); /*proto*/
+static char __pyx_doc_14implementation_7_cython_11_similarity_cosine_common[] = "\n    Function that pairwise cosine similarity of the columns in X.\n    It takes only the values in common between each pair of columns\n    :param X: instance of scipy.sparse.csc_matrix\n    :return:\n        the result of co_prodsum\n        the number of co_rated elements for every column pair\n    ";
+static PyMethodDef __pyx_mdef_14implementation_7_cython_11_similarity_1cosine_common = {"cosine_common", (PyCFunction)__pyx_pw_14implementation_7_cython_11_similarity_1cosine_common, METH_O, __pyx_doc_14implementation_7_cython_11_similarity_cosine_common};
+static PyObject *__pyx_pw_14implementation_7_cython_11_similarity_1cosine_common(PyObject *__pyx_self, PyObject *__pyx_v_X) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cosine_common (wrapper)", 0);
-  __pyx_r = __pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(__pyx_self, ((PyObject *)__pyx_v_X));
+  __pyx_r = __pyx_pf_14implementation_7_cython_11_similarity_cosine_common(__pyx_self, ((PyObject *)__pyx_v_X));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X) {
+static PyObject *__pyx_pf_14implementation_7_cython_11_similarity_cosine_common(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X) {
   __Pyx_memviewslice __pyx_v_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_indptr = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -2573,7 +2573,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_pybuffernd_common.data = NULL;
   __pyx_pybuffernd_common.rcbuffer = &__pyx_pybuffer_common;
 
-  /* "Implementation/_cython/_similarity.pyx":30
+  /* "implementation/_cython/_similarity.pyx":30
  *         the number of co_rated elements for every column pair
  *     """
  *     if not isinstance(X, sps.csc_matrix):             # <<<<<<<<<<<<<<
@@ -2591,7 +2591,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_t_4 = ((!(__pyx_t_3 != 0)) != 0);
   if (__pyx_t_4) {
 
-    /* "Implementation/_cython/_similarity.pyx":31
+    /* "implementation/_cython/_similarity.pyx":31
  *     """
  *     if not isinstance(X, sps.csc_matrix):
  *         raise ValueError('X must be an instance of scipy.sparse.csc_matrix')             # <<<<<<<<<<<<<<
@@ -2605,7 +2605,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __PYX_ERR(0, 31, __pyx_L1_error)
 
-    /* "Implementation/_cython/_similarity.pyx":30
+    /* "implementation/_cython/_similarity.pyx":30
  *         the number of co_rated elements for every column pair
  *     """
  *     if not isinstance(X, sps.csc_matrix):             # <<<<<<<<<<<<<<
@@ -2614,7 +2614,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
  */
   }
 
-  /* "Implementation/_cython/_similarity.pyx":34
+  /* "implementation/_cython/_similarity.pyx":34
  * 
  *     # use Cython MemoryViews for fast access to the sparse structure of X
  *     cdef int [:] indices = X.indices, indptr = X.indptr             # <<<<<<<<<<<<<<
@@ -2639,7 +2639,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "Implementation/_cython/_similarity.pyx":35
+  /* "implementation/_cython/_similarity.pyx":35
  *     # use Cython MemoryViews for fast access to the sparse structure of X
  *     cdef int [:] indices = X.indices, indptr = X.indptr
  *     cdef float [:] data = X.data             # <<<<<<<<<<<<<<
@@ -2656,7 +2656,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "Implementation/_cython/_similarity.pyx":38
+  /* "implementation/_cython/_similarity.pyx":38
  * 
  *     # initialize the result variables
  *     cdef int ncols = X.shape[1]             # <<<<<<<<<<<<<<
@@ -2673,7 +2673,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_ncols = __pyx_t_7;
 
-  /* "Implementation/_cython/_similarity.pyx":39
+  /* "implementation/_cython/_similarity.pyx":39
  *     # initialize the result variables
  *     cdef int ncols = X.shape[1]
  *     cdef np.ndarray[np.float32_t, ndim=2] result = np.zeros([ncols, ncols], dtype=np.float32)             # <<<<<<<<<<<<<<
@@ -2731,7 +2731,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_v_result = ((PyArrayObject *)__pyx_t_10);
   __pyx_t_10 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":40
+  /* "implementation/_cython/_similarity.pyx":40
  *     cdef int ncols = X.shape[1]
  *     cdef np.ndarray[np.float32_t, ndim=2] result = np.zeros([ncols, ncols], dtype=np.float32)
  *     cdef np.ndarray[np.int32_t, ndim=2] common = np.zeros([ncols, ncols], dtype=np.int32)             # <<<<<<<<<<<<<<
@@ -2789,7 +2789,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_v_common = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":49
+  /* "implementation/_cython/_similarity.pyx":49
  *     cdef float ii_sum, jj_sum, ij_sum, x_i, x_j
  * 
  *     for i in range(ncols):             # <<<<<<<<<<<<<<
@@ -2801,7 +2801,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_7; __pyx_t_13+=1) {
     __pyx_v_i = __pyx_t_13;
 
-    /* "Implementation/_cython/_similarity.pyx":50
+    /* "implementation/_cython/_similarity.pyx":50
  * 
  *     for i in range(ncols):
  *         n_i = indptr[i+1] - indptr[i]             # <<<<<<<<<<<<<<
@@ -2815,7 +2815,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
     if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_v_indptr.shape[0];
     __pyx_v_n_i = ((*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_14 * __pyx_v_indptr.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_15 * __pyx_v_indptr.strides[0]) ))));
 
-    /* "Implementation/_cython/_similarity.pyx":53
+    /* "implementation/_cython/_similarity.pyx":53
  *         # the correlation matrix is symmetric,
  *         # let's compute only the values for the upper-right triangle
  *         for j in range(i+1, ncols):             # <<<<<<<<<<<<<<
@@ -2827,7 +2827,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
     for (__pyx_t_17 = (__pyx_v_i + 1); __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
       __pyx_v_j = __pyx_t_17;
 
-      /* "Implementation/_cython/_similarity.pyx":54
+      /* "implementation/_cython/_similarity.pyx":54
  *         # let's compute only the values for the upper-right triangle
  *         for j in range(i+1, ncols):
  *             n_j = indptr[j+1] - indptr[j]             # <<<<<<<<<<<<<<
@@ -2841,7 +2841,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
       if (__pyx_t_19 < 0) __pyx_t_19 += __pyx_v_indptr.shape[0];
       __pyx_v_n_j = ((*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_18 * __pyx_v_indptr.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_19 * __pyx_v_indptr.strides[0]) ))));
 
-      /* "Implementation/_cython/_similarity.pyx":56
+      /* "implementation/_cython/_similarity.pyx":56
  *             n_j = indptr[j+1] - indptr[j]
  * 
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0             # <<<<<<<<<<<<<<
@@ -2856,7 +2856,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
       __pyx_v_ii_sum = __pyx_t_21;
       __pyx_v_jj_sum = __pyx_t_22;
 
-      /* "Implementation/_cython/_similarity.pyx":57
+      /* "implementation/_cython/_similarity.pyx":57
  * 
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0
  *             ii, jj = 0, 0             # <<<<<<<<<<<<<<
@@ -2869,7 +2869,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
       __pyx_v_ii = __pyx_t_23;
       __pyx_v_jj = __pyx_t_24;
 
-      /* "Implementation/_cython/_similarity.pyx":58
+      /* "implementation/_cython/_similarity.pyx":58
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0
  *             ii, jj = 0, 0
  *             n_common = 0             # <<<<<<<<<<<<<<
@@ -2879,7 +2879,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
       __Pyx_TraceLine(58,0,__PYX_ERR(0, 58, __pyx_L1_error))
       __pyx_v_n_common = 0;
 
-      /* "Implementation/_cython/_similarity.pyx":64
+      /* "implementation/_cython/_similarity.pyx":64
  *             # (indices[indptr[i]:indptr[i]+n_i] and indices[indptr[j]:indptr[j]+n_j]
  *             # contain the row indices of the non-zero items in columns i and j)
  *             while ii < n_i and jj < n_j:             # <<<<<<<<<<<<<<
@@ -2899,7 +2899,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         __pyx_L10_bool_binop_done:;
         if (!__pyx_t_4) break;
 
-        /* "Implementation/_cython/_similarity.pyx":65
+        /* "implementation/_cython/_similarity.pyx":65
  *             # contain the row indices of the non-zero items in columns i and j)
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -2918,7 +2918,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_26 * __pyx_v_indices.strides[0]) ))) < (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_28 * __pyx_v_indices.strides[0]) )))) != 0);
         if (__pyx_t_4) {
 
-          /* "Implementation/_cython/_similarity.pyx":66
+          /* "implementation/_cython/_similarity.pyx":66
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1             # <<<<<<<<<<<<<<
@@ -2928,7 +2928,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(66,0,__PYX_ERR(0, 66, __pyx_L1_error))
           __pyx_v_ii = (__pyx_v_ii + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":65
+          /* "implementation/_cython/_similarity.pyx":65
  *             # contain the row indices of the non-zero items in columns i and j)
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -2938,7 +2938,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           goto __pyx_L12;
         }
 
-        /* "Implementation/_cython/_similarity.pyx":67
+        /* "implementation/_cython/_similarity.pyx":67
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -2957,7 +2957,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_30 * __pyx_v_indices.strides[0]) ))) > (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_32 * __pyx_v_indices.strides[0]) )))) != 0);
         if (__pyx_t_4) {
 
-          /* "Implementation/_cython/_similarity.pyx":68
+          /* "implementation/_cython/_similarity.pyx":68
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:
  *                     jj += 1             # <<<<<<<<<<<<<<
@@ -2967,7 +2967,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(68,0,__PYX_ERR(0, 68, __pyx_L1_error))
           __pyx_v_jj = (__pyx_v_jj + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":67
+          /* "implementation/_cython/_similarity.pyx":67
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -2977,7 +2977,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           goto __pyx_L12;
         }
 
-        /* "Implementation/_cython/_similarity.pyx":70
+        /* "implementation/_cython/_similarity.pyx":70
  *                     jj += 1
  *                 else:
  *                     x_i = data[indptr[i] + ii]             # <<<<<<<<<<<<<<
@@ -2992,7 +2992,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           if (__pyx_t_34 < 0) __pyx_t_34 += __pyx_v_data.shape[0];
           __pyx_v_x_i = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_34 * __pyx_v_data.strides[0]) )));
 
-          /* "Implementation/_cython/_similarity.pyx":71
+          /* "implementation/_cython/_similarity.pyx":71
  *                 else:
  *                     x_i = data[indptr[i] + ii]
  *                     x_j = data[indptr[j] + jj]             # <<<<<<<<<<<<<<
@@ -3006,7 +3006,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           if (__pyx_t_36 < 0) __pyx_t_36 += __pyx_v_data.shape[0];
           __pyx_v_x_j = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_36 * __pyx_v_data.strides[0]) )));
 
-          /* "Implementation/_cython/_similarity.pyx":72
+          /* "implementation/_cython/_similarity.pyx":72
  *                     x_i = data[indptr[i] + ii]
  *                     x_j = data[indptr[j] + jj]
  *                     ij_sum += x_i * x_j             # <<<<<<<<<<<<<<
@@ -3016,7 +3016,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(72,0,__PYX_ERR(0, 72, __pyx_L1_error))
           __pyx_v_ij_sum = (__pyx_v_ij_sum + (__pyx_v_x_i * __pyx_v_x_j));
 
-          /* "Implementation/_cython/_similarity.pyx":73
+          /* "implementation/_cython/_similarity.pyx":73
  *                     x_j = data[indptr[j] + jj]
  *                     ij_sum += x_i * x_j
  *                     ii_sum += x_i ** 2             # <<<<<<<<<<<<<<
@@ -3026,7 +3026,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(73,0,__PYX_ERR(0, 73, __pyx_L1_error))
           __pyx_v_ii_sum = (__pyx_v_ii_sum + powf(__pyx_v_x_i, 2.0));
 
-          /* "Implementation/_cython/_similarity.pyx":74
+          /* "implementation/_cython/_similarity.pyx":74
  *                     ij_sum += x_i * x_j
  *                     ii_sum += x_i ** 2
  *                     jj_sum += x_j ** 2             # <<<<<<<<<<<<<<
@@ -3036,7 +3036,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(74,0,__PYX_ERR(0, 74, __pyx_L1_error))
           __pyx_v_jj_sum = (__pyx_v_jj_sum + powf(__pyx_v_x_j, 2.0));
 
-          /* "Implementation/_cython/_similarity.pyx":75
+          /* "implementation/_cython/_similarity.pyx":75
  *                     ii_sum += x_i ** 2
  *                     jj_sum += x_j ** 2
  *                     ii += 1             # <<<<<<<<<<<<<<
@@ -3046,7 +3046,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(75,0,__PYX_ERR(0, 75, __pyx_L1_error))
           __pyx_v_ii = (__pyx_v_ii + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":76
+          /* "implementation/_cython/_similarity.pyx":76
  *                     jj_sum += x_j ** 2
  *                     ii += 1
  *                     jj += 1             # <<<<<<<<<<<<<<
@@ -3056,7 +3056,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
           __Pyx_TraceLine(76,0,__PYX_ERR(0, 76, __pyx_L1_error))
           __pyx_v_jj = (__pyx_v_jj + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":77
+          /* "implementation/_cython/_similarity.pyx":77
  *                     ii += 1
  *                     jj += 1
  *                     n_common += 1             # <<<<<<<<<<<<<<
@@ -3069,7 +3069,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         __pyx_L12:;
       }
 
-      /* "Implementation/_cython/_similarity.pyx":79
+      /* "implementation/_cython/_similarity.pyx":79
  *                     n_common += 1
  * 
  *             if n_common > 0:             # <<<<<<<<<<<<<<
@@ -3080,7 +3080,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
       __pyx_t_4 = ((__pyx_v_n_common > 0) != 0);
       if (__pyx_t_4) {
 
-        /* "Implementation/_cython/_similarity.pyx":80
+        /* "implementation/_cython/_similarity.pyx":80
  * 
  *             if n_common > 0:
  *                 result[i, j] = ij_sum / np.sqrt(ii_sum * jj_sum)             # <<<<<<<<<<<<<<
@@ -3155,7 +3155,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         if (__pyx_t_40 < 0) __pyx_t_40 += __pyx_pybuffernd_result.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_39, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_40, __pyx_pybuffernd_result.diminfo[1].strides) = __pyx_t_38;
 
-        /* "Implementation/_cython/_similarity.pyx":81
+        /* "implementation/_cython/_similarity.pyx":81
  *             if n_common > 0:
  *                 result[i, j] = ij_sum / np.sqrt(ii_sum * jj_sum)
  *                 result[j, i] = result[i, j]             # <<<<<<<<<<<<<<
@@ -3173,7 +3173,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         if (__pyx_t_44 < 0) __pyx_t_44 += __pyx_pybuffernd_result.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_43, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_44, __pyx_pybuffernd_result.diminfo[1].strides) = (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_41, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_42, __pyx_pybuffernd_result.diminfo[1].strides));
 
-        /* "Implementation/_cython/_similarity.pyx":82
+        /* "implementation/_cython/_similarity.pyx":82
  *                 result[i, j] = ij_sum / np.sqrt(ii_sum * jj_sum)
  *                 result[j, i] = result[i, j]
  *                 common[i, j] = n_common             # <<<<<<<<<<<<<<
@@ -3187,7 +3187,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         if (__pyx_t_46 < 0) __pyx_t_46 += __pyx_pybuffernd_common.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_common.rcbuffer->pybuffer.buf, __pyx_t_45, __pyx_pybuffernd_common.diminfo[0].strides, __pyx_t_46, __pyx_pybuffernd_common.diminfo[1].strides) = __pyx_v_n_common;
 
-        /* "Implementation/_cython/_similarity.pyx":83
+        /* "implementation/_cython/_similarity.pyx":83
  *                 result[j, i] = result[i, j]
  *                 common[i, j] = n_common
  *                 common[j, i] = n_common             # <<<<<<<<<<<<<<
@@ -3201,7 +3201,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
         if (__pyx_t_48 < 0) __pyx_t_48 += __pyx_pybuffernd_common.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_common.rcbuffer->pybuffer.buf, __pyx_t_47, __pyx_pybuffernd_common.diminfo[0].strides, __pyx_t_48, __pyx_pybuffernd_common.diminfo[1].strides) = __pyx_v_n_common;
 
-        /* "Implementation/_cython/_similarity.pyx":79
+        /* "implementation/_cython/_similarity.pyx":79
  *                     n_common += 1
  * 
  *             if n_common > 0:             # <<<<<<<<<<<<<<
@@ -3212,7 +3212,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
     }
   }
 
-  /* "Implementation/_cython/_similarity.pyx":84
+  /* "implementation/_cython/_similarity.pyx":84
  *                 common[i, j] = n_common
  *                 common[j, i] = n_common
  *     return result, common             # <<<<<<<<<<<<<<
@@ -3233,7 +3233,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   __pyx_t_9 = 0;
   goto __pyx_L0;
 
-  /* "Implementation/_cython/_similarity.pyx":21
+  /* "implementation/_cython/_similarity.pyx":21
  * 
  * @cython.boundscheck(False)
  * def cosine_common(X):             # <<<<<<<<<<<<<<
@@ -3258,7 +3258,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_common.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_result.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("Implementation._cython._similarity.cosine_common", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("implementation._cython._similarity.cosine_common", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -3276,7 +3276,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
   return __pyx_r;
 }
 
-/* "Implementation/_cython/_similarity.pyx":88
+/* "implementation/_cython/_similarity.pyx":88
  * 
  * @cython.boundscheck(False)
  * def pearson_corr(X):             # <<<<<<<<<<<<<<
@@ -3285,21 +3285,21 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_cosine_common(
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_14Implementation_7_cython_11_similarity_3pearson_corr(PyObject *__pyx_self, PyObject *__pyx_v_X); /*proto*/
-static char __pyx_doc_14Implementation_7_cython_11_similarity_2pearson_corr[] = "\n    Pearson correlation\n    :param X: instance of scipy.sparse.csc_matrix\n    :return:\n        the pairwise Pearson correlation matrix\n        the number of co_rated elements for every column pair\n    ";
-static PyMethodDef __pyx_mdef_14Implementation_7_cython_11_similarity_3pearson_corr = {"pearson_corr", (PyCFunction)__pyx_pw_14Implementation_7_cython_11_similarity_3pearson_corr, METH_O, __pyx_doc_14Implementation_7_cython_11_similarity_2pearson_corr};
-static PyObject *__pyx_pw_14Implementation_7_cython_11_similarity_3pearson_corr(PyObject *__pyx_self, PyObject *__pyx_v_X) {
+static PyObject *__pyx_pw_14implementation_7_cython_11_similarity_3pearson_corr(PyObject *__pyx_self, PyObject *__pyx_v_X); /*proto*/
+static char __pyx_doc_14implementation_7_cython_11_similarity_2pearson_corr[] = "\n    Pearson correlation\n    :param X: instance of scipy.sparse.csc_matrix\n    :return:\n        the pairwise Pearson correlation matrix\n        the number of co_rated elements for every column pair\n    ";
+static PyMethodDef __pyx_mdef_14implementation_7_cython_11_similarity_3pearson_corr = {"pearson_corr", (PyCFunction)__pyx_pw_14implementation_7_cython_11_similarity_3pearson_corr, METH_O, __pyx_doc_14implementation_7_cython_11_similarity_2pearson_corr};
+static PyObject *__pyx_pw_14implementation_7_cython_11_similarity_3pearson_corr(PyObject *__pyx_self, PyObject *__pyx_v_X) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("pearson_corr (wrapper)", 0);
-  __pyx_r = __pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(__pyx_self, ((PyObject *)__pyx_v_X));
+  __pyx_r = __pyx_pf_14implementation_7_cython_11_similarity_2pearson_corr(__pyx_self, ((PyObject *)__pyx_v_X));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X) {
+static PyObject *__pyx_pf_14implementation_7_cython_11_similarity_2pearson_corr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_X) {
   __Pyx_memviewslice __pyx_v_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_indptr = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_data = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3389,7 +3389,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_pybuffernd_common.data = NULL;
   __pyx_pybuffernd_common.rcbuffer = &__pyx_pybuffer_common;
 
-  /* "Implementation/_cython/_similarity.pyx":96
+  /* "implementation/_cython/_similarity.pyx":96
  *         the number of co_rated elements for every column pair
  *     """
  *     if not isinstance(X, sps.csc_matrix):             # <<<<<<<<<<<<<<
@@ -3407,7 +3407,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_t_4 = ((!(__pyx_t_3 != 0)) != 0);
   if (__pyx_t_4) {
 
-    /* "Implementation/_cython/_similarity.pyx":97
+    /* "implementation/_cython/_similarity.pyx":97
  *     """
  *     if not isinstance(X, sps.csc_matrix):
  *         raise ValueError('X must be an instance of scipy.sparse.csc_matrix')             # <<<<<<<<<<<<<<
@@ -3421,7 +3421,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __PYX_ERR(0, 97, __pyx_L1_error)
 
-    /* "Implementation/_cython/_similarity.pyx":96
+    /* "implementation/_cython/_similarity.pyx":96
  *         the number of co_rated elements for every column pair
  *     """
  *     if not isinstance(X, sps.csc_matrix):             # <<<<<<<<<<<<<<
@@ -3430,7 +3430,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
  */
   }
 
-  /* "Implementation/_cython/_similarity.pyx":100
+  /* "implementation/_cython/_similarity.pyx":100
  * 
  *     # use MemoryViews for fast access to the sparse structure of X
  *     cdef int [:] indices = X.indices, indptr = X.indptr             # <<<<<<<<<<<<<<
@@ -3455,7 +3455,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "Implementation/_cython/_similarity.pyx":101
+  /* "implementation/_cython/_similarity.pyx":101
  *     # use MemoryViews for fast access to the sparse structure of X
  *     cdef int [:] indices = X.indices, indptr = X.indptr
  *     cdef float [:] data = X.data             # <<<<<<<<<<<<<<
@@ -3472,7 +3472,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "Implementation/_cython/_similarity.pyx":104
+  /* "implementation/_cython/_similarity.pyx":104
  * 
  *     # initialize the result variables
  *     cdef int ncols = X.shape[1]             # <<<<<<<<<<<<<<
@@ -3489,7 +3489,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_ncols = __pyx_t_7;
 
-  /* "Implementation/_cython/_similarity.pyx":105
+  /* "implementation/_cython/_similarity.pyx":105
  *     # initialize the result variables
  *     cdef int ncols = X.shape[1]
  *     cdef np.ndarray[np.float32_t, ndim=2] result = np.zeros([ncols, ncols], dtype=np.float32)             # <<<<<<<<<<<<<<
@@ -3547,7 +3547,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_v_result = ((PyArrayObject *)__pyx_t_10);
   __pyx_t_10 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":106
+  /* "implementation/_cython/_similarity.pyx":106
  *     cdef int ncols = X.shape[1]
  *     cdef np.ndarray[np.float32_t, ndim=2] result = np.zeros([ncols, ncols], dtype=np.float32)
  *     cdef np.ndarray[np.int32_t, ndim=2] common = np.zeros([ncols, ncols], dtype=np.int32)             # <<<<<<<<<<<<<<
@@ -3605,7 +3605,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_v_common = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":111
+  /* "implementation/_cython/_similarity.pyx":111
  *     cdef float i_sum, j_sum, ii_sum, jj_sum, ij_sum, x_i, x_j
  * 
  *     for i in range(ncols):             # <<<<<<<<<<<<<<
@@ -3617,7 +3617,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_7; __pyx_t_13+=1) {
     __pyx_v_i = __pyx_t_13;
 
-    /* "Implementation/_cython/_similarity.pyx":112
+    /* "implementation/_cython/_similarity.pyx":112
  * 
  *     for i in range(ncols):
  *         n_i = indptr[i+1] - indptr[i]             # <<<<<<<<<<<<<<
@@ -3631,7 +3631,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
     if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_v_indptr.shape[0];
     __pyx_v_n_i = ((*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_14 * __pyx_v_indptr.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_15 * __pyx_v_indptr.strides[0]) ))));
 
-    /* "Implementation/_cython/_similarity.pyx":115
+    /* "implementation/_cython/_similarity.pyx":115
  *         # the correlation matrix is symmetric,
  *         # let's compute only the values for the upper-right triangle
  *         for j in range(i, ncols):             # <<<<<<<<<<<<<<
@@ -3643,7 +3643,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
     for (__pyx_t_17 = __pyx_v_i; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
       __pyx_v_j = __pyx_t_17;
 
-      /* "Implementation/_cython/_similarity.pyx":116
+      /* "implementation/_cython/_similarity.pyx":116
  *         # let's compute only the values for the upper-right triangle
  *         for j in range(i, ncols):
  *             n_j = indptr[j+1] - indptr[j]             # <<<<<<<<<<<<<<
@@ -3657,7 +3657,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       if (__pyx_t_19 < 0) __pyx_t_19 += __pyx_v_indptr.shape[0];
       __pyx_v_n_j = ((*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_18 * __pyx_v_indptr.strides[0]) ))) - (*((int *) ( /* dim=0 */ (__pyx_v_indptr.data + __pyx_t_19 * __pyx_v_indptr.strides[0]) ))));
 
-      /* "Implementation/_cython/_similarity.pyx":118
+      /* "implementation/_cython/_similarity.pyx":118
  *             n_j = indptr[j+1] - indptr[j]
  * 
  *             i_sum, j_sum = 0.0, 0.0             # <<<<<<<<<<<<<<
@@ -3670,7 +3670,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       __pyx_v_i_sum = __pyx_t_20;
       __pyx_v_j_sum = __pyx_t_21;
 
-      /* "Implementation/_cython/_similarity.pyx":119
+      /* "implementation/_cython/_similarity.pyx":119
  * 
  *             i_sum, j_sum = 0.0, 0.0
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0             # <<<<<<<<<<<<<<
@@ -3685,7 +3685,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       __pyx_v_ii_sum = __pyx_t_20;
       __pyx_v_jj_sum = __pyx_t_22;
 
-      /* "Implementation/_cython/_similarity.pyx":120
+      /* "implementation/_cython/_similarity.pyx":120
  *             i_sum, j_sum = 0.0, 0.0
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0
  *             ii, jj = 0, 0             # <<<<<<<<<<<<<<
@@ -3698,7 +3698,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       __pyx_v_ii = __pyx_t_23;
       __pyx_v_jj = __pyx_t_24;
 
-      /* "Implementation/_cython/_similarity.pyx":121
+      /* "implementation/_cython/_similarity.pyx":121
  *             ij_sum, ii_sum, jj_sum = 0.0, 0.0, 0.0
  *             ii, jj = 0, 0
  *             n_common = 0             # <<<<<<<<<<<<<<
@@ -3708,7 +3708,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       __Pyx_TraceLine(121,0,__PYX_ERR(0, 121, __pyx_L1_error))
       __pyx_v_n_common = 0;
 
-      /* "Implementation/_cython/_similarity.pyx":123
+      /* "implementation/_cython/_similarity.pyx":123
  *             n_common = 0
  * 
  *             while ii < n_i and jj < n_j:             # <<<<<<<<<<<<<<
@@ -3728,7 +3728,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __pyx_L10_bool_binop_done:;
         if (!__pyx_t_4) break;
 
-        /* "Implementation/_cython/_similarity.pyx":124
+        /* "implementation/_cython/_similarity.pyx":124
  * 
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -3747,7 +3747,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_26 * __pyx_v_indices.strides[0]) ))) < (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_28 * __pyx_v_indices.strides[0]) )))) != 0);
         if (__pyx_t_4) {
 
-          /* "Implementation/_cython/_similarity.pyx":125
+          /* "implementation/_cython/_similarity.pyx":125
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1             # <<<<<<<<<<<<<<
@@ -3757,7 +3757,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(125,0,__PYX_ERR(0, 125, __pyx_L1_error))
           __pyx_v_ii = (__pyx_v_ii + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":124
+          /* "implementation/_cython/_similarity.pyx":124
  * 
  *             while ii < n_i and jj < n_j:
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -3767,7 +3767,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           goto __pyx_L12;
         }
 
-        /* "Implementation/_cython/_similarity.pyx":126
+        /* "implementation/_cython/_similarity.pyx":126
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -3786,7 +3786,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __pyx_t_4 = (((*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_30 * __pyx_v_indices.strides[0]) ))) > (*((int *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_32 * __pyx_v_indices.strides[0]) )))) != 0);
         if (__pyx_t_4) {
 
-          /* "Implementation/_cython/_similarity.pyx":127
+          /* "implementation/_cython/_similarity.pyx":127
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:
  *                     jj += 1             # <<<<<<<<<<<<<<
@@ -3796,7 +3796,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(127,0,__PYX_ERR(0, 127, __pyx_L1_error))
           __pyx_v_jj = (__pyx_v_jj + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":126
+          /* "implementation/_cython/_similarity.pyx":126
  *                 if indices[indptr[i] + ii] < indices[indptr[j] + jj]:
  *                     ii += 1
  *                 elif indices[indptr[i] + ii] > indices[indptr[j] + jj]:             # <<<<<<<<<<<<<<
@@ -3806,7 +3806,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           goto __pyx_L12;
         }
 
-        /* "Implementation/_cython/_similarity.pyx":129
+        /* "implementation/_cython/_similarity.pyx":129
  *                     jj += 1
  *                 else:
  *                     x_i = data[indptr[i] + ii]             # <<<<<<<<<<<<<<
@@ -3821,7 +3821,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           if (__pyx_t_34 < 0) __pyx_t_34 += __pyx_v_data.shape[0];
           __pyx_v_x_i = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_34 * __pyx_v_data.strides[0]) )));
 
-          /* "Implementation/_cython/_similarity.pyx":130
+          /* "implementation/_cython/_similarity.pyx":130
  *                 else:
  *                     x_i = data[indptr[i] + ii]
  *                     x_j = data[indptr[j] + jj]             # <<<<<<<<<<<<<<
@@ -3835,7 +3835,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           if (__pyx_t_36 < 0) __pyx_t_36 += __pyx_v_data.shape[0];
           __pyx_v_x_j = (*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_36 * __pyx_v_data.strides[0]) )));
 
-          /* "Implementation/_cython/_similarity.pyx":131
+          /* "implementation/_cython/_similarity.pyx":131
  *                     x_i = data[indptr[i] + ii]
  *                     x_j = data[indptr[j] + jj]
  *                     ij_sum += x_i * x_j             # <<<<<<<<<<<<<<
@@ -3845,7 +3845,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(131,0,__PYX_ERR(0, 131, __pyx_L1_error))
           __pyx_v_ij_sum = (__pyx_v_ij_sum + (__pyx_v_x_i * __pyx_v_x_j));
 
-          /* "Implementation/_cython/_similarity.pyx":132
+          /* "implementation/_cython/_similarity.pyx":132
  *                     x_j = data[indptr[j] + jj]
  *                     ij_sum += x_i * x_j
  *                     i_sum += x_i             # <<<<<<<<<<<<<<
@@ -3855,7 +3855,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(132,0,__PYX_ERR(0, 132, __pyx_L1_error))
           __pyx_v_i_sum = (__pyx_v_i_sum + __pyx_v_x_i);
 
-          /* "Implementation/_cython/_similarity.pyx":133
+          /* "implementation/_cython/_similarity.pyx":133
  *                     ij_sum += x_i * x_j
  *                     i_sum += x_i
  *                     j_sum += x_j             # <<<<<<<<<<<<<<
@@ -3865,7 +3865,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(133,0,__PYX_ERR(0, 133, __pyx_L1_error))
           __pyx_v_j_sum = (__pyx_v_j_sum + __pyx_v_x_j);
 
-          /* "Implementation/_cython/_similarity.pyx":134
+          /* "implementation/_cython/_similarity.pyx":134
  *                     i_sum += x_i
  *                     j_sum += x_j
  *                     ii_sum += x_i * x_i             # <<<<<<<<<<<<<<
@@ -3875,7 +3875,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(134,0,__PYX_ERR(0, 134, __pyx_L1_error))
           __pyx_v_ii_sum = (__pyx_v_ii_sum + (__pyx_v_x_i * __pyx_v_x_i));
 
-          /* "Implementation/_cython/_similarity.pyx":135
+          /* "implementation/_cython/_similarity.pyx":135
  *                     j_sum += x_j
  *                     ii_sum += x_i * x_i
  *                     jj_sum += x_j * x_j             # <<<<<<<<<<<<<<
@@ -3885,7 +3885,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(135,0,__PYX_ERR(0, 135, __pyx_L1_error))
           __pyx_v_jj_sum = (__pyx_v_jj_sum + (__pyx_v_x_j * __pyx_v_x_j));
 
-          /* "Implementation/_cython/_similarity.pyx":136
+          /* "implementation/_cython/_similarity.pyx":136
  *                     ii_sum += x_i * x_i
  *                     jj_sum += x_j * x_j
  *                     ii += 1             # <<<<<<<<<<<<<<
@@ -3895,7 +3895,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(136,0,__PYX_ERR(0, 136, __pyx_L1_error))
           __pyx_v_ii = (__pyx_v_ii + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":137
+          /* "implementation/_cython/_similarity.pyx":137
  *                     jj_sum += x_j * x_j
  *                     ii += 1
  *                     jj += 1             # <<<<<<<<<<<<<<
@@ -3905,7 +3905,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_TraceLine(137,0,__PYX_ERR(0, 137, __pyx_L1_error))
           __pyx_v_jj = (__pyx_v_jj + 1);
 
-          /* "Implementation/_cython/_similarity.pyx":138
+          /* "implementation/_cython/_similarity.pyx":138
  *                     ii += 1
  *                     jj += 1
  *                     n_common += 1             # <<<<<<<<<<<<<<
@@ -3918,7 +3918,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __pyx_L12:;
       }
 
-      /* "Implementation/_cython/_similarity.pyx":140
+      /* "implementation/_cython/_similarity.pyx":140
  *                     n_common += 1
  * 
  *             if n_common > 0:             # <<<<<<<<<<<<<<
@@ -3929,7 +3929,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
       __pyx_t_4 = ((__pyx_v_n_common > 0) != 0);
       if (__pyx_t_4) {
 
-        /* "Implementation/_cython/_similarity.pyx":141
+        /* "implementation/_cython/_similarity.pyx":141
  * 
  *             if n_common > 0:
  *                 num = n_common * ij_sum - i_sum * j_sum             # <<<<<<<<<<<<<<
@@ -3942,7 +3942,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __Pyx_XDECREF_SET(__pyx_v_num, __pyx_t_1);
         __pyx_t_1 = 0;
 
-        /* "Implementation/_cython/_similarity.pyx":142
+        /* "implementation/_cython/_similarity.pyx":142
  *             if n_common > 0:
  *                 num = n_common * ij_sum - i_sum * j_sum
  *                 den = np.sqrt((n_common * ii_sum - i_sum * i_sum) * (n_common * jj_sum - j_sum * j_sum))             # <<<<<<<<<<<<<<
@@ -4006,7 +4006,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __Pyx_XDECREF_SET(__pyx_v_den, __pyx_t_1);
         __pyx_t_1 = 0;
 
-        /* "Implementation/_cython/_similarity.pyx":143
+        /* "implementation/_cython/_similarity.pyx":143
  *                 num = n_common * ij_sum - i_sum * j_sum
  *                 den = np.sqrt((n_common * ii_sum - i_sum * i_sum) * (n_common * jj_sum - j_sum * j_sum))
  *                 if den > 0.0:             # <<<<<<<<<<<<<<
@@ -4019,7 +4019,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         if (__pyx_t_4) {
 
-          /* "Implementation/_cython/_similarity.pyx":144
+          /* "implementation/_cython/_similarity.pyx":144
  *                 den = np.sqrt((n_common * ii_sum - i_sum * i_sum) * (n_common * jj_sum - j_sum * j_sum))
  *                 if den > 0.0:
  *                     c = num / den             # <<<<<<<<<<<<<<
@@ -4032,7 +4032,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           __Pyx_XDECREF_SET(__pyx_v_c, __pyx_t_1);
           __pyx_t_1 = 0;
 
-          /* "Implementation/_cython/_similarity.pyx":143
+          /* "implementation/_cython/_similarity.pyx":143
  *                 num = n_common * ij_sum - i_sum * j_sum
  *                 den = np.sqrt((n_common * ii_sum - i_sum * i_sum) * (n_common * jj_sum - j_sum * j_sum))
  *                 if den > 0.0:             # <<<<<<<<<<<<<<
@@ -4042,7 +4042,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
           goto __pyx_L14;
         }
 
-        /* "Implementation/_cython/_similarity.pyx":146
+        /* "implementation/_cython/_similarity.pyx":146
  *                     c = num / den
  *                 else:
  *                     c = 0.0             # <<<<<<<<<<<<<<
@@ -4056,7 +4056,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         }
         __pyx_L14:;
 
-        /* "Implementation/_cython/_similarity.pyx":147
+        /* "implementation/_cython/_similarity.pyx":147
  *                 else:
  *                     c = 0.0
  *                 result[i, j] = c             # <<<<<<<<<<<<<<
@@ -4071,7 +4071,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         if (__pyx_t_39 < 0) __pyx_t_39 += __pyx_pybuffernd_result.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_38, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_39, __pyx_pybuffernd_result.diminfo[1].strides) = __pyx_t_37;
 
-        /* "Implementation/_cython/_similarity.pyx":148
+        /* "implementation/_cython/_similarity.pyx":148
  *                     c = 0.0
  *                 result[i, j] = c
  *                 result[j, i] = result[i, j]             # <<<<<<<<<<<<<<
@@ -4089,7 +4089,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         if (__pyx_t_43 < 0) __pyx_t_43 += __pyx_pybuffernd_result.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_42, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_43, __pyx_pybuffernd_result.diminfo[1].strides) = (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_result.rcbuffer->pybuffer.buf, __pyx_t_40, __pyx_pybuffernd_result.diminfo[0].strides, __pyx_t_41, __pyx_pybuffernd_result.diminfo[1].strides));
 
-        /* "Implementation/_cython/_similarity.pyx":149
+        /* "implementation/_cython/_similarity.pyx":149
  *                 result[i, j] = c
  *                 result[j, i] = result[i, j]
  *                 common[i, j] = n_common             # <<<<<<<<<<<<<<
@@ -4103,7 +4103,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         if (__pyx_t_45 < 0) __pyx_t_45 += __pyx_pybuffernd_common.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_common.rcbuffer->pybuffer.buf, __pyx_t_44, __pyx_pybuffernd_common.diminfo[0].strides, __pyx_t_45, __pyx_pybuffernd_common.diminfo[1].strides) = __pyx_v_n_common;
 
-        /* "Implementation/_cython/_similarity.pyx":150
+        /* "implementation/_cython/_similarity.pyx":150
  *                 result[j, i] = result[i, j]
  *                 common[i, j] = n_common
  *                 common[j, i] = n_common             # <<<<<<<<<<<<<<
@@ -4116,7 +4116,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
         if (__pyx_t_47 < 0) __pyx_t_47 += __pyx_pybuffernd_common.diminfo[1].shape;
         *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_common.rcbuffer->pybuffer.buf, __pyx_t_46, __pyx_pybuffernd_common.diminfo[0].strides, __pyx_t_47, __pyx_pybuffernd_common.diminfo[1].strides) = __pyx_v_n_common;
 
-        /* "Implementation/_cython/_similarity.pyx":140
+        /* "implementation/_cython/_similarity.pyx":140
  *                     n_common += 1
  * 
  *             if n_common > 0:             # <<<<<<<<<<<<<<
@@ -4127,7 +4127,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
     }
   }
 
-  /* "Implementation/_cython/_similarity.pyx":151
+  /* "implementation/_cython/_similarity.pyx":151
  *                 common[i, j] = n_common
  *                 common[j, i] = n_common
  *     return result, common             # <<<<<<<<<<<<<<
@@ -4146,7 +4146,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "Implementation/_cython/_similarity.pyx":88
+  /* "implementation/_cython/_similarity.pyx":88
  * 
  * @cython.boundscheck(False)
  * def pearson_corr(X):             # <<<<<<<<<<<<<<
@@ -4170,7 +4170,7 @@ static PyObject *__pyx_pf_14Implementation_7_cython_11_similarity_2pearson_corr(
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_common.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_result.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("Implementation._cython._similarity.pearson_corr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("implementation._cython._similarity.pearson_corr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -19577,7 +19577,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "Implementation._cython._similarity.array", /*tp_name*/
+  "implementation._cython._similarity.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -19683,7 +19683,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "Implementation._cython._similarity.Enum", /*tp_name*/
+  "implementation._cython._similarity.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -19931,7 +19931,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "Implementation._cython._similarity.memoryview", /*tp_name*/
+  "implementation._cython._similarity.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -20056,7 +20056,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "Implementation._cython._similarity._memoryviewslice", /*tp_name*/
+  "implementation._cython._similarity._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -20151,7 +20151,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
-  {&__pyx_n_s_Implementation__cython__similari, __pyx_k_Implementation__cython__similari, sizeof(__pyx_k_Implementation__cython__similari), 0, 0, 1, 1},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
   {&__pyx_n_s_IndexError, __pyx_k_IndexError, sizeof(__pyx_k_IndexError), 0, 0, 1, 1},
   {&__pyx_kp_s_Indirect_dimensions_not_supporte, __pyx_k_Indirect_dimensions_not_supporte, sizeof(__pyx_k_Indirect_dimensions_not_supporte), 0, 0, 1, 0},
@@ -20204,6 +20203,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ii, __pyx_k_ii, sizeof(__pyx_k_ii), 0, 0, 1, 1},
   {&__pyx_n_s_ii_sum, __pyx_k_ii_sum, sizeof(__pyx_k_ii_sum), 0, 0, 1, 1},
   {&__pyx_n_s_ij_sum, __pyx_k_ij_sum, sizeof(__pyx_k_ij_sum), 0, 0, 1, 1},
+  {&__pyx_n_s_implementation__cython__similari, __pyx_k_implementation__cython__similari, sizeof(__pyx_k_implementation__cython__similari), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_indices, __pyx_k_indices, sizeof(__pyx_k_indices), 0, 0, 1, 1},
   {&__pyx_n_s_indptr, __pyx_k_indptr, sizeof(__pyx_k_indptr), 0, 0, 1, 1},
@@ -20291,7 +20291,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "Implementation/_cython/_similarity.pyx":31
+  /* "implementation/_cython/_similarity.pyx":31
  *     """
  *     if not isinstance(X, sps.csc_matrix):
  *         raise ValueError('X must be an instance of scipy.sparse.csc_matrix')             # <<<<<<<<<<<<<<
@@ -20302,7 +20302,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "Implementation/_cython/_similarity.pyx":97
+  /* "implementation/_cython/_similarity.pyx":97
  *     """
  *     if not isinstance(X, sps.csc_matrix):
  *         raise ValueError('X must be an instance of scipy.sparse.csc_matrix')             # <<<<<<<<<<<<<<
@@ -20556,7 +20556,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
 
-  /* "Implementation/_cython/_similarity.pyx":21
+  /* "implementation/_cython/_similarity.pyx":21
  * 
  * @cython.boundscheck(False)
  * def cosine_common(X):             # <<<<<<<<<<<<<<
@@ -20568,7 +20568,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__32);
   __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(1, 0, 19, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_fernandoperez_Development, __pyx_n_s_cosine_common, 21, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 21, __pyx_L1_error)
 
-  /* "Implementation/_cython/_similarity.pyx":88
+  /* "implementation/_cython/_similarity.pyx":88
  * 
  * @cython.boundscheck(False)
  * def pearson_corr(X):             # <<<<<<<<<<<<<<
@@ -20768,14 +20768,14 @@ PyMODINIT_FUNC PyInit__similarity(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_Implementation___cython___similarity) {
+  if (__pyx_module_is_main_implementation___cython___similarity) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "Implementation._cython._similarity")) {
-      if (unlikely(PyDict_SetItemString(modules, "Implementation._cython._similarity", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "implementation._cython._similarity")) {
+      if (unlikely(PyDict_SetItemString(modules, "implementation._cython._similarity", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -20843,7 +20843,7 @@ PyMODINIT_FUNC PyInit__similarity(void)
   #endif
   __Pyx_TraceCall("PyMODINIT_FUNC PyInit__similarity(void)", __pyx_f[0], 1, 0, __PYX_ERR(0, 1, __pyx_L1_error));
 
-  /* "Implementation/_cython/_similarity.pyx":17
+  /* "implementation/_cython/_similarity.pyx":17
  * cimport cython
  * cimport numpy as np
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -20856,7 +20856,7 @@ PyMODINIT_FUNC PyInit__similarity(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":18
+  /* "implementation/_cython/_similarity.pyx":18
  * cimport numpy as np
  * import numpy as np
  * import scipy.sparse as sps             # <<<<<<<<<<<<<<
@@ -20875,7 +20875,7 @@ PyMODINIT_FUNC PyInit__similarity(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sps, __pyx_t_2) < 0) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":21
+  /* "implementation/_cython/_similarity.pyx":21
  * 
  * @cython.boundscheck(False)
  * def cosine_common(X):             # <<<<<<<<<<<<<<
@@ -20883,12 +20883,12 @@ PyMODINIT_FUNC PyInit__similarity(void)
  *     Function that pairwise cosine similarity of the columns in X.
  */
   __Pyx_TraceLine(21,0,__PYX_ERR(0, 21, __pyx_L1_error))
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14Implementation_7_cython_11_similarity_1cosine_common, 0, __pyx_n_s_cosine_common, NULL, __pyx_n_s_Implementation__cython__similari, __pyx_d, ((PyObject *)__pyx_codeobj_)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14implementation_7_cython_11_similarity_1cosine_common, 0, __pyx_n_s_cosine_common, NULL, __pyx_n_s_implementation__cython__similari, __pyx_d, ((PyObject *)__pyx_codeobj_)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cosine_common, __pyx_t_2) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":88
+  /* "implementation/_cython/_similarity.pyx":88
  * 
  * @cython.boundscheck(False)
  * def pearson_corr(X):             # <<<<<<<<<<<<<<
@@ -20896,12 +20896,12 @@ PyMODINIT_FUNC PyInit__similarity(void)
  *     Pearson correlation
  */
   __Pyx_TraceLine(88,0,__PYX_ERR(0, 88, __pyx_L1_error))
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14Implementation_7_cython_11_similarity_3pearson_corr, 0, __pyx_n_s_pearson_corr, NULL, __pyx_n_s_Implementation__cython__similari, __pyx_d, ((PyObject *)__pyx_codeobj__3)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14implementation_7_cython_11_similarity_3pearson_corr, 0, __pyx_n_s_pearson_corr, NULL, __pyx_n_s_implementation__cython__similari, __pyx_d, ((PyObject *)__pyx_codeobj__3)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pearson_corr, __pyx_t_2) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "Implementation/_cython/_similarity.pyx":1
+  /* "implementation/_cython/_similarity.pyx":1
  * '''             # <<<<<<<<<<<<<<
  * Politecnico di Milano.
  * _similarity.pyx
@@ -21130,11 +21130,11 @@ PyMODINIT_FUNC PyInit__similarity(void)
   __Pyx_XDECREF(__pyx_t_2);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init Implementation._cython._similarity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init implementation._cython._similarity", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init Implementation._cython._similarity");
+    PyErr_SetString(PyExc_ImportError, "init implementation._cython._similarity");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
