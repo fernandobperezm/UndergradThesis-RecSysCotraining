@@ -12,9 +12,9 @@ python3 ../scripts/holdout.py \
     --recommender_2 SLIM_mt --rec_length 10 \
     --k_fold 2 \
     --number_iterations 50 \
-    --number_positives 40 \
-    --number_negatives 120 \
-    --number_unlabeled 3000 \
+    --number_positives 10 \
+    --number_negatives 30 \
+    --number_unlabeled 750 \
     --params_1 l2_penalty=0.1,l1_penalty=0.001 \
     --params_2 l2_penalty=0.01,l1_penalty=0.001
     #--columns -> Comma separated names for every column.
