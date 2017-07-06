@@ -1,5 +1,6 @@
 # Ignoring datasets (Github size limit)
-Datasets/
+Datasets/ml1m/
+Datasets/ml100k/
 Results/
 Processing/
 run-examples/commands.txt
