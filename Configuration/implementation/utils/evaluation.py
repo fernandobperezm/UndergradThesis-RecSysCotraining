@@ -52,12 +52,6 @@ class Evaluation(object):
 
 
     def eval(self, rec_1, rec_2):
-        # if (not isinstance(train_set_1,sps.csr_matrix)):
-        #     train_set_1 = train_set_1.tocsr().astype(np.float32)
-        #
-        # if (not isinstance(train_set_2,sps.csr_matrix)):
-        #     train_set_2 = train_set_2.tocsr().astype(np.float32)
-
         at = self.at
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -76,6 +70,7 @@ class Evaluation(object):
             # this will rank self.at (n) items and will predict the score for the relevant items.
             ranked_items = rec_1.recommend(user_id=test_user, n=self.at, exclude_seen=True)
             predicted_relevant_items = rec_1.predict(user_id=test_user, rated_indices=relevant_items)
+
 
             # evaluate the recommendation list with RMSE and ranking metrics.
             rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())

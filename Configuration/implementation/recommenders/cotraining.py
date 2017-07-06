@@ -110,14 +110,14 @@ class CoTraining(object):
             except:
                 logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()[0]))
 
-            try:
-                logger.info('\tRecommender: {}'.format(self.rec_2))
-                tic = dt.now()
-                logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
-                self.rec_2.fit(X2)
-                logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
-            except:
-                logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()[0]))
+            # try:
+            logger.info('\tRecommender: {}'.format(self.rec_2))
+            tic = dt.now()
+            logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
+            self.rec_2.fit(X2)
+            logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            # except:
+            #     logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()[0]))
 
 
             # Evaluate the recommenders in this iteration.

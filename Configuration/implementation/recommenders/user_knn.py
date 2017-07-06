@@ -15,6 +15,7 @@ Last modified on 25/03/2017.
 from .item_knn import ItemKNNRecommender
 from .base import check_matrix
 import numpy as np
+import scipy.sparse as sps
 import pdb
 
 
@@ -42,27 +43,48 @@ class UserKNNRecommender(ItemKNNRecommender):
         Xt = X.T.tocsr()
         # fit a ItemKNNRecommender on the transposed X matrix
         super().fit(Xt)
-        self.dataset = X
-        # precompute the predicted scores for speed
-        if self.sparse_weights:
-            self.scores = self.W_sparse.dot(X).toarray()
-        else:
-            self.scores = self.W.dot(X)
-        if self.normalize:
-            for i in range(M):
-                rated = Xt[i].copy()
-                rated.data = np.ones_like(rated.data)
-                if self.sparse_weights:
-                    den = rated.dot(self.W_sparse).toarray().ravel()
-                else:
-                    den = rated.dot(self.W).ravel()
-                den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-                self.scores[:, i] /= den
 
-    def user_score(self, user_id):
-        return self.scores[user_id]
+        self.dataset = X
+
+        # # precompute the predicted scores for speed
+        # if self.sparse_weights:
+        #     self.scores = self.W_sparse.dot(X).toarray()
+        # else:
+        #     self.scores = self.W.dot(X)
+        # if self.normalize:
+        #     for i in range(M): # <- Bug here, should be N instead of M.
+        #         pdb.set_trace()
+        #         rated = Xt[i].copy()
+        #         rated.data = np.ones_like(rated.data)
+        #         if self.sparse_weights:
+        #             den = rated.dot(self.W_sparse).toarray().ravel()
+        #         else:
+        #             den = rated.dot(self.W).ravel()
+        #         den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+        #         self.scores[:, i] /= den
+
+    def calculate_scores(self):
+        if self.sparse_weights:
+            self.scores = self.W_sparse.dot(self.dataset).toarray()
+        else:
+            self.scores = self.W.dot(self.dataset)
+
+        if self.normalize:
+            # pdb.set_trace()
+            rated = self.dataset.T.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray()
+            else:
+                den = rated.dot(self.W)
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            self.scores /= den.T
 
     def recommend(self, user_id, n=None, exclude_seen=True):
+        # pdb.set_trace()
+        if (self.scores is None):
+            self.calculate_scores()
+
         ranking = self.scores[user_id].argsort()[::-1]
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)

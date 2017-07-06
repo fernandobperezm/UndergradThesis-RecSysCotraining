@@ -31,6 +31,7 @@ class ItemKNNRecommender(Recommender):
         self.dataset = None
         self.similarity_name = similarity
         self.sparse_weights = sparse_weights
+        self.scores = None
         if similarity == 'cosine':
             self.distance = Cosine(shrinkage=self.shrinkage)
         elif similarity == 'pearson':
@@ -74,50 +75,30 @@ class ItemKNNRecommender(Recommender):
                 cols.extend(np.ones(self.k) * i)
             self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
-    def user_score(self, user_id):
-        # compute the scores using the dot product
-        user_profile = self._get_user_ratings(user_id)
-
+    def calculate_scores(self):
         if self.sparse_weights:
-            scores = user_profile.dot(self.W_sparse).toarray().ravel()
+            self.scores = self.dataset.dot(self.W_sparse).toarray()
         else:
-            scores = user_profile.dot(self.W).ravel()
+            self.scores = self.dataset.dot(self.W)
 
         if self.normalize:
             # normalization will keep the scores in the same range
             # of value of the ratings in dataset
-            rated = user_profile.copy()
+            rated = self.dataset.copy()
             rated.data = np.ones_like(rated.data)
             if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
+                den = rated.dot(self.W_sparse).toarray()
             else:
-                den = rated.dot(self.W).ravel()
+                den = rated.dot(self.W)
             den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
-        return scores
+            self.scores /= den
 
     def recommend(self, user_id, n=None, exclude_seen=True):
-        # compute the scores using the dot product
-        user_profile = self._get_user_ratings(user_id)
+        if (self.scores is None):
+            self.calculate_scores()
 
-        if self.sparse_weights:
-            scores = user_profile.dot(self.W_sparse).toarray().ravel()
-        else:
-            scores = user_profile.dot(self.W).ravel()
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = user_profile.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
-            else:
-                den = rated.dot(self.W).ravel()
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
         # rank items
-        ranking = scores.argsort()[::-1]
+        ranking = self.scores[user_id].argsort()[::-1]
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
@@ -150,27 +131,8 @@ class ItemKNNRecommender(Recommender):
         return ranking[:n]
 
     def predict(self, user_id, rated_indices):
-        # compute the scores using the dot product
-        user_profile = self._get_user_ratings(user_id)
-
-        if self.sparse_weights:
-            scores = user_profile.dot(self.W_sparse).toarray().ravel()
-        else:
-            scores = user_profile.dot(self.W).ravel()
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = user_profile.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
-            else:
-                den = rated.dot(self.W).ravel()
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
-        # rank items
-        return scores[rated_indices]
+        # return the scores for the rated items.
+        return self.scores[user_id,rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Calculate the scores only one time.
@@ -182,31 +144,12 @@ class ItemKNNRecommender(Recommender):
 
         users = np.array(users,dtype=np.int32)
         items = np.array(items,dtype=np.int32)
-        uniq_users, user_to_idx = np.unique(users,return_inverse=True)
-        # compute the scores using the dot product
-        profiles = self._get_user_ratings(uniq_users)
-        if self.sparse_weights:
-            scores = profiles.dot(self.W_sparse).toarray()
-        else:
-            scores = profiles.dot(self.W)
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = profiles.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray()
-            else:
-                den = rated.dot(self.W)
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
 
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
-        filtered_scores = scores[user_to_idx,items]
+        filtered_scores = self.scores[users,items]
 
         # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
         # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)
