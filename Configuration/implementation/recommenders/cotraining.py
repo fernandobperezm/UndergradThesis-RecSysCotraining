@@ -108,7 +108,7 @@ class CoTraining(object):
                 self.rec_1.fit(X1)
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
             except:
-                logger.info('Could not fit the recommender 1: {}'.format(sys.exe_info()[0]))
+                logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()[0]))
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_2))
@@ -117,17 +117,20 @@ class CoTraining(object):
                 self.rec_2.fit(X2)
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
             except:
-                logger.info('Could not fit the recommender 2: {}'.format(sys.exe_info()[0]))
+                logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()[0]))
 
 
             # Evaluate the recommenders in this iteration.
             logger.info('\tEvaluating both recommenders.')
-            self.eval.eval(self.rec_1, self.rec_2)
-            # self.eval2.eval(X2)
-            # self.eval_aggr.eval(X1) # TODO: change this.
-            self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
-            # self.eval2.log_by_index(i_iter)
-            # self.eval_aggr.log_by_index(i_iter)
+            try:
+                self.eval.eval(self.rec_1, self.rec_2)
+                # self.eval2.eval(X2)
+                # self.eval_aggr.eval(X1) # TODO: change this.
+                self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
+                # self.eval2.log_by_index(i_iter)
+                # self.eval_aggr.log_by_index(i_iter)
+            except:
+                logger.info('Could not evaluate both recomemnders: {}'.format(sys.exc_info()[0]))
 
 
             # Label positively and negatively examples from U' for both recommenders.
@@ -135,9 +138,14 @@ class CoTraining(object):
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
-            # pdb.set_trace()
-            labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
-            labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            try:
+                labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            except:
+                logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()[0]))
+            try:
+                labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+            except:
+                logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()[0]))
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             for user_idx, item_idx, label in labeled1:
