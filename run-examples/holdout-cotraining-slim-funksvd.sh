@@ -1,7 +1,7 @@
 #!/bin/bash
 
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/slim-funksvd-1/ \
     --results_file holdout-slim-funksvd-50.csv \
     --holdout_perc 0.8 \
@@ -13,8 +13,8 @@ python3 ../scripts/holdout.py \
     --k_fold 2 \
     --number_iterations 50 \
     --number_positives 10 \
-    --number_negatives 30 \
-    --number_unlabeled 750 \
+    --number_negatives 1000 \
+    --number_unlabeled 7500 \
     --params_1 l2_penalty=0.1,l1_penalty=0.001 \
     --params_2 num_factors=20,lrate=0.01,reg=0.01
     #--columns -> Comma separated names for every column.
