@@ -11,26 +11,32 @@ Last modified on 25/03/2017.
 '''
 
 import random as random
+import logging
+from datetime import datetime as dt
 
 import numpy as np
 import scipy as sp
 
+import sys
+import pdb
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
+
 class CoTraining(object):
     """ CO-TRAINING environment for RecSys"""
 
-    def __init__(self, rec_1, rec_2, eval_obj1, eval_obj2, eval_obj_aggr, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3, seed=1024):
+    def __init__(self, rec_1, rec_2, eval_obj, n_iters = 30, n_labels = 10, p_most = 1, n_most = 3, seed=1024):
         '''
             Args:
                 * rec_1: A Recommender Class object that represents the first
                          recommender.
                 * rec_2: A Recommender Class object that represents the second
                          recommender.
-                * eval_obj1: An Evaluation Class object that represents the evaluation
+                * eval_obj: An Evaluation Class object that represents the evaluation
                             metrics for the recommender1.
-                * eval_obj2: An Evaluation Class object that represents the evaluation
-                            metrics for the recommender2.
-                * eval_obj_aggr: An Evaluation Class object that represents the evaluation
-                            metrics for the aggregate of both recommenders.
                 * n_iters: Represents the number of Co-Training iterations.
                 * n_labels: The number of elements to label in each Co-Training
                             iteration.
@@ -38,9 +44,7 @@ class CoTraining(object):
         super(CoTraining, self).__init__()
         self.rec_1 = rec_1
         self.rec_2 = rec_2
-        self.eval1 = eval_obj1
-        self.eval2 = eval_obj2
-        self.eval_aggr = eval_obj_aggr
+        self.eval = eval_obj
         self.n_iters = n_iters
         self.n_labels = n_labels
         self.p_most = p_most
@@ -72,7 +76,7 @@ class CoTraining(object):
                            joint at each iteration.
 
         '''
-        self.eval_aggr.recommender = self
+        # self.eval_aggr.recommender = self
         nusers, nitems = X1.shape
         rng = np.random.RandomState(self.seed)
 
@@ -95,34 +99,43 @@ class CoTraining(object):
 
         # Co-Training iterations begin here.
         for i_iter in range(self.n_iters):
-            # logger.info(("Iteration: {}".format(i_iter)))
+            logger.info(("Iteration: {}".format(i_iter)))
 
-            # logger.info('\tRecommender: {}'.format(self.rec_1))
-            # tic = dt.now()
-            # logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
-            self.rec_1.fit(X1)
-            # logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
+            try:
+                logger.info('\tRecommender: {}'.format(self.rec_1))
+                tic = dt.now()
+                logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
+                self.rec_1.fit(X1)
+                logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
+            except:
+                logger.info('Could not fit the recommender 1: {}'.format(sys.exe_info()[0]))
 
-            # logger.info('\tRecommender: {}'.format(self.rec_2))
-            # tic = dt.now()
-            # logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
-            self.rec_2.fit(X2)
-            # logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            try:
+                logger.info('\tRecommender: {}'.format(self.rec_2))
+                tic = dt.now()
+                logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
+                self.rec_2.fit(X2)
+                logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
+            except:
+                logger.info('Could not fit the recommender 2: {}'.format(sys.exe_info()[0]))
+
 
             # Evaluate the recommenders in this iteration.
-            self.eval1.eval(X1)
-            self.eval2.eval(X2)
-            self.eval_aggr.eval(X1) # TODO: change this.
-            self.eval1.log_by_index(i_iter)
-            self.eval2.log_by_index(i_iter)
-            self.eval_aggr.log_by_index(i_iter)
+            logger.info('\tEvaluating both recommenders.')
+            self.eval.eval(self.rec_1, self.rec_2)
+            # self.eval2.eval(X2)
+            # self.eval_aggr.eval(X1) # TODO: change this.
+            self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
+            # self.eval2.log_by_index(i_iter)
+            # self.eval_aggr.log_by_index(i_iter)
+
 
             # Label positively and negatively examples from U' for both recommenders.
+            logger.info('\tLabeling new items.')
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
-            rng.shuffle(unl1)
-            rng.shuffle(unl2)
+            # pdb.set_trace()
             labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
 

@@ -167,19 +167,23 @@ h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Evaluations cotrained.
-eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = 10,co_training=True)
+# eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+# eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+# eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
+# cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj=eval_ctr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
 
 # Recommender evaluation.
 results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
 # Cotraining fitting and evaluation.
+logger.info('Beggining the Co-Training process.')
+tic = dt.now()
 cotraining.fit(train, eval_iter = True)
+logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
 
 # Plotting.
-cotraining.eval_aggr.plot_all_recommenders(eval1_ctr, eval2_ctr) # First 7 figures.
-eval1_ctr.plot_all() # Second 7 figures.
-eval2_ctr.plot_all() # Third 7 figures.
-cotraining.eval_aggr.plot_all() # Fourth 7 figures.
+eval_ctr.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
+eval_ctr.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
+eval_ctr.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
