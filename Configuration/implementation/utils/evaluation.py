@@ -72,7 +72,7 @@ class Evaluation(object):
                 logger.info("Evaluating user {}".format(test_user))
 
             # Getting user_profile by it's rated items (relevant_items) in the test.
-            logger.info("Getting relevant items.")
+            # logger.info("Getting relevant items.")
             relevant_items = self.test_set[test_user].indices
 
             # Getting user profile given the train set.
@@ -81,16 +81,16 @@ class Evaluation(object):
             # Recommender 1.
             # recommender recommendation.
             # this will rank self.at (n) items and will predict the score for the relevant items.
-            logger.info("Ranking Rec1.")
+            # logger.info("Ranking Rec1.")
             ranked_items = rec_1.recommend(user_id=test_user, n=self.at, exclude_seen=True)
-            logger.info("Predicting Rec1.")
+            # logger.info("Predicting Rec1.")
             predicted_relevant_items = rec_1.predict(user_id=test_user, rated_indices=relevant_items)
 
 
             # evaluate the recommendation list with RMSE and ranking metrics.
-            logger.info("Evaluating rmse rec1.")
+            # logger.info("Evaluating rmse rec1.")
             rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
-            logger.info("Evaluating ranking metrics rec1")
+            # logger.info("Evaluating ranking metrics rec1")
             roc_auc_ += metrics.roc_auc(ranked_items, relevant_items)
             precision_ += metrics.precision(ranked_items, relevant_items, at=at)
             recall_ += metrics.recall(ranked_items, relevant_items, at=at)
@@ -102,15 +102,15 @@ class Evaluation(object):
             # Recommender 2.
             # recommender recommendation.
             # this will rank self.at (n) items and will predict the score for the relevant items.
-            logger.info("Ranking rec2")
+            # logger.info("Ranking rec2")
             ranked_items_2 = rec_2.recommend(user_id=test_user, n=self.at, exclude_seen=True)
-            logger.info("Predicting rec2")
+            # logger.info("Predicting rec2")
             predicted_relevant_items_2 = rec_2.predict(user_id=test_user, rated_indices=relevant_items)
 
             # evaluate the recommendation list with RMSE and ranking metrics.
-            logger.info("Evaluating rmse rec2")
+            # logger.info("Evaluating rmse rec2")
             rmse2_ += metrics.rmse(predicted_relevant_items_2, self.test_set[test_user,relevant_items].toarray())
-            logger.info("Evaluating ranking metrics rec2")
+            # logger.info("Evaluating ranking metrics rec2")
             roc_auc2_ += metrics.roc_auc(ranked_items_2, relevant_items)
             precision2_ += metrics.precision(ranked_items_2, relevant_items, at=at)
             recall2_ += metrics.recall(ranked_items_2, relevant_items, at=at)
