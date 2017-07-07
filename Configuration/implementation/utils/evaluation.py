@@ -64,10 +64,10 @@ class Evaluation(object):
         n_eval = 0
         rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
         rmse2_, roc_auc2_, precision2_, recall2_, map2_, mrr2_, ndcg2_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        # row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
-        # relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
-        # for test_user in relevant_users:
-        for test_user in np.arange(start=0,stop=nusers,dtype=np.int32):
+        row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
+        relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
+        for test_user in relevant_users:
+        # for test_user in np.arange(start=0,stop=nusers,dtype=np.int32):
             if (test_user % 1000 == 0):
                 logger.info("Evaluating user {}".format(test_user))
 
