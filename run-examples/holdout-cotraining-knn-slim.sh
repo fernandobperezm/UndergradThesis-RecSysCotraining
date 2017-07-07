@@ -2,9 +2,9 @@
 
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
-#  Rec2 -> SLIM_mt with l2_penalty=0.1,l1_penalty=0.001
+#  Rec2 -> SLIM with l2_penalty=0.1,l1_penalty=0.001
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-slim-1/ \
     --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
@@ -12,8 +12,8 @@ python3 ../scripts/holdout.py \
     --user_key user_id --item_key item_id --rating_key rating \
     --rnd_seed 1234 \
     --recommender_1 item_knn --rec_length 10 \
-    --recommender_2 SLIM_mt --rec_length 10 \
-    --number_iterations 50 \
+    --recommender_2 SLIM --rec_length 10 \
+    --number_iterations 1 \
     --number_positives 30 \
     --number_negatives 120 \
     --number_unlabeled 750 \
@@ -30,9 +30,9 @@ python3 ../scripts/holdout.py \
 ################################################################################
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
-#  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
+#  Rec2 -> SLIM with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-slim-2/ \
     --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
@@ -40,8 +40,8 @@ python3 ../scripts/holdout.py \
     --user_key user_id --item_key item_id --rating_key rating \
     --rnd_seed 1234 \
     --recommender_1 item_knn --rec_length 10 \
-    --recommender_2 SLIM_mt --rec_length 10 \
-    --number_iterations 50 \
+    --recommender_2 SLIM --rec_length 10 \
+    --number_iterations 1 \
     --number_positives 30 \
     --number_negatives 120 \
     --number_unlabeled 750 \
@@ -58,9 +58,9 @@ python3 ../scripts/holdout.py \
 ################################################################################
 # Combination:
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
-#  Rec2 -> SLIM_mt with Pearson, k=50 and shrinkage = 100 and normalization
+#  Rec2 -> SLIM with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-slim-3/ \
     --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
@@ -68,8 +68,8 @@ python3 ../scripts/holdout.py \
     --user_key user_id --item_key item_id --rating_key rating \
     --rnd_seed 1234 \
     --recommender_1 item_knn --rec_length 10 \
-    --recommender_2 SLIM_mt --rec_length 10 \
-    --number_iterations 50 \
+    --recommender_2 SLIM --rec_length 10 \
+    --number_iterations 1 \
     --number_positives 30 \
     --number_negatives 120 \
     --number_unlabeled 750 \
