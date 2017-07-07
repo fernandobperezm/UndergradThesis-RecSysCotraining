@@ -17,9 +17,9 @@ import unittest
 def rmse(predictions,targets):
     return np.sqrt(np.mean((predictions-targets)**2))
 
-def roc_auc(ranked_list, pos_items):
-    is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
-    ranks = np.arange(len(ranked_list))
+def roc_auc(is_relevant):
+    #is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
+    ranks = np.arange(len(is_relevant))
     pos_ranks = ranks[is_relevant]
     neg_ranks = ranks[~is_relevant]
     auc_score = 0.0
@@ -33,38 +33,38 @@ def roc_auc(ranked_list, pos_items):
     return auc_score
 
 
-def precision(ranked_list, pos_items, at=None):
-    ranked_list = ranked_list[:at]
-    is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
-    precision_score = np.sum(is_relevant, dtype=np.float32) / len(ranked_list)
+def precision(is_relevant):
+    #ranked_list = ranked_list[:at]
+    #is_relevant = np.in1d(is_relevant, pos_items, assume_unique=True)
+    precision_score = np.sum(is_relevant, dtype=np.float32) / len(is_relevant)
     assert 0 <= precision_score <= 1, precision_score
     return precision_score
 
 
-def recall(ranked_list, pos_items, at=None):
-    ranked_list = ranked_list[:at]
-    is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
+def recall(is_relevant, pos_items):
+    #ranked_list = ranked_list[:at]
+    #is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
     recall_score = np.sum(is_relevant, dtype=np.float32) / pos_items.shape[0]
     assert 0 <= recall_score <= 1, recall_score
     return recall_score
 
 
-def rr(ranked_list, pos_items, at=None):
+def rr(is_relevant):
     # reciprocal rank of the FIRST relevant item in the ranked list (0 if none)
-    ranked_list = ranked_list[:at]
-    is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
-    ranks = np.arange(1, len(ranked_list) + 1)[is_relevant]
+    #ranked_list = ranked_list[:at]
+    #is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
+    ranks = np.arange(1, len(is_relevant) + 1)[is_relevant]
     if len(ranks) > 0:
         return 1. / ranks[0]
     else:
         return 0.0
 
 
-def map(ranked_list, pos_items, at=None):
-    ranked_list = ranked_list[:at]
-    is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
+def map(is_relevant, pos_items):
+    #ranked_list = ranked_list[:at]
+    #is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
     p_at_k = is_relevant * np.cumsum(is_relevant, dtype=np.float32) / (1 + np.arange(is_relevant.shape[0]))
-    map_score = np.sum(p_at_k) / np.min([pos_items.shape[0], len(ranked_list)])
+    map_score = np.sum(p_at_k) / np.min([pos_items.shape[0], len(is_relevant)])
     assert 0 <= map_score <= 1, map_score
     return map_score
 
