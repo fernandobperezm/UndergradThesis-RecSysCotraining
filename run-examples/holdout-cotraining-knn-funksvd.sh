@@ -4,7 +4,7 @@
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.01
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-funksvd-1/ \
     --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
@@ -32,7 +32,7 @@ python3 ../scripts/holdout.py \
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.01
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-funksvd-2/ \
     --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
@@ -60,7 +60,7 @@ python3 ../scripts/holdout.py \
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.01
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-funksvd-3/ \
     --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
