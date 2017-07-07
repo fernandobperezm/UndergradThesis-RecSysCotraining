@@ -68,7 +68,7 @@ class Evaluation(object):
         relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
         for test_user in relevant_users:
         # for test_user in np.arange(start=0,stop=nusers,dtype=np.int32):
-            if (test_user % 1000 == 0):
+            if (test_user % 10000 == 0):
                 logger.info("Evaluating user {}".format(test_user))
 
             # Getting user_profile by it's rated items (relevant_items) in the test.
