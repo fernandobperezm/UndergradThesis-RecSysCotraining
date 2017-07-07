@@ -76,7 +76,7 @@ class ItemKNNRecommender(Recommender):
                 cols.extend(np.ones(self.k) * i)
             self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
-    def calculate_scores(self):
+    def calculate_scores_matrix(self):
         if self.sparse_weights:
             self.scores = self.dataset.dot(self.W_sparse).toarray()
         else:
@@ -94,12 +94,53 @@ class ItemKNNRecommender(Recommender):
             den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
             self.scores /= den
 
-    def recommend(self, user_id, n=None, exclude_seen=True):
-        if (self.scores is None):
-            self.calculate_scores()
+    def calculate_scores_batch(self,users):
+        profiles = self._get_user_ratings(users)
+        if self.sparse_weights:
+            self.scores = profiles.dot(self.W_sparse).toarray()
+        else:
+            self.scores = profiles.dot(self.W)
 
-        # rank items
-        ranking = self.scores[user_id].argsort()[::-1]
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = profiles.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray()
+            else:
+                den = rated.dot(self.W)
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            self.scores /= den
+
+    def calculate_scores_user(self,user_id):
+        user_profile = self._get_user_ratings(user_id)
+
+        if self.sparse_weights:
+            self.scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        else:
+            self.scores = user_profile.dot(self.W).ravel()
+
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            self.scores /= den
+
+    def recommend(self, user_id, n=None, exclude_seen=True,score_mode='user'):
+        if (score_mode == 'user'):
+            self.calculate_scores_user(user_id)
+            ranking = self.scores.argsort()[::-1]
+        elif (score_mode == 'matrix' and self.scores is None):
+            self.calculate_scores_matrix()
+            ranking = self.scores[user_id].argsort()[::-1]
+
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
@@ -131,11 +172,15 @@ class ItemKNNRecommender(Recommender):
             ranking = ranking[unseen_mask]
         return ranking[:n]
 
-    def predict(self, user_id, rated_indices):
+    def predict(self, user_id, rated_indices,score_mode='user'):
         # return the scores for the rated items.
-        return self.scores[user_id,rated_indices]
+        # return the scores for the rated items.
+        if (score_mode == 'user'):
+            return self.scores[rated_indices]
+        elif (score_mode == 'matrix'):
+            return self.scores[user_id,rated_indices]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='batch'):
         # Calculate the scores only one time.
         users = []
         items = []
@@ -146,11 +191,20 @@ class ItemKNNRecommender(Recommender):
         users = np.array(users,dtype=np.int32)
         items = np.array(items,dtype=np.int32)
 
-        # At this point, we have all the predicted scores for the users inside
+        if (score_mode == 'batch'):
+            uniq_users, user_to_idx = np.unique(users,return_inverse=True)
+            self.calculate_scores_batch(uniq_users)
+            filtered_scores = self.scores[user_to_idx,items]
+
+        if (score_mode == 'matrix'):
+            if (self.scores is None):
+                self.calculate_scores_matrix()
+            filtered_scores = self.scores[users,items]
+
+        # Up to this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
-        filtered_scores = self.scores[users,items]
 
         # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
         # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)

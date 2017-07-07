@@ -130,7 +130,7 @@ class CoTraining(object):
                 # self.eval2.log_by_index(i_iter)
                 # self.eval_aggr.log_by_index(i_iter)
             except:
-                logger.info('Could not evaluate both recomemnders: {}'.format(sys.exc_info()[0]))
+                logger.info('Could not evaluate both recomemnders: {}'.format(sys.exc_info()))
 
 
             # Label positively and negatively examples from U' for both recommenders.
