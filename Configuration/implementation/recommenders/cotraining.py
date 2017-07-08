@@ -12,6 +12,7 @@ Last modified on 25/03/2017.
 
 import random as random
 import logging
+import traceback
 from datetime import datetime as dt
 
 import numpy as np
@@ -79,6 +80,8 @@ class CoTraining(object):
         # self.eval_aggr.recommender = self
         nusers, nitems = X1.shape
         rng = np.random.RandomState(self.seed)
+        error_path = self.eval.results_path + "errors.txt"
+        error_file = open(error_path, 'w')
 
         # Create the pool of examples.
         # Using a DoK matrix to have a A[row[k], col[k]] = Data[k] representation
@@ -109,6 +112,7 @@ class CoTraining(object):
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
             except:
                 logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_2))
@@ -118,6 +122,7 @@ class CoTraining(object):
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
             except:
                 logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
 
             # Evaluate the recommenders in this iteration.
@@ -131,6 +136,7 @@ class CoTraining(object):
                 # self.eval_aggr.log_by_index(i_iter)
             except:
                 logger.info('Could not evaluate both recomemnders: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
 
             # Label positively and negatively examples from U' for both recommenders.
@@ -142,15 +148,18 @@ class CoTraining(object):
                 labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
             try:
                 labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
             try:
                 self.eval.log_number_labeled(index=i_iter, rec_1=self.rec_1, rec_2=self.rec_2, nlabeled1=len(labeled1), nlabeled2=len(labeled2))
             except:
                 logger.info('Could not log the new labeled items: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             try:
@@ -159,6 +168,7 @@ class CoTraining(object):
                     u_prime[user_idx,item_idx] = 0
             except:
                 logger.info('Could not include labeled into X2: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
             # Add the labeled examples from recommender2 into T1. (and eliminate them from U' as they aren't X_unlabeled anymore).
             try:
@@ -167,6 +177,7 @@ class CoTraining(object):
                     u_prime[user_idx,item_idx] = 0
             except:
                 logger.info('Could not include labeled into X1: {}'.format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
 
             # Replenish U' with 2*p + 2*n samples from U.
             try:
@@ -179,6 +190,9 @@ class CoTraining(object):
                         i += 1
             except:
                 logger.info("Could not replenish U': {}".format(sys.exc_info()))
+                traceback.print_exc(file=error_file)
+
+        error_file.close()
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores1 = self.rec_1.user_score(user_id=user_id)
