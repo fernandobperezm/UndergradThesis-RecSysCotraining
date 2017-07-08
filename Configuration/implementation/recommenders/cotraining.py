@@ -135,7 +135,6 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             logger.info('\tLabeling new items.')
-            pdb.set_trace()
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
@@ -172,7 +171,7 @@ class CoTraining(object):
             # Replenish U' with 2*p + 2*n samples from U.
             try:
                 i = 0
-                while (i < (len(labeled1) + len(labeled2)) ):
+                while (u_prime.nnz < self.n_labels):
                     rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
                     rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
                     if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
