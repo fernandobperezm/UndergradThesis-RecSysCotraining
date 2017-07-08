@@ -67,7 +67,7 @@ cd Configuration/ ; sh install.sh ; cd ..
 mkdir Results;
 
 mkdir Results/knn-funksvd-1; mkdir Results/knn-funksvd-2; mkdir Results/knn-funksvd-3;
-# mkdir Results/knn-knn-1; mkdir Results/knn-knn-2; mkdir Results/knn-knn-3; mkdir Results/knn-knn-4; mkdir Results/knn-knn-5; mkdir Results/knn-knn-6; mkdir Results/knn-knn-7;
+mkdir Results/knn-knn-1; mkdir Results/knn-knn-2; mkdir Results/knn-knn-3; mkdir Results/knn-knn-4; mkdir Results/knn-knn-5; mkdir Results/knn-knn-6; mkdir Results/knn-knn-7;
 mkdir Results/knn-slim-1; mkdir Results/knn-slim-2; mkdir Results/knn-slim-3;
 mkdir Results/knn-bprmf-1; mkdir Results/knn-bprmf-2; mkdir Results/knn-bprmf-3;
 
