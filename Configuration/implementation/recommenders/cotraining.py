@@ -91,7 +91,7 @@ class CoTraining(object):
             rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
             rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
             if (X1.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                u_prime.update({(rnd_user,rnd_item): 1})
+                u_prime[rnd_user,rnd_item] = 1
                 i += 1
 
         # Training set for Rec2.
@@ -135,6 +135,7 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             logger.info('\tLabeling new items.')
+            pdb.set_trace()
             unlabeled = u_prime.keys()
             unl1 = list(unlabeled)
             unl2 = list(unlabeled)
@@ -148,24 +149,23 @@ class CoTraining(object):
                 logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
 
             try:
-                self.eval.log_number_labeled(index=i_iter, rec_1=self.rec_1, rec_2=self.rec_2, nlabeled1=len(labeled1), nlabeled2=len(labeled1))
+                self.eval.log_number_labeled(index=i_iter, rec_1=self.rec_1, rec_2=self.rec_2, nlabeled1=len(labeled1), nlabeled2=len(labeled2))
             except:
                 logger.info('Could not log the new labeled items: {}'.format(sys.exc_info()))
-
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             try:
                 for user_idx, item_idx, label in labeled1:
-                    X2.update({(user_idx,item_idx): label})
-                    u_prime.update({(user_idx,item_idx): 0})
+                    X2[user_idx,item_idx] = label
+                    u_prime[user_idx,item_idx] = 0
             except:
                 logger.info('Could not include labeled into X2: {}'.format(sys.exc_info()))
 
             # Add the labeled examples from recommender2 into T1. (and eliminate them from U' as they aren't X_unlabeled anymore).
             try:
                 for user_idx, item_idx, label in labeled2:
-                    X1.update({(user_idx,item_idx): label})
-                    u_prime.update({(user_idx,item_idx): 0})
+                    X1[user_idx,item_idx] = label
+                    u_prime[user_idx,item_idx] = 0
             except:
                 logger.info('Could not include labeled into X1: {}'.format(sys.exc_info()))
 
@@ -176,7 +176,7 @@ class CoTraining(object):
                     rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
                     rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
                     if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                        u_prime.update({(rnd_user,rnd_item): 1})
+                        u_prime[rnd_user,rnd_item] = 1
                         i += 1
             except:
                 logger.info("Could not replenish U': {}".format(sys.exc_info()))
