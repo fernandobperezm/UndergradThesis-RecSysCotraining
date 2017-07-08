@@ -13,8 +13,8 @@
 #     --rnd_seed 1234 \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 FunkSVD --rec_length 10 \
-#     --number_iterations 1 \
-#     --number_positives 1000 \
+#     --number_iterations 50 \
+#     --number_positives 10000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
@@ -41,8 +41,8 @@
 #     --rnd_seed 1234 \
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 FunkSVD --rec_length 10 \
-#     --number_iterations 1 \
-#     --number_positives 1000 \
+#     --number_iterations 50 \
+#     --number_positives 10000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
@@ -69,8 +69,8 @@ python3 ../scripts/holdout.py \
     --rnd_seed 1234 \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 FunkSVD --rec_length 10 \
-    --number_iterations 1 \
-    --number_positives 1000 \
+    --number_iterations 50 \
+    --number_positives 10000 \
     --number_negatives 100000 \
     --number_unlabeled 700000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
