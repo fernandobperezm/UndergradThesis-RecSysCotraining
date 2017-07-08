@@ -108,7 +108,7 @@ class CoTraining(object):
                 self.rec_1.fit(X1)
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
             except:
-                logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()[0]))
+                logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()))
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_2))
@@ -117,7 +117,7 @@ class CoTraining(object):
                 self.rec_2.fit(X2)
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
             except:
-                logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()[0]))
+                logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()))
 
 
             # Evaluate the recommenders in this iteration.
@@ -141,30 +141,40 @@ class CoTraining(object):
             try:
                 labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
-                logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()[0]))
+                logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()))
             try:
                 labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
-                logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()[0]))
+                logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
+
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
-            for user_idx, item_idx, label in labeled1:
-                X2.update({(user_idx,item_idx): label})
-                u_prime.update({(user_idx,item_idx): 0})
+            try:
+                for user_idx, item_idx, label in labeled1:
+                    X2.update({(user_idx,item_idx): label})
+                    u_prime.update({(user_idx,item_idx): 0})
+            except:
+                logger.info('Could not include labeled into X2: {}'.format(sys.exc_info()))
 
             # Add the labeled examples from recommender2 into T1. (and eliminate them from U' as they aren't X_unlabeled anymore).
-            for user_idx, item_idx, label in labeled2:
-                X1.update({(user_idx,item_idx): label})
-                u_prime.update({(user_idx,item_idx): 0})
+            try:
+                for user_idx, item_idx, label in labeled2:
+                    X1.update({(user_idx,item_idx): label})
+                    u_prime.update({(user_idx,item_idx): 0})
+            except:
+                logger.info('Could not include labeled into X1: {}'.format(sys.exc_info()))
 
             # Replenish U' with 2*p + 2*n samples from U.
-            i = 0
-            while (i < (len(labeled1) + len(labeled2)) ):
-                rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
-                rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
-                if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                    u_prime.update({(rnd_user,rnd_item): 1})
-                    i += 1
+            try:
+                i = 0
+                while (i < (len(labeled1) + len(labeled2)) ):
+                    rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
+                    rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
+                    if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
+                        u_prime.update({(rnd_user,rnd_item): 1})
+                        i += 1
+            except:
+                logger.info("Could not replenish U': {}".format(sys.exc_info()))
 
     def recommend(self, user_id, n=None, exclude_seen=True):
         scores1 = self.rec_1.user_score(user_id=user_id)
