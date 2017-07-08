@@ -12,16 +12,15 @@ Last modified on 25/03/2017.
 
 import random as random
 
+import logging
 import numpy as np
 import scipy.sparse as sps
-import matplotlib.pyplot as plt
-from matplotlib.ticker import NullFormatter
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
 
-import pdb
-
-import logging
+import matplotlib
+matplotlib.use('Agg') # Directive to save the images in PNG without X windows environment.
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
