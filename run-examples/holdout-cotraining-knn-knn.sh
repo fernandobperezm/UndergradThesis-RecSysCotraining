@@ -13,9 +13,9 @@
 # #     --recommender_2 top_pop --rec_length 10 \
 # #     --k_fold 2 \
 # #     --number_iterations 30 \
-# #     --number_positives 30 \
-# #     --number_negatives 120 \
-# #     --number_unlabeled 750 \
+# #     --number_positives 10000 \
+# #     --number_negatives 100000 \
+# #     --number_negatives 700000 \
 # #     #--columns -> Comma separated names for every column.
 # #     #--params_1 -> Params of the recommender 1.
 # #     #--params_2 -> Params of the recommender 2.
@@ -35,9 +35,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -63,9 +63,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -91,9 +91,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -119,9 +119,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 item_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -147,9 +147,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 item_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=cosine,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -175,9 +175,9 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 item_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=adj-cosine,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
@@ -204,9 +204,9 @@
 #     --recommender_1 user_knn --rec_length 10 \
 #     --recommender_2 user_knn --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 30 \
-#     --number_negatives 120 \
-#     --number_unlabeled 750 \
+#     --number_positives 10000 \
+#     --number_negatives 100000 \
+#     --number_negatives 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
 #     #--columns -> Comma separated names for every column.
