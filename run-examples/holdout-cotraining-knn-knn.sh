@@ -25,7 +25,7 @@
 # #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
 # #  Rec2 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
 # python3 ../scripts/holdout.py \
-#     ../Datasets/ml10m/ratings.csv \
+#     ../Datasets/ml100k/ratings.csv \
 #     --results_path ../Results/knn-knn-1/ \
 #     --results_file holdout-knn-knn-50.csv \
 #     --holdout_perc 0.8 \
