@@ -46,7 +46,7 @@ class SLIM(Recommender):
         return "SLIM"
 
     def __str__(self):
-        return "SLIM (l1_penalty={},l2_penalty={},positive_only={})".format(
+        return "SLIM(l1_penalty={},l2_penalty={},positive_only={})".format(
             self.l1_penalty, self.l2_penalty, self.positive_only
         )
 
