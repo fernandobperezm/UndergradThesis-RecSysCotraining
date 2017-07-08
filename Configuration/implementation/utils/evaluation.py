@@ -160,6 +160,24 @@ class Evaluation(object):
                         at=self.at
                         )
 
+    def log_number_labeled(self,index, rec_1, rec_2, nlabeled1, nlabeled2):
+        filepath = self.results_path + "numberlabeled.csv"
+        data_utils.results_to_file(filepath=filepath,
+                        cotraining=self.cotraining,
+                        iterations=index,
+                        recommender1=rec_1,
+                        evaluation1=[nlabeled1],
+                        at=self.at
+                        )
+
+        data_utils.results_to_file(filepath=filepath,
+                        cotraining=self.cotraining,
+                        iterations=index,
+                        recommender1=rec_2,
+                        evaluation1=[nlabeled2],
+                        at=self.at
+                        )
+
     def plot_all(self,rec_index,rec):
         # plot with various axes scales
         n_iter = len(self.rmse[rec_index])

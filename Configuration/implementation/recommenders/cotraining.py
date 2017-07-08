@@ -147,6 +147,11 @@ class CoTraining(object):
             except:
                 logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
 
+            try:
+                self.eval.log_number_labeled(index=i_iter, rec_1=self.rec_1, rec_2=self.rec_2, nlabeled1=len(labeled1), nlabeled2=len(labeled1))
+            except:
+                logger.info('Could not log the new labeled items: {}'.format(sys.exc_info()))
+
 
             # Add the labeled examples from recommender1 into T2. (and eliminate them from U' as they aren't X_unlabeled anymore).
             try:
