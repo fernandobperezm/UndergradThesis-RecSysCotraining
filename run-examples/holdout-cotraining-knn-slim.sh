@@ -16,7 +16,7 @@
 #     --number_iterations 1 \
 #     --number_positives 10000 \
 #     --number_negatives 100000 \
-#     --number_negatives 700000 \
+#     --number_unlabeled 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 l2_penalty=0.1,l1_penalty=0.001
 #     #--columns -> Comma separated names for every column.
@@ -44,7 +44,7 @@
 #     --number_iterations 1 \
 #     --number_positives 10000 \
 #     --number_negatives 100000 \
-#     --number_negatives 700000 \
+#     --number_unlabeled 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 l2_penalty=0.1,l1_penalty=0.001
 #     #--columns -> Comma separated names for every column.
@@ -72,7 +72,7 @@ python3 ../scripts/holdout.py \
     --number_iterations 1 \
     --number_positives 10000 \
     --number_negatives 100000 \
-    --number_negatives 700000 \
+    --number_unlabeled 700000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
     --params_2 l2_penalty=0.1,l1_penalty=0.001
     #--columns -> Comma separated names for every column.

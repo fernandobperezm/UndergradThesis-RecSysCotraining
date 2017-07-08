@@ -13,7 +13,7 @@
 #     --number_iterations 50 \
 #     --number_positives 10000  \
 #     --number_negatives 100000 \
-#     --number_negatives 700000 \
+#     --number_unlabeled 700000 \
 #     --params_1 l2_penalty=0.1,l1_penalty=0.001 \
 #     --params_2 l2_penalty=0.01,l1_penalty=0.001
 #     #--columns -> Comma separated names for every column.
