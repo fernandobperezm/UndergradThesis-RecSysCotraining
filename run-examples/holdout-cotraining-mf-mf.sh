@@ -14,7 +14,7 @@
 #     --recommender_1 FunkSVD --rec_length 10 \
 #     --recommender_2 AsySVD --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 10000 \
+#     --number_positives 1000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 num_factors=20,lrate=0.01,reg=0.010,iters=10 \
@@ -40,7 +40,7 @@
 #     --recommender_1 BPRMF --rec_length 10 \
 #     --recommender_2 BPRMF --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 10000 \
+#     --number_positives 1000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 num_factors=20,lrate=0.1,user_reg=0.1,pos_reg=0.001,neg_reg=0.0015,iters=10,sample_with_replacement=True,sampling_type=user_uniform_item_pop,sampling_pop_alpha=0.75,init_mean=0.0,init_std=0.1,lrate_decay=1.0,rnd_seed=42 \
