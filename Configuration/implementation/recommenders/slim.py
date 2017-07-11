@@ -155,9 +155,13 @@ class SLIM(Recommender):
         n_sorted_scores = sorted_filtered_scores[:n_most]
 
         if binary_ratings:
-            return [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
+            scores = [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
         else:
-            return [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+            scores = [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
 
 
 from multiprocessing import Pool

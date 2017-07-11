@@ -156,7 +156,11 @@ class FunkSVD(Recommender):
         # Similar to p_most but with n_most.
         n_sorted_scores = n_sorted_scores[:n_most]
 
-        return [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+        scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
 
 class AsySVD(Recommender):
     '''
@@ -294,7 +298,11 @@ class AsySVD(Recommender):
         # Similar to p_most but with n_most.
         n_sorted_scores = n_sorted_scores[:n_most]
 
-        return [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+        scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
 
 class IALS_numpy(Recommender):
     '''
@@ -618,6 +626,10 @@ class BPRMF(Recommender):
         n_sorted_scores = sorted_filtered_scores[:n_most]
 
         if binary_ratings:
-            return [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
+            scores = [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
         else:
-            return [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+            scores = [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))

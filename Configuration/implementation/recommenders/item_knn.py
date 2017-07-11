@@ -251,4 +251,8 @@ class ItemKNNRecommender(Recommender):
         # Similar to p_most but with n_most.
         n_sorted_scores = n_sorted_scores[:n_most]
 
-        return [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+        scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
