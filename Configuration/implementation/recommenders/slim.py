@@ -127,14 +127,16 @@ class SLIM(Recommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Calculate the scores only one time.
-        users = []
-        items = []
-        for user_idx, item_idx in unlabeled_list:
-            users.append(user_idx)
-            items.append(item_idx)
-
-        users = np.array(users,dtype=np.int32)
-        items = np.array(items,dtype=np.int32)
+        # users = []
+        # items = []
+        # for user_idx, item_idx in unlabeled_list:
+        #     users.append(user_idx)
+        #     items.append(item_idx)
+        #
+        # users = np.array(users,dtype=np.int32)
+        # items = np.array(items,dtype=np.int32)
+        unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
+        users,items = unlabeled_list.nonzero()
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)
         # compute the scores using the dot product
         profiles = self._get_user_ratings(uniq_users)

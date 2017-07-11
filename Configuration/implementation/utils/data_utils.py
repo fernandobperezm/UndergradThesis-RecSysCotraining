@@ -134,7 +134,7 @@ def df_to_lil(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.lil_matrix.html#scipy.sparse.lil_matrix
     data = sps.lil_matrix(shape)
     for i in range(len(ratings)):
-        data[ rows[i], cols[i] ] = ratings[i]
+        data[ rows[i], columns[i] ] = ratings[i]
 
     return data
 

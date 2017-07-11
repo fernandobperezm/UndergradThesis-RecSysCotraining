@@ -67,12 +67,10 @@ class CoTraining(object):
             that the same dataset will be used,
 
             Args:
-                X_unlabeled: Set of X_unlabeled user/item pairs that doesn't have
-                             a rating. It must be a DOK matrix.
                 X1: Represents the training dataset to be used for the first
-                    recommender. It must be a DOK matrix.
+                    recommender. It must be a LIL matrix.
                 X2: Represents the training dataset to be used for the second
-                    recommender. It must be a DOK matrix.
+                    recommender. It must be a LIL matrix.
                 eval_iter: Tells if we need to evaluate each recommender and the
                            joint at each iteration.
 
@@ -84,16 +82,16 @@ class CoTraining(object):
         error_file = open(error_path, 'w')
 
         # Create the pool of examples.
-        # Using a DoK matrix to have a A[row[k], col[k]] = Data[k] representation
+        # Using a LIL matrix to have a A[row[k], col[k]] = Data[k] representation
         # without having an efficiency tradeoff.
-        u_prime = sp.sparse.dok_matrix((nusers,nitems), dtype=np.int32)
+        u_prime = sp.sparse.lil_matrix((nusers,nitems), dtype=np.int32)
 
         # Feed U' with unlabeled samples.
         i = 0
         while (i < self.n_labels):
             rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
             rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
-            if (X1.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
+            if (X1[rnd_user,rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
                 u_prime[rnd_user,rnd_item] = 1
                 i += 1
 
@@ -141,16 +139,16 @@ class CoTraining(object):
 
             # Label positively and negatively examples from U' for both recommenders.
             logger.info('\tLabeling new items.')
-            unlabeled = u_prime.keys()
-            unl1 = list(unlabeled)
-            unl2 = list(unlabeled)
+            # unlabeled = u_prime.keys()
+            # unl1 = list(unlabeled)
+            # unl2 = list(unlabeled)
             try:
-                labeled1 = self.rec_1.label(unlabeled_list=unl1, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+                labeled1 = self.rec_1.label(unlabeled_list=u_prime, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
             try:
-                labeled2 = self.rec_2.label(unlabeled_list=unl2, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+                labeled2 = self.rec_2.label(unlabeled_list=u_prime, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
@@ -180,14 +178,22 @@ class CoTraining(object):
                 traceback.print_exc(file=error_file)
 
             # Replenish U' with 2*p + 2*n samples from U.
+            logger.info("U' is being replenished, n_elems: {}".format(u_prime.nnz))
             try:
-                i = 0
-                while (u_prime.nnz < self.n_labels):
+                diff = self.n_labels - u_prime.nnz
+                users_items = set()
+                while (len(users_items) < diff):
                     rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
                     rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
-                    if (X1.get((rnd_user,rnd_item),0) == 0.0 and X2.get((rnd_user,rnd_item),0) == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                        u_prime[rnd_user,rnd_item] = 1
-                        i += 1
+                    if (X1[rnd_user,rnd_item] == 0.0 and X2[rnd_user,rnd_item] == 0.0 and u_prime[rnd_user,rnd_item] == 0): # TODO: user better precision (machine epsilon instead of == 0.0)
+                        users_items.add((rnd_user,rnd_item))
+
+                # As LIL matrices works better if the (user,item) pairs are sorted
+                # first by user and then by item.
+                for user,item in sorted(users_items, key=lambda u_i: (u_i[0], u_i[1])):
+                    u_prime[user,item] = 1
+
+                logger.info("U' replenished, n_elems: {}".format(u_prime.nnz))
             except:
                 logger.info("Could not replenish U': {}".format(sys.exc_info()))
                 traceback.print_exc(file=error_file)

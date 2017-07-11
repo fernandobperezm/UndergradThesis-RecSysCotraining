@@ -145,7 +145,7 @@ train_df, test_df = holdout(dataset,
 # Create our label and unlabeled samples set.
 # As the train set will be modifed in the co-training approach, it's more
 # efficient to modify a dok_matrix than a csr_matrix.
-train = df_to_dok(train_df,
+train = df_to_lil(train_df,
                   is_binary=args.is_binary,
                   nrows=nusers,
                   ncols=nitems,

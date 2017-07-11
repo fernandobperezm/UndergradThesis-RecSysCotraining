@@ -181,15 +181,25 @@ class ItemKNNRecommender(Recommender):
             return self.scores[user_id,rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='batch'):
-        # Calculate the scores only one time.
-        users = []
-        items = []
-        for user_idx, item_idx in unlabeled_list:
-            users.append(user_idx)
-            items.append(item_idx)
+        '''
+            Arguments:
+                * unlabeled_list: Its the pool of user/item keys without ratings.
+                                  from which we will label. It must be an instance
+                                  of a LIL matrix.
 
-        users = np.array(users,dtype=np.int32)
-        items = np.array(items,dtype=np.int32)
+        '''
+
+        # Calculate the scores only one time.
+        # users = []
+        # items = []
+        # for user_idx, item_idx in unlabeled_list:
+        #     users.append(user_idx)
+        #     items.append(item_idx)
+        #
+        # users = np.array(users,dtype=np.int32)
+        # items = np.array(items,dtype=np.int32)
+        unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
+        users,items = unlabeled_list.nonzero()
 
         if (score_mode == 'batch'):
             uniq_users, user_to_idx = np.unique(users,return_inverse=True)
