@@ -95,23 +95,31 @@ class ItemKNNRecommender(Recommender):
             self.scores /= den
 
     def calculate_scores_batch(self,users):
+        # pdb.set_trace()
         profiles = self._get_user_ratings(users)
-        if self.sparse_weights:
-            self.scores = profiles.dot(self.W_sparse).toarray()
-        else:
-            self.scores = profiles.dot(self.W)
-
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            rated = profiles.copy()
-            rated.data = np.ones_like(rated.data)
+        nusers, nitems = profiles.shape
+        u_begin, u_stop = users.min(), users.max()
+        partition_size = 100
+        partitions = np.arange(start=u_begin,stop=u_stop+1,step=partition_size,dtype=np.int32)
+        self.scores = np.zeros(shape=(nusers,nitems),dtype=np.float32,order='C')
+        for low_user in partitions:
+            high_user = min(low_user + partition_size,nusers) # to not exceed csr matrices indices.
             if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray()
+                self.scores[low_user:high_user] = profiles[low_user:high_user].dot(self.W_sparse).toarray()
             else:
-                den = rated.dot(self.W)
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            self.scores /= den
+                self.scores[low_user:high_user] = profiles[low_user:high_user].dot(self.W)
+
+            if self.normalize:
+                # normalization will keep the scores in the same range
+                # of value of the ratings in dataset
+                rated = profiles[low_user:high_user].copy()
+                rated.data = np.ones_like(rated.data)
+                if self.sparse_weights:
+                    den = rated.dot(self.W_sparse).toarray()
+                else:
+                    den = rated.dot(self.W)
+                den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+                self.scores[low_user:high_user] /= den
 
     def calculate_scores_user(self,user_id):
         user_profile = self._get_user_ratings(user_id)
