@@ -81,15 +81,6 @@ mkdir Results/funksvd-bprmf-1;
 #
 # # Running each recommender in sequence, it may take more time but won't make
 # # going out of space while using MovieLens10M, MovieLens20M or Netflix100M.
-# cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh ;cd ..
-# cd run-examples/ ; sh holdout-cotraining-knn-bprmf.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-slim-funksvd.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-funksvd-bprmf.sh ; cd ..
-
-# cd run-examples/ ; sh holdout-cotraining-knn-slim.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-slim-bprmf.sh ; cd ..
-
-
-# cd run-examples/ ; sh holdout-cotraining-knn-knn.sh ; cd ..
-# cd run-examples/ ; sh holdout-cotraining-slim-slim.sh ; cd ..
-# cd run-examples/ ; sh holdout-cotraining-mf-mf.sh ; cd ..
+cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh ;cd ..
+cd run-examples/ ; sh holdout-cotraining-knn-bprmf.sh ; cd ..
+cd run-examples/ ; sh holdout-cotraining-knn-slim.sh ; cd ..
