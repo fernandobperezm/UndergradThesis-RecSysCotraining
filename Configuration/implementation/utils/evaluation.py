@@ -18,6 +18,8 @@ import scipy.sparse as sps
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
 
+import pdb
+
 import matplotlib
 matplotlib.use('Agg') # Directive to save the images in PNG without X windows environment.
 import matplotlib.pyplot as plt
@@ -56,6 +58,18 @@ class Evaluation(object):
         return "Evaluation(Rec={}\n)".format(
             self.recommender.__str__())
 
+    def df_to_eval(self, df, rec_1, rec_2):
+        # Getting rec1 and rows.
+        rows_rec1 = df.loc[df.recommender == str(rec_1)]
+        rows_rec2 = df.loc[df.recommender == str(rec_2)]
+
+        self.rmse = ( rows_rec1.rmse.values, rows_rec2.rmse.values )
+        self.roc_auc = ( rows_rec1.roc_auc.values, rows_rec2.roc_auc.values )
+        self.precision = ( rows_rec1.precision.values, rows_rec2.precision.values )
+        self.recall = ( rows_rec1.recall.values, rows_rec2.recall.values )
+        self.map = ( rows_rec1.map.values, rows_rec2.map.values )
+        self.mrr = ( rows_rec1.mrr.values, rows_rec2.mrr.values )
+        self.ndcg = ( rows_rec1.ndcg.values, rows_rec2.ndcg.values )
 
     def eval(self, rec_1, rec_2):
         nusers, nitems = self.test_set.shape

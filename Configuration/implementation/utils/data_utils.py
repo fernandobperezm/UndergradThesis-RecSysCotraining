@@ -170,8 +170,6 @@ def results_to_df(filepath):
     header = 0
 
     results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
-    # TODO: make indeces and everything to make it easy to transform this DF
-    #       into Evaluation instances.
 
     return results
 
