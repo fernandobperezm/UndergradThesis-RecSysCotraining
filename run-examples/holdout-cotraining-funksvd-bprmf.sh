@@ -11,7 +11,7 @@ python3 ../scripts/holdout.py \
     --recommender_1 FunkSVD --rec_length 10 \
     --recommender_2 BPRMF --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 1000 \
+    --number_positives 25000 \
     --number_negatives 100000 \
     --number_unlabeled 700000 \
     --params_1 num_factors=20,lrate=0.01,reg=0.01 \

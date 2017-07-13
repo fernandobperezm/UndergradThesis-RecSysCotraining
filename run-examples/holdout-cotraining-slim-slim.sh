@@ -11,7 +11,7 @@
 #     --recommender_1 SLIM --rec_length 10 \
 #     --recommender_2 SLIM --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 1000  \
+#     --number_positives 25000  \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 l2_penalty=0.1,l1_penalty=0.001 \
