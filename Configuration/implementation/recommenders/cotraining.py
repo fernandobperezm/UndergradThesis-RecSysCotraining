@@ -84,23 +84,38 @@ class CoTraining(object):
         # Create the pool of examples.
         # Using a LIL matrix to have a A[row[k], col[k]] = Data[k] representation
         # without having an efficiency tradeoff.
+        logger.info("Creating a pool of unlabeled samples.")
         u_prime = sp.sparse.lil_matrix((nusers,nitems), dtype=np.int32)
 
         # Feed U' with unlabeled samples.
-        i = 0
-        while (i < self.n_labels):
+        users_items = set()
+        while (len(users_items) < self.n_labels):
             rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
             rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
             if (X1[rnd_user,rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                u_prime[rnd_user,rnd_item] = 1
-                i += 1
+                users_items.add((rnd_user,rnd_item))
+
+        # As LIL matrices works better if the (user,item) pairs are sorted
+        # first by user and then by item.
+        for user,item in sorted(users_items, key=lambda u_i: (u_i[0], u_i[1])):
+            u_prime[user,item] = 1
+
+        logger.info("Pool created. Its size is: {}.".format(u_prime.nnz))
+
+        # i = 0
+        # while (i < self.n_labels):
+        #     rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
+        #     rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
+        #     if (X1[rnd_user,rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
+        #         u_prime[rnd_user,rnd_item] = 1
+        #         i += 1
 
         # Training set for Rec2.
         X2 = X1.copy()
 
         # Co-Training iterations begin here.
         for i_iter in range(self.n_iters):
-            logger.info(("Iteration: {}".format(i_iter)))
+            logger.info("Iteration: {}".format(i_iter))
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_1))
