@@ -74,7 +74,7 @@ class ItemKNNRecommender(Recommender):
                 values.extend(item_weights[top_k_idx, i])
                 rows.extend(np.arange(nitems)[top_k_idx])
                 cols.extend(np.ones(self.k) * i)
-            self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
+            self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
     def calculate_scores_matrix(self):
         if self.sparse_weights:
