@@ -216,6 +216,7 @@ class MultiThreadSLIM(SLIM):
         _pfit = partial(self._partial_fit, X=X)
         pool = Pool(processes=self.workers)
         res = pool.map(_pfit, np.arange(n_items))
+        pool.close()
 
         # res contains a vector of (values, rows, cols) tuples
         values, rows, cols = [], [], []
@@ -224,4 +225,4 @@ class MultiThreadSLIM(SLIM):
             rows.extend(rows_)
             cols.extend(cols_)
         # generate the sparse weight matrix
-        self.W_sparse = sps.csc_matrix((values, (rows, cols)), shape=(n_items, n_items), dtype=np.float32)
+        self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(n_items, n_items), dtype=np.float32)
