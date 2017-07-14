@@ -164,7 +164,8 @@ class SLIM(Recommender):
         return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
 
 
-from multiprocessing import Pool
+from multiprocessing import Pool, set_start_method
+set_start_method('forkserver')
 from functools import partial
 
 
