@@ -43,10 +43,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
-if __name__ == '__main__':
-    from multiprocessing import set_start_method
-    set_start_method('forkserver')
-
 available_recommenders = OrderedDict([
     ('top_pop', TopPop),
     ('global_effects', GlobalEffects),
