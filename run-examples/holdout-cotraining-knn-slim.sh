@@ -14,7 +14,7 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 SLIM --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 25000 \
+#     --number_positives 1000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
@@ -42,7 +42,7 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 SLIM --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 25000 \
+#     --number_positives 1000 \
 #     --number_negatives 100000 \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
@@ -70,7 +70,7 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 SLIM --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 25000 \
+    --number_positives 1000 \
     --number_negatives 100000 \
     --number_unlabeled 700000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
