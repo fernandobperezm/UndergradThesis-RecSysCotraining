@@ -183,13 +183,12 @@ class ItemKNNRecommender(Recommender):
 
     def predict(self, user_id, rated_indices,score_mode='user'):
         # return the scores for the rated items.
-        # return the scores for the rated items.
         if (score_mode == 'user'):
             return self.scores[rated_indices]
         elif (score_mode == 'matrix'):
             return self.scores[user_id,rated_indices]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='batch'):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
         '''
             Arguments:
                 * unlabeled_list: Its the pool of user/item keys without ratings.
@@ -209,21 +208,59 @@ class ItemKNNRecommender(Recommender):
         # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
+        n_scores = len(users)
+        # users is an array where the user is repeated incrementally.
+        # items that for the same user is incrementally and for other users
+        # it can decrease, example:
+        # users = [0,0,0,0,0, 1,1,1, 2], items = [1,6,8,9,19, 0,4,5, 2]
 
-        if (score_mode == 'batch'):
+        # pdb.set_trace()
+        if (score_mode == 'user'):
+            filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            curr_user = None
+            i = 0
+            for user,item in zip(users,items):
+                if (curr_user != user):
+                    curr_user = user
+                    self.calculate_scores_user(curr_user)
+
+                filtered_scores[i] = self.scores[item]
+                i += 1
+
+            # # Calculating where the user index changes.
+            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
+            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
+            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            # low = 0
+            # for idx in diff_user_idx:
+            #     high = idx+1 # As the idx marks the last one with the same value.
+            #     user = users[idx]
+            #     self.calculate_scores_user(user)
+            #     filtered_scores[low:high] = self.scores[items[low:high]]
+            #     low = high
+            #
+            # # For the last indices that are not mentioned in the previous array.
+            # user = users[low]
+            # self.calculate_scores_user(user)
+            # filtered_scores[low:] = self.scores[items[low:]]
+
+        elif (score_mode == 'batch'):
+            filtered_scores = []
             uniq_users, user_to_idx = np.unique(users,return_inverse=True)
             self.calculate_scores_batch(uniq_users)
-            filtered_scores = self.scores[user_to_idx,items]
+            filtered_scores = self.scores[users,items]
 
-        if (score_mode == 'matrix'):
+        elif (score_mode == 'matrix'):
             if (self.scores is None):
                 self.calculate_scores_matrix()
             filtered_scores = self.scores[users,items]
+
 
         # Up to this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
+        # filtered_scores = self.scores[users,items]
 
         # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
         # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)

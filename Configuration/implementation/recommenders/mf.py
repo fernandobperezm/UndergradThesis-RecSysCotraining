@@ -100,7 +100,7 @@ class FunkSVD(Recommender):
         scores = np.dot(self.U[user_id], self.V.T)
         return scores[rated_indices]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
         # Calculate the scores only one time.
         # users = []
         # items = []
@@ -112,14 +112,50 @@ class FunkSVD(Recommender):
         # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
-
+        n_scores = len(users)
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
-        scores = np.dot(self.U[uniq_users], self.V.T)
-        filtered_scores = scores[user_to_idx,items]
+        if (score_mode == 'user'):
+            filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            curr_user = None
+            i = 0
+            for user,item in zip(users,items):
+                if (curr_user != user):
+                    curr_user = user
+                    scores = np.dot(self.U[curr_user], self.V.T)
+
+                filtered_scores[i] = scores[item]
+                i += 1
+
+            # # Calculating where the user index changes.
+            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
+            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
+            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            # low = 0
+            # for idx in diff_user_idx:
+            #     high = idx+1 # As the idx marks the last one with the same value.
+            #     user = users[idx]
+            #     scores = np.dot(self.U[user], self.V.T)
+            #     filtered_scores[low:high] = scores[items[low:high]]
+            #     low = high
+            #
+            # # For the last indices that are not mentioned in the previous array.
+            # user = users[low]
+            # scores = np.dot(self.U[user], self.V.T)
+            # filtered_scores[low:] = scores[items[low:]]
+
+        elif (score_mode == 'batch'):
+            scores = self.calculate_scores_batch(uniq_users)
+            filtered_scores = scores[users,items]
+
+        elif (score_mode == 'matrix'):
+            scores = np.dot(self.U[uniq_users], self.V.T)
+            # As scores is not a n_user/n_item matrix but a partial matrix
+            # then we will need to see which user is mapped to which index.
+            filtered_scores = scores[user_to_idx,items]
 
         # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
         # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)
