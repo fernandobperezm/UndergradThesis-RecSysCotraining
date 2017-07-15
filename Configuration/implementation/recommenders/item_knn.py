@@ -95,13 +95,11 @@ class ItemKNNRecommender(Recommender):
             self.scores /= den
 
     def calculate_scores_batch(self,users):
-        # pdb.set_trace()
         u_begin, u_stop = users.min(), users.max()
         partition_size = 1000
         partitions = np.arange(start=u_begin,stop=u_stop+1,step=partition_size,dtype=np.int32)
         self.scores = np.zeros(shape=self.dataset.shape,dtype=np.float32,order='C')
         for low_user in partitions:
-            # pdb.set_trace()
             # As u_stop is an index to take into account and indices ranges slices
             # don't take into account the last, we need to sum one to include
             # this index.
