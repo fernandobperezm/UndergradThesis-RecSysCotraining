@@ -37,6 +37,7 @@ from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
 from implementation.recommenders.non_personalized import TopPop, GlobalEffects
 from implementation.recommenders.content import ContentBasedRecommender
 from implementation.recommenders.cotraining import CoTraining
+from implementation.recommenders.bpr import BPRMF_THEANO
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -55,6 +56,7 @@ available_recommenders = OrderedDict([
     ('AsySVD', AsySVD),
     ('IALS_np', IALS_numpy),
     ('BPRMF', BPRMF),
+    ('BPRMF_THEANO', BPRMF_THEANO)
 ])
 
 # let's use an ArgumentParser to read input arguments
