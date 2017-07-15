@@ -1,4 +1,15 @@
 #!/bin/bash
+# The options are: -p <number> -n <number>
+# -p represents the number of positive examples to label.
+# -n represents the number of negative examples to label.
+while getopts p:n: option
+do
+    case "${option}"
+        in
+        p) PPOSITIVES=${OPTARG};;
+        n) NNEGATIVES=${OPTARG};;
+    esac
+done
 
 # Combination:
 #  Rec1 -> item_knn with Pearson, k=50 and shrinkage = 100 and normalization
@@ -14,8 +25,8 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 FunkSVD --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 1000 \
-#     --number_negatives 100000 \
+#     --number_positives $PPOSITIVES \
+#     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
 #     --params_2 num_factors=20,lrate=0.01,reg=0.01
@@ -42,8 +53,8 @@
 #     --recommender_1 item_knn --rec_length 10 \
 #     --recommender_2 FunkSVD --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 1000 \
-#     --number_negatives 100000 \
+#     --number_positives $PPOSITIVES \
+#     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
 #     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
 #     --params_2 num_factors=20,lrate=0.01,reg=0.01
@@ -70,8 +81,8 @@ python3 ../scripts/holdout.py \
     --recommender_1 item_knn --rec_length 10 \
     --recommender_2 FunkSVD --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 1000 \
-    --number_negatives 100000 \
+    --number_positives $PPOSITIVES \
+    --number_negatives $NNEGATIVES \
     --number_unlabeled 700000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
     --params_2 num_factors=20,lrate=0.01,reg=0.01

@@ -1,3 +1,15 @@
+# The options are: -p <number> -n <number>
+# -p represents the number of positive examples to label.
+# -n represents the number of negative examples to label.
+while getopts p:n: option
+do
+    case "${option}"
+        in
+        p) PPOSITIVES=${OPTARG};;
+        n) NNEGATIVES=${OPTARG};;
+    esac
+done
+
 # # Installation of libc6-dev and build-essentials packages on Linux.
 # # Will ask for permission.
 # echo "Determining the OS type..."
@@ -78,17 +90,12 @@ mkdir Results/slim-slim-1;
 mkdir Results/funksvd-bprmf-1;
 # mkdir Results/mf-mf-1; mkdir Results/mf-mf-2;
 
-#
+
 # # Running each recommender in sequence, it may take more time but won't make
 # # going out of space while using MovieLens10M, MovieLens20M or Netflix100M.
-# cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh ;cd ..
-# cd run-examples/ ; sh holdout-cotraining-knn-bprmf.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-slim-funksvd.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-funksvd-bprmf.sh ; cd ..
-
-# cd run-examples/ ; sh holdout-cotraining-knn-slim.sh ; cd ..
-cd run-examples/ ; sh holdout-cotraining-slim-bprmf.sh ; cd ..
-
+cd run-examples/ ; sh holdout-cotraining-slim-funksvd.sh -p $PPOSITIVES -n $NNEGATIVES; cd ..
+cd run-examples/ ; sh holdout-cotraining-funksvd-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES; cd ..
+cd run-examples/ ; sh holdout-cotraining-slim-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES; cd ..
 
 # cd run-examples/ ; sh holdout-cotraining-knn-knn.sh ; cd ..
 # cd run-examples/ ; sh holdout-cotraining-slim-slim.sh ; cd ..

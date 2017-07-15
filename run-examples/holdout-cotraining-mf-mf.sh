@@ -1,5 +1,16 @@
-# #!/bin/bash
-#
+#!/bin/bash
+# The options are: -p <number> -n <number>
+# -p represents the number of positive examples to label.
+# -n represents the number of negative examples to label.
+while getopts p:n: option
+do
+    case "${option}"
+        in
+        p) PPOSITIVES=${OPTARG};;
+        n) NNEGATIVES=${OPTARG};;
+    esac
+done
+
 # # # Combination:
 # # #  Rec1 -> FunkSVD with number of factors = 20,learning rate = 0.01 and regularization = 0.0
 # # #  Rec2 -> AsySVD with number of factors = 20,learning rate = 0.01, regularization = 0.015, and 10 iterations.
@@ -14,8 +25,8 @@
 #     --recommender_1 FunkSVD --rec_length 10 \
 #     --recommender_2 AsySVD --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 1000 \
-#     --number_negatives 100000 \
+#     --number_positives $PPOSITIVES \
+#     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
 #     --params_1 num_factors=20,lrate=0.01,reg=0.010,iters=10 \
 #     --params_2 num_factors=20,lrate=0.01,reg=0.100,iters=10
@@ -40,8 +51,8 @@
 #     --recommender_1 BPRMF --rec_length 10 \
 #     --recommender_2 BPRMF --rec_length 10 \
 #     --number_iterations 50 \
-#     --number_positives 1000 \
-#     --number_negatives 100000 \
+#     --number_positives $PPOSITIVES \
+#     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
 #     --params_1 num_factors=20,lrate=0.1,user_reg=0.1,pos_reg=0.001,neg_reg=0.0015,iters=10,sample_with_replacement=True,sampling_type=user_uniform_item_pop,sampling_pop_alpha=0.75,init_mean=0.0,init_std=0.1,lrate_decay=1.0,rnd_seed=42 \
 #     --params_2 num_factors=20,lrate=0.1,user_reg=0.1,pos_reg=0.001,neg_reg=0.0015,iters=10,sample_with_replacement=True,sampling_type=user_uniform_item_uniform,init_mean=0.0,init_std=0.1,lrate_decay=1.0,rnd_seed=42

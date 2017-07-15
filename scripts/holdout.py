@@ -115,6 +115,7 @@ if args.columns is not None:
     args.columns = args.columns.split(',')
 
 # read the dataset
+logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
 logger.info('Reading {}'.format(args.dataset))
 dataset, item_to_idx, user_to_idx = read_dataset(
     args.dataset,

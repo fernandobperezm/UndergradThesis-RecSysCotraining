@@ -1,5 +1,15 @@
-# #!/bin/bash
-#
+#!/bin/bash
+# The options are: -p <number> -n <number>
+# -p represents the number of positive examples to label.
+# -n represents the number of negative examples to label.
+while getopts p:n: option
+do
+    case "${option}"
+        in
+        p) PPOSITIVES=${OPTARG};;
+        n) NNEGATIVES=${OPTARG};;
+    esac
+done
 python3 ../scripts/holdout.py \
     ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/slim-slim-1/ \
@@ -11,8 +21,8 @@ python3 ../scripts/holdout.py \
     --recommender_1 SLIM_mt --rec_length 10 \
     --recommender_2 SLIM_mt --rec_length 10 \
     --number_iterations 50 \
-    --number_positives 1000  \
-    --number_negatives 100000 \
+    --number_positives $PPOSITIVES  \
+    --number_negatives $NNEGATIVES \
     --number_unlabeled 700000 \
     --params_1 l2_penalty=0.1,l1_penalty=0.001 \
     --params_2 l2_penalty=0.01,l1_penalty=0.001
