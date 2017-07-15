@@ -96,25 +96,26 @@ class ItemKNNRecommender(Recommender):
 
     def calculate_scores_batch(self,users):
         # pdb.set_trace()
-        profiles = self._get_user_ratings(users)
         u_begin, u_stop = users.min(), users.max()
         partition_size = 1000
         partitions = np.arange(start=u_begin,stop=u_stop+1,step=partition_size,dtype=np.int32)
         self.scores = np.zeros(shape=self.dataset.shape,dtype=np.float32,order='C')
         for low_user in partitions:
+            # pdb.set_trace()
             # As u_stop is an index to take into account and indices ranges slices
             # don't take into account the last, we need to sum one to include
             # this index.
             high_user = min(low_user + partition_size, u_stop+1) # to not exceed csr matrices indices.
+            profiles = self._get_user_ratings(range(low_user,high_user))
             if self.sparse_weights:
-                self.scores[low_user:high_user] = profiles[low_user:high_user].dot(self.W_sparse).toarray()
+                self.scores[low_user:high_user] = profiles.dot(self.W_sparse).toarray()
             else:
-                self.scores[low_user:high_user] = profiles[low_user:high_user].dot(self.W)
+                self.scores[low_user:high_user] = profiles.dot(self.W)
 
             if self.normalize:
                 # normalization will keep the scores in the same range
                 # of value of the ratings in dataset
-                rated = profiles[low_user:high_user].copy()
+                rated = profiles.copy()
                 rated.data = np.ones_like(rated.data)
                 if self.sparse_weights:
                     den = rated.dot(self.W_sparse).toarray()
