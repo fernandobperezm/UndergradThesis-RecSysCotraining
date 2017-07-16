@@ -79,7 +79,7 @@ python3 ../scripts/holdout.py \
     --user_key user_id --item_key item_id --rating_key rating \
     --rnd_seed 1234 \
     --recommender_1 item_knn --rec_length 10 \
-    --recommender_2 SLIM --rec_length 10 \
+    --recommender_2 SLIM_mt --rec_length 10 \
     --number_iterations 50 \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \

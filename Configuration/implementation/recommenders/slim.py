@@ -18,6 +18,30 @@ from sklearn.linear_model import ElasticNet
 
 import pdb
 
+def _partial_fit(triplet, X):
+    j,l1_ratio,positive_only = triplet
+    model = ElasticNet(alpha=1.0,
+                       l1_ratio=l1_ratio,
+                       positive=positive_only,
+                       fit_intercept=False,
+                       copy_X=False)
+
+    # WARNING: make a copy of X to avoid race conditions on column j
+    # TODO: We can probably come up with something better here.
+    X_j = X.copy()
+    # get the target column
+    y = X_j[:, j].toarray()
+    # set the j-th column of X to zero
+    X_j.data[X_j.indptr[j]:X_j.indptr[j + 1]] = 0.0
+    # fit one ElasticNet model per column
+    model.fit(X_j, y)
+    # self.model.coef_ contains the coefficient of the ElasticNet model
+    # let's keep only the non-zero values
+    nnz_idx = model.coef_ > 0.0
+    values = model.coef_[nnz_idx]
+    rows = np.arange(X.shape[1])[nnz_idx]
+    cols = np.ones(nnz_idx.sum()) * j
+    return values, rows, cols
 
 class SLIM(Recommender):
     """
@@ -125,7 +149,7 @@ class SLIM(Recommender):
             ranking = ranking[unseen_mask]
         return ranking[:n]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
         # Calculate the scores only one time.
         # users = []
         # items = []
@@ -138,15 +162,36 @@ class SLIM(Recommender):
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)
-        # compute the scores using the dot product
-        profiles = self._get_user_ratings(uniq_users)
-        scores = profiles.dot(self.W_sparse).toarray()
+        if (score_mode == 'user'):
+            filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            curr_user = None
+            i = 0
+            for user,item in zip(users,items):
+                if (curr_user != user):
+                    curr_user = user
+                    user_profile = self._get_user_ratings(curr_user)
+                    scores = user_profile.dot(self.W_sparse).toarray()
+
+                filtered_scores[i] = scores[item]
+                i += 1
+
+        elif (score_mode == 'batch'):
+            pass
+            # filtered_scores = []
+            # uniq_users, user_to_idx = np.unique(users,return_inverse=True)
+            # self.calculate_scores_batch(uniq_users)
+            # filtered_scores = self.scores[users,items]
+
+        elif (score_mode == 'matrix'):
+            # compute the scores using the dot product
+            profiles = self._get_user_ratings(uniq_users)
+            scores = profiles.dot(self.W_sparse).toarray()
+            filtered_scores = scores[user_to_idx,items]
 
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
-        filtered_scores = scores[user_to_idx,items]
 
         # Filtered the scores to have the n-most and p-most.
         # sorted_filtered_scores is sorted incrementally
@@ -184,38 +229,16 @@ class MultiThreadSLIM(SLIM):
             self.l1_penalty, self.l2_penalty, self.positive_only, self.workers
         )
 
-    def _partial_fit(self, j, X):
-        model = ElasticNet(alpha=1.0,
-                           l1_ratio=self.l1_ratio,
-                           positive=self.positive_only,
-                           fit_intercept=False,
-                           copy_X=False)
-        # WARNING: make a copy of X to avoid race conditions on column j
-        # TODO: We can probably come up with something better here.
-        X_j = X.copy()
-        # get the target column
-        y = X_j[:, j].toarray()
-        # set the j-th column of X to zero
-        X_j.data[X_j.indptr[j]:X_j.indptr[j + 1]] = 0.0
-        # fit one ElasticNet model per column
-        model.fit(X_j, y)
-        # self.model.coef_ contains the coefficient of the ElasticNet model
-        # let's keep only the non-zero values
-        nnz_idx = model.coef_ > 0.0
-        values = model.coef_[nnz_idx]
-        rows = np.arange(X.shape[1])[nnz_idx]
-        cols = np.ones(nnz_idx.sum()) * j
-        return values, rows, cols
-
     def fit(self, X):
         X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         X = check_matrix(X, 'csc', dtype=np.float32)
         n_items = X.shape[1]
         # fit item's factors in parallel
-        _pfit = partial(self._partial_fit, X=X)
+        _pfit = partial(_partial_fit, X=X)
         pool = Pool(processes=self.workers)
-        res = pool.map(_pfit, np.arange(n_items))
+        args_triplet = ((j,self.l1_ratio,self.positive_only) for j in np.arange(n_items))
+        res = pool.map(_pfit, args_triplet)
         pool.close()
 
         # res contains a vector of (values, rows, cols) tuples
