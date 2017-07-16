@@ -18,6 +18,8 @@ from sklearn.linear_model import ElasticNet
 
 import pdb
 
+# Memory consumption problem solved by:
+# https://stackoverflow.com/questions/38140693/python3-multiprocessing-consumes-extensively-much-ram-and-slows-down
 def _partial_fit(triplet, X):
     j,l1_ratio,positive_only = triplet
     model = ElasticNet(alpha=1.0,
@@ -161,6 +163,7 @@ class SLIM(Recommender):
         # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
+        n_scores = len(users)
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)
         if (score_mode == 'user'):
             filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
