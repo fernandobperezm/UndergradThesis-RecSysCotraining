@@ -239,7 +239,7 @@ class MultiThreadSLIM(SLIM):
         n_items = X.shape[1]
         # fit item's factors in parallel
         _pfit = partial(_partial_fit, X=X)
-        pool = Pool(processes=self.workers)
+        pool = Pool(processes=None)
         args_triplet = ((j,self.l1_ratio,self.positive_only) for j in np.arange(n_items))
         res = pool.map(_pfit, args_triplet)
         pool.close()
