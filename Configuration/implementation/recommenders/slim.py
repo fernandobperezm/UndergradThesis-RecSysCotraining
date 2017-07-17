@@ -173,7 +173,7 @@ class SLIM(Recommender):
                 if (curr_user != user):
                     curr_user = user
                     user_profile = self._get_user_ratings(curr_user)
-                    scores = user_profile.dot(self.W_sparse).toarray()
+                    scores = user_profile.dot(self.W_sparse).toarray().ravel()
 
                 filtered_scores[i] = scores[item]
                 i += 1
