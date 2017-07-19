@@ -16,7 +16,7 @@ import traceback
 from datetime import datetime as dt
 
 import numpy as np
-import scipy as sp
+import scipy.sparse as sp
 
 import sys
 import pdb
@@ -85,7 +85,7 @@ class CoTraining(object):
         # Using a LIL matrix to have a A[row[k], col[k]] = Data[k] representation
         # without having an efficiency tradeoff.
         logger.info("Creating a pool of unlabeled samples.")
-        u_prime = sp.sparse.lil_matrix((nusers,nitems), dtype=np.int32)
+        u_prime = sp.lil_matrix((nusers,nitems), dtype=np.int32)
 
         # Feed U' with unlabeled samples.
         users_items = set()
@@ -118,8 +118,8 @@ class CoTraining(object):
             logger.info("Iteration: {}".format(i_iter))
             if (i_iter % 10 == 0):
                 # Backup the dataset at each 10 iters.
-                sp.save_npz(file='training_set_1.npz',matrix=X1.tocoo(), compressed=True)
-                sp.save_npz(file='training_set_2.npz',matrix=X2.tocoo(), compressed=True)
+                sp.save_npz(file='../Datasets/training_set_1.npz',matrix=X1.tocoo(), compressed=True)
+                sp.save_npz(file='../Datasets/training_set_2.npz',matrix=X2.tocoo(), compressed=True)
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_1))

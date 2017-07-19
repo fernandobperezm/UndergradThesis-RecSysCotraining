@@ -23,6 +23,22 @@ from .base import Recommender, check_matrix
 
 import pdb
 
+from multiprocessing import Pool
+from functools import partial
+
+# Memory consumption problem solved by:
+# https://stackoverflow.com/questions/38140693/python3-multiprocessing-consumes-extensively-much-ram-and-slows-down
+def _partial_uniform_sampling(tup, X):
+    sgd_user,n_items = tup
+    # to avoid race conditions.
+    train = X.copy()
+    pos_item = train[sgd_user][numpy.random.randint(len(train[sgd_user]))]
+    neg_item = numpy.random.randint(n_items)
+    while neg_item in train[sgd_user]:
+        neg_item = numpy.random.randint(n_items)
+
+    return sgd_user, pos_items, neg_items
+
 class BPRMF_THEANO(Recommender):
 
     def __init__(self, rank, n_users, n_items, lambda_u = 0.0025, lambda_i = 0.0025, lambda_j = 0.00025, lambda_bias = 0.0, learning_rate = 0.05):
@@ -201,16 +217,41 @@ class BPRMF_THEANO(Recommender):
           and then sample a positive and a negative item for each
           user sample.
         """
+        # pdb.set_trace()
         sys.stderr.write("Generating %s random training samples\n" % str(n_samples))
         sgd_users = numpy.array(list(self._train_users))[numpy.random.randint(len(list(self._train_users)), size=n_samples)]
-        sgd_pos_items, sgd_neg_items = [], []
+        # sgd_pos_items, sgd_neg_items = [], []
+        sgd_pos_items = numpy.zeros(n_samples,dtype=numpy.int32)
+        sgd_neg_items = numpy.zeros(n_samples,dtype=numpy.int32)
+        i = 0
+        # self.workers = 4
+        # _partial_sampling = partial(_partial_uniform_sampling, X=self._train_users)
+        # pool = Pool(processes=self.workers)
+        # args_tuple = ((sgd_user,self._n_items) for sgd_user in sgd_users)
+        # res = pool.map(_partial_sampling, args_tuple)
+        # pool.close()
+        # pool.join()
+        #
+        # print("The Training samples are created.")
+        # # res contains a vector of (values, rows, cols) tuples
+        # sgd_users, sgd_pos_items, sgd_neg_items = [], [], []
+        # for user_, pos_item_, neg_item_ in res:
+        #     sgd_users.append(user_)
+        #     sgd_pos_items.append(pos_item_)
+        #     sgd_neg_items.append(neg_item_)
         for sgd_user in sgd_users:
+            if (i % 1000000 == 0):
+                print("Sample: {}".format(i))
             pos_item = self._train_dict[sgd_user][numpy.random.randint(len(self._train_dict[sgd_user]))]
-            sgd_pos_items.append(pos_item)
+            # sgd_pos_items.append(pos_item)
+            sgd_pos_items[i] = pos_item
             neg_item = numpy.random.randint(self._n_items)
             while neg_item in self._train_dict[sgd_user]:
                 neg_item = numpy.random.randint(self._n_items)
-            sgd_neg_items.append(neg_item)
+            # sgd_neg_items.append(neg_item)
+            sgd_neg_items[i] = neg_item
+            i += 1
+        # pool = None
         return sgd_users, sgd_pos_items, sgd_neg_items
 
     def predictions(self, user_index):
