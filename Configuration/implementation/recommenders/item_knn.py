@@ -262,12 +262,12 @@ class ItemKNNRecommender(Recommender):
         # filtered_scores[i] = scores[users[i],items[i]]
         # filtered_scores = self.scores[users,items]
 
-        # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
-        # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)
+        # positive ratings: explicit ->[4,5], implicit -> [1.0]
+        # negative ratings: explicit -> [1,2,3], implicit -> [0.0]
         # Creating a mask to remove elements out of bounds.
         if (binary_ratings):
-            p_mask = (filtered_scores >= 0.75) & (filtered_scores <= 1)
-            n_mask = (filtered_scores >= 0.0) & (filtered_scores < 0.75)
+            p_mask = (filtered_scores == 1.0)
+            n_mask = (filtered_scores == 0.0)
         else:
             p_mask = (filtered_scores >= 4.0) & (filtered_scores <= 5.0)
             n_mask = (filtered_scores >= 1.0) & (filtered_scores <= 3.0)

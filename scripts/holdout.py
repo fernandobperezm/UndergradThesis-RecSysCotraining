@@ -183,7 +183,7 @@ results_to_file(args.results_path + args.results_file, header=True) # Write the 
 # Cotraining fitting and evaluation.
 logger.info('Beggining the Co-Training process.')
 tic = dt.now()
-cotraining.fit(train, eval_iter = True)
+cotraining.fit(train, eval_iter=True,binary_ratings=args.is_binary)
 logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
 
 # Plotting.
