@@ -60,7 +60,7 @@ class CoTraining(object):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
             self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)
 
-    def fit(self, X1, eval_iter = False):
+    def fit(self, X1, eval_iter=False, binary_ratings=False):
         '''
             Depending of the Co-Training approach, you can have two views or
             use different learners, in the case of X2 == None, it's supposed
@@ -162,12 +162,12 @@ class CoTraining(object):
             # unl1 = list(unlabeled)
             # unl2 = list(unlabeled)
             try:
-                labeled1 = self.rec_1.label(unlabeled_list=u_prime, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+                labeled1 = self.rec_1.label(unlabeled_list=u_prime, binary_ratings=binary_ratings, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 1: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
             try:
-                labeled2 = self.rec_2.label(unlabeled_list=u_prime, binary_ratings=False, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
+                labeled2 = self.rec_2.label(unlabeled_list=u_prime, binary_ratings=binary_ratings, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:
                 logger.info('Could not label new items for recomemnder 2: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
