@@ -86,5 +86,5 @@ python3 ../scripts/holdout.py \
     --number_unlabeled 700000 \
     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
     --params_2 num_factors=20,lrate=0.01,reg=0.01
+    #--is_binary --make_binary --binary_th 4.0 #\ -> If the dataset is binary.
     #--columns -> Comma separated names for every column.
-    #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
