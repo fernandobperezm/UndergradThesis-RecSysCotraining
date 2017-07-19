@@ -279,7 +279,7 @@ def user_uniform_item_uniform_sampling(R, size, replace=True, seed=1234, verbose
     cdef np.ndarray[np.int64_t, ndim=1] aux, neg_candidates
     cdef int [:] pos_candidates
 
-    print("\nGenerating %s random training samples\n" % str(size), end="")
+    sys.stderr.write("Generating %s random training samples\n" % str(size))
     while i < size:
         # 1) sample a user from a uniform distribution
         iid  = np.random.choice(M)
@@ -317,7 +317,8 @@ def user_uniform_item_uniform_sampling(R, size, replace=True, seed=1234, verbose
         i += 1
         if verbose and i % 10000 == 0:
             # print('Sampling... {:.2f}% complete'.format(i/size*100))
-            print('\rSampling... %.2f complete'% (i/size*100), end="")
+            sys.stderr.write('\rSampling... %.2f complete'% (i/size*100))
+            sys.stderr.flush()
     return sample
 
 
@@ -342,7 +343,7 @@ def user_uniform_item_pop_sampling(R, size, alpha=1., seed=1234, verbose=True):
     cdef int [:] pos_candidates
     cdef np.ndarray[np.float32_t, ndim=1] p
 
-    print("\nGenerating %s random training samples\n" % str(size))
+    sys.stderr.write("Generating %s random training samples\n" % str(size))
     while i < size:
         # 1) sample a user from a uniform distribution
         iid  = np.random.choice(M)
@@ -368,5 +369,6 @@ def user_uniform_item_pop_sampling(R, size, alpha=1., seed=1234, verbose=True):
         i += 1
         if verbose and i % 10000 == 0:
             # print('Sampling... {:.2f}% complete'.format(i/size*100))
-            print('\rSampling... %.2f complete'% (i/size*100),end="")
+            sys.stderr.write('\rSampling... %.2f complete'% (i/size*100))
+            sys.stderr.flush()
     return sample
