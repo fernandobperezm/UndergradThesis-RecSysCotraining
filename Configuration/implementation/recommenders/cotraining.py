@@ -118,7 +118,8 @@ class CoTraining(object):
             logger.info("Iteration: {}".format(i_iter))
             if (i_iter % 10 == 0):
                 # Backup the dataset at each 10 iters.
-                np.savez_compressed('training_sets.npz',x1=X1,x2=X2)
+                sp.save_npz(file='training_set_1.npz',matrix=X1.tocoo(), compressed=True)
+                sp.save_npz(file='training_set_2.npz',matrix=X2.tocoo(), compressed=True)
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_1))
