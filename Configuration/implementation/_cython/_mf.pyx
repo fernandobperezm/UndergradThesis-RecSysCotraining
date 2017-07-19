@@ -18,6 +18,8 @@ cimport numpy as np
 import numpy as np
 import scipy.sparse as sps
 
+import sys
+
 @cython.boundscheck(False)
 def FunkSVD_sgd(R, num_factors=50, lrate=0.01, reg=0.015, iters=10, init_mean=0.0, init_std=0.1, lrate_decay=1.0, rnd_seed=42):
     if not isinstance(R, sps.csr_matrix):
