@@ -116,6 +116,9 @@ class CoTraining(object):
         # Co-Training iterations begin here.
         for i_iter in range(self.n_iters):
             logger.info("Iteration: {}".format(i_iter))
+            if (i_iter % 10 == 0):
+                # Backup the dataset at each 10 iters.
+                np.savez_compressed('training_sets.npz',x1=X1,x2=X2)
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_1))
