@@ -15,6 +15,43 @@ import numpy as np
 import scipy.sparse as sps
 from .base import Recommender, check_matrix
 
+import pdb
+
+class Random(Recommender):
+    """Random recommender"""
+
+    def __init__(self,seed=1234,binary_ratings=False):
+        super(Random, self).__init__()
+        self.seed = seed
+        self.random_state = np.random.RandomState(seed=self.seed)
+        self.binary_ratings = binary_ratings
+
+    def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
+        self.dataset = X
+        self.nusers, self.nitems = X.shape
+
+    def recommend(self, user_id, n=None, exclude_seen=True):
+        ranking = self.random_state.random_integers(low=0, high=self.nitems-1, size=(self.nitems,))
+        if exclude_seen:
+            ranking = self._filter_seen(user_id, ranking)
+        return ranking[:n]
+
+    def predict(self, user_id, rated_indices,score_mode='user'):
+        # 5) compute the predicted ratings using element-wise sum of the elements.
+        # r_ui = mu + bu + bi
+        if (score_mode == 'user')
+            shape = rated_indices.shape
+            if (binary_ratings):
+                # For each rated index guess a rating by random choice.
+                return self.random_state.random_integers(low=0, high=1, size=shape)
+            else:
+                # For each rated index guess a rating by random choice.
+                return self.random_state.random_integers(low=1, high=5, size=shape)
+
+    def __str__(self):
+        return "Random(sampling_type={})".format(self.sampling_type)
+
 class TopPop(Recommender):
     """Top Popular recommender"""
 
@@ -22,6 +59,7 @@ class TopPop(Recommender):
         super(TopPop, self).__init__()
 
     def fit(self, X):
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         # convert to csc matrix for faster column-wise sum
         X = check_matrix(X, 'csc', dtype=np.float32)
@@ -34,6 +72,9 @@ class TopPop(Recommender):
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:n]
+
+    def predict(self, user_id, rated_indices,score_mode='user'):
+        pass
 
     def __str__(self):
         return "TopPop"
@@ -48,6 +89,8 @@ class GlobalEffects(Recommender):
         self.lambda_item = lambda_item
 
     def fit(self, X):
+        pdb.set_trace()
+        X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         # convert to csc matrix for faster column-wise sum
         X = check_matrix(X, 'csc', dtype=np.float32)
@@ -81,16 +124,30 @@ class GlobalEffects(Recommender):
         row_nnz = np.diff(X_csr.indptr)
         # finally, let's compute the bias
         self.bu = X_csr.sum(axis=1).ravel() / (row_nnz + self.lambda_user)
+        self.bu = np.squeeze(np.asarray(self.bu)) # To put it in an array
 
         # 4) precompute the item ranking by using the item bias only
         # the global average and user bias won't change the ranking, so there is no need to use them
         self.item_ranking = np.argsort(self.bi)[::-1]
+
+        # Remove nans in bi and bu.
+        self.bi[np.abs(self.bi) < 1e-6] = 0.0
+        self.bu[np.abs(self.bu) < 1e-6] = 0.0
 
     def recommend(self, user_id, k=None, exclude_seen=True):
         ranking = self.item_ranking
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
         return ranking[:k]
+
+    def predict(self, user_id, rated_indices,score_mode='user'):
+        # 5) compute the predicted ratings using element-wise sum of the elements.
+        # r_ui = mu + bu + bi
+        if (score_mode == 'user')
+            mu = self.mu
+            bu = self.bu[user_id]
+            bi = self.bi[rated_indices]
+            return mu + bu + bi
 
     def __str__(self):
         return 'GlobalEffects'

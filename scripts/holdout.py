@@ -34,7 +34,7 @@ from implementation.recommenders.item_knn import ItemKNNRecommender
 from implementation.recommenders.user_knn import UserKNNRecommender
 from implementation.recommenders.slim import SLIM, MultiThreadSLIM
 from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
-from implementation.recommenders.non_personalized import TopPop, GlobalEffects
+from implementation.recommenders.non_personalized import Random, TopPop, GlobalEffects
 from implementation.recommenders.content import ContentBasedRecommender
 from implementation.recommenders.cotraining import CoTraining
 from implementation.recommenders.bpr import BPRMF_THEANO
@@ -165,6 +165,11 @@ test = df_to_csr(test_df,
                  user_key='user_idx',
                  rating_key=args.rating_key)
 
+# Baseline recommenders.
+global_effects = GlobalEffects(lambda_user=0, lambda_item=0)
+top_pop = TopPop()
+random = Random(seed=1234,binary_ratings=args.is_binary)
+
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
@@ -185,6 +190,11 @@ logger.info('Beggining the Co-Training process.')
 tic = dt.now()
 cotraining.fit(train, eval_iter=True,binary_ratings=args.is_binary)
 logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
+
+# Baseline fitting.
+global_effects.fit(train)
+top_pop.fit(train)
+random.fit(train)
 
 # Plotting.
 try:
