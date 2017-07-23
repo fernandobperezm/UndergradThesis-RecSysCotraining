@@ -226,6 +226,7 @@ class MultiThreadSLIM(SLIM):
                                               l2_penalty=l2_penalty,
                                               positive_only=positive_only)
         self.workers = workers
+        self.pool = Pool(processes=self.workers)
 
     def __str__(self):
         return "SLIM_mt(l1_penalty={},l2_penalty={},positive_only={},workers={})".format(
@@ -239,11 +240,12 @@ class MultiThreadSLIM(SLIM):
         n_items = X.shape[1]
         # fit item's factors in parallel
         _pfit = partial(_partial_fit, X=X)
-        pool = Pool(processes=self.workers)
+        num_tasks = int((n_items / self.workers) + 1)
+
         args_triplet = ((j,self.l1_ratio,self.positive_only) for j in np.arange(n_items))
-        res = pool.map(_pfit, args_triplet)
-        pool.close()
-        pool.join()
+        res = self.pool.map(_pfit, args_triplet)
+        self.pool.close()
+        self.pool.join()
 
         # res contains a vector of (values, rows, cols) tuples
         values, rows, cols = [], [], []
@@ -252,6 +254,5 @@ class MultiThreadSLIM(SLIM):
             rows.extend(rows_)
             cols.extend(cols_)
 
-        pool = None
         # generate the sparse weight matrix
         self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(n_items, n_items), dtype=np.float32)
