@@ -244,8 +244,8 @@ class MultiThreadSLIM(SLIM):
 
         args_triplet = ((j,self.l1_ratio,self.positive_only) for j in np.arange(n_items))
         res = self.pool.map(_pfit, args_triplet)
-        self.pool.close()
-        self.pool.join()
+        # self.pool.close()
+        # self.pool.join()
 
         # res contains a vector of (values, rows, cols) tuples
         values, rows, cols = [], [], []
