@@ -71,6 +71,89 @@ class Evaluation(object):
         self.mrr = ( rows_rec1.mrr.values, rows_rec2.mrr.values )
         self.ndcg = ( rows_rec1.ndcg.values, rows_rec2.ndcg.values )
 
+    def eval_baselines(self,random,global_effects,top_pop):
+        nusers, nitems = self.test_set.shape
+        at = self.at
+        n_eval = 0
+        rmse_random, roc_auc_random, precision_random, recall_random, map_random, mrr_random, ndcg_random = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        rmse_ge, roc_auc_ge, precision_ge, recall_ge, map_ge, mrr_ge, ndcg_ge = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        rmse_tp, roc_auc_tp, precision_tp, recall_tp, map_tp, mrr_tp, ndcg_tp = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+        row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
+        relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
+        for test_user in relevant_users:
+        # for test_user in np.arange(start=0,stop=nusers,dtype=np.int32):
+            if (test_user % 10000 == 0):
+                logger.info("Evaluating user {}".format(test_user))
+
+            # Getting user_profile by it's rated items (relevant_items) in the test.
+            # logger.info("Getting relevant items.")
+            relevant_items = self.test_set[test_user].indices
+            relevant_predictions = self.test_set[test_user,relevant_items].toarray()
+            relevant_data = self.test_set[test_user].data
+
+            # Getting user profile given the train set.
+            # user_profile = train_set[test_user]
+
+            # Random.
+            # recommender recommendation.
+            # this will rank self.at (n) items and will predict the score for the relevant items.
+            ranked_items = random.recommend(user_id=test_user, n=self.at, exclude_seen=True)
+            is_relevant = np.in1d(ranked_items, relevant_items, assume_unique=True)
+            predicted_relevant_items = random.predict(user_id=test_user, rated_indices=relevant_items)
+
+            # evaluate the recommendation list with RMSE and ranking metrics.
+            rmse_random += metrics.rmse(predicted_relevant_items, relevant_predictions)
+            roc_auc_random += metrics.roc_auc(is_relevant)
+            precision_random += metrics.precision(is_relevant)
+            recall_random += metrics.recall(is_relevant, relevant_items)
+            map_random += metrics.map(is_relevant, relevant_items)
+            mrr_random += metrics.rr(is_relevant)
+            ndcg_random += metrics.ndcg(ranked_items, relevant_items, relevance=relevant_data, at=at)
+
+
+            # Global Effects
+            # recommender recommendation.
+            # this will rank self.at (n) items and will predict the score for the relevant items.
+            ranked_items_2 = global_effects.recommend(user_id=test_user, n=self.at, exclude_seen=True)
+            is_relevant = np.in1d(ranked_items_2, relevant_items, assume_unique=True)
+            predicted_relevant_items_2 = global_effects.predict(user_id=test_user, rated_indices=relevant_items)
+
+            # evaluate the recommendation list with RMSE and ranking metrics.
+            rmse_ge += metrics.rmse(predicted_relevant_items_2, relevant_predictions)
+            roc_auc_ge += metrics.roc_auc(is_relevant)
+            precision_ge += metrics.precision(is_relevant)
+            recall_ge += metrics.recall(is_relevant, relevant_items)
+            map_ge += metrics.map(is_relevant, relevant_items)
+            mrr_ge += metrics.rr(is_relevant)
+            ndcg_ge += metrics.ndcg(ranked_items_2, relevant_items, relevance=relevant_data, at=at)
+
+            # Top-Pop
+            # recommender recommendation.
+            # this will rank self.at (n) items and will predict the score for the relevant items.
+            ranked_items_3 = top_pop.recommend(user_id=test_user, n=self.at, exclude_seen=True)
+            is_relevant = np.in1d(ranked_items_3, relevant_items, assume_unique=True)
+            # predicted_relevant_items_3 = top_pop.predict(user_id=test_user, rated_indices=relevant_items)
+
+            # evaluate the recommendation list with RMSE and ranking metrics.
+            # rmse_tp += metrics.rmse(predicted_relevant_items_3, relevant_predictions)
+            roc_auc_tp += metrics.roc_auc(is_relevant)
+            precision_tp += metrics.precision(is_relevant)
+            recall_tp += metrics.recall(is_relevant, relevant_items)
+            map_tp += metrics.map(is_relevant, relevant_items)
+            mrr_tp += metrics.rr(is_relevant)
+            ndcg_tp += metrics.ndcg(ranked_items_3, relevant_items, relevance=relevant_data, at=at)
+
+            # Increase the number of evaluations performed.
+            n_eval += 1
+
+        # Recommender evaluation.
+        # names = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+        # formats = [np.float32,np.float32,np.float32,np.float32,np.float32,np.float32,np.float32]
+        self.baselines_eval = dict()
+        self.baselines_eval['random'] = [rmse_random / n_eval, roc_auc_random / n_eval, precision_random / n_eval, recall_random / n_eval, map_random / n_eval, mrr_random / n_eval, ndcg_random / n_eval]
+        self.baselines_eval['global_effects'] = [rmse_ge / n_eval, roc_auc_ge / n_eval, precision_ge / n_eval, recall_ge / n_eval, map_ge / n_eval, mrr_ge / n_eval, ndcg_ge / n_eval ]
+        self.baselines_eval['top_pop'] = [0.0, roc_auc_tp / n_eval, precision_tp / n_eval, recall_tp / n_eval, map_tp / n_eval, mrr_tp / n_eval, ndcg_tp / n_eval]
+
     def eval(self, rec_1, rec_2):
         nusers, nitems = self.test_set.shape
         at = self.at
@@ -194,15 +277,23 @@ class Evaluation(object):
 
     def plot_all(self,rec_index,rec):
         # plot with various axes scales
+        random_eval = self.baselines_eval['random']
+        ge_eval = self.baselines_eval['global_effects']
+        tp_eval = self.baselines_eval['top_pop']
+
         n_iter = len(self.rmse[rec_index])
         iterations = np.arange(n_iter)
 
         # rmse
         plt.figure(1)
-        plt.plot(iterations,self.rmse[rec_index])
+        rec_plot, = plt.plot(iterations,self.rmse[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[0]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[0]]*n_iter, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[0]]*n_iter, 'y-', label='Top Popular')
         plt.title('RMSE for {} recommender'.format(rec.short_str()))
         plt.ylabel('RMSE')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot])
         plt.grid(True)
         savepath = self.results_path + "RMSE_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -210,10 +301,14 @@ class Evaluation(object):
 
         # roc_auc
         plt.figure(2)
-        plt.plot(iterations,self.roc_auc[rec_index])
+        rec_plot, = plt.plot(iterations,self.roc_auc[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[1]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[1]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[1]]*n_iter, 'y-', label='Top Popular')
         plt.title('ROC-AUC@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('ROC-AUC')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "ROC-AUC_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -221,10 +316,14 @@ class Evaluation(object):
 
         # precision
         plt.figure(3)
-        plt.plot(iterations,self.precision[rec_index])
+        rec_plot, = plt.plot(iterations,self.precision[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[2]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[2]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[2]]*n_iter, 'y-', label='Top Popular')
         plt.title('Precision@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('Precision')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Precision_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -232,10 +331,14 @@ class Evaluation(object):
 
         # recall
         plt.figure(4)
-        plt.plot(iterations,self.recall[rec_index])
+        rec_plot, =  plt.plot(iterations,self.recall[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[3]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[3]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[3]]*n_iter, 'y-', label='Top Popular')
         plt.title('Recall@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('Recall')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Recall_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -243,10 +346,14 @@ class Evaluation(object):
 
         # map
         plt.figure(5)
-        plt.plot(iterations,self.map[rec_index])
+        rec_plot, = plt.plot(iterations,self.map[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[4]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[4]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[4]]*n_iter, 'y-', label='Top Popular')
         plt.title('MAP@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('MAP')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "MAP_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -254,10 +361,14 @@ class Evaluation(object):
 
         # mrr
         plt.figure(6)
-        plt.plot(iterations,self.mrr[rec_index])
+        rec_plot, = plt.plot(iterations,self.mrr[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[5]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[5]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[5]]*n_iter, 'y-', label='Top Popular')
         plt.title('MRR@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('MRR')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "MRR_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
@@ -265,16 +376,25 @@ class Evaluation(object):
 
         # ndcg
         plt.figure(7)
-        plt.plot(iterations,self.ndcg[rec_index])
+        rec_plot, = plt.plot(iterations,self.ndcg[rec_index], 'b-', label=rec.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[6]]*n_iter, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[6]]*n_iter, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[6]]*n_iter, 'y-', label='Top Popular')
         plt.title('NDCG@{} for {} recommender'.format(self.at, rec.short_str()))
         plt.ylabel('NDCG')
         plt.xlabel('Iterations')
+        plt.legend(handles=[rec_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "NDCG_{}iter_{}.png".format(n_iter,rec.short_str())
         plt.savefig(savepath)
         plt.clf()
 
     def plot_all_recommenders(self, rec_1, rec_2):
+        # pdb.set_trace()
+        random_eval = self.baselines_eval['random']
+        ge_eval = self.baselines_eval['global_effects']
+        tp_eval = self.baselines_eval['top_pop']
+
         iterations = np.arange(len(self.rmse[0]))
         n_iters = len(iterations)
         # Plot each metric in a different file.
@@ -284,9 +404,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.rmse[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.rmse[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[0]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[0]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[0]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('RMSE')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_RMSE_{}iter.png".format(n_iters)
         plt.savefig(savepath)
@@ -298,9 +421,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.roc_auc[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.roc_auc[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[1]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[1]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[1]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('ROC-AUC')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_ROC-AUC_{}iter.png".format(n_iters)
         plt.savefig(savepath)
@@ -312,9 +438,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.precision[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.precision[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[2]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[2]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[2]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('Precision')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_Precision_{}iter.png".format(n_iters)
         plt.savefig(savepath)
@@ -326,9 +455,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.recall[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.recall[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[3]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[3]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[3]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('Recall')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_Recall_{}iter.png".format(n_iters)
         plt.savefig(savepath)
@@ -340,10 +472,13 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.map[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.map[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[4]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[4]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[4]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('MAP')
         plt.xlabel('Iterations')
         plt.grid(True)
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         savepath = self.results_path + "Together_MAP_{}iter.png".format(n_iters)
         plt.savefig(savepath)
         plt.clf()
@@ -354,9 +489,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.mrr[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.mrr[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[5]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[5]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[5]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('MRR')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_MRR_{}iter.png".format(n_iters)
         plt.savefig(savepath)
@@ -368,9 +506,12 @@ class Evaluation(object):
         # self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
         eval1_plot, = plt.plot(iterations, self.ndcg[0], 'b-', label=rec_1.short_str())
         eval2_plot, = plt.plot(iterations, self.ndcg[1], 'g-', label=rec_2.short_str())
+        random_plot, = plt.plot(iterations, [random_eval[6]]*n_iters, 'k-', label='Random')
+        ge_plot, = plt.plot(iterations, [ge_eval[6]]*n_iters, 'r-', label='Global Effects')
+        tp_plot, = plt.plot(iterations, [tp_eval[6]]*n_iters, 'y-', label='Top Popular')
         plt.ylabel('NDCG')
         plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot])
+        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
         plt.grid(True)
         savepath = self.results_path + "Together_NDCG_{}iter.png".format(n_iters)
         plt.savefig(savepath)

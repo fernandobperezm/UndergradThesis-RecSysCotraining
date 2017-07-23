@@ -25,7 +25,7 @@ import scipy as sp
 import pandas as pd
 
 # Import utils such as
-from implementation.utils.data_utils import results_to_df, results_to_file
+from implementation.utils.data_utils import read_dataset, df_to_csr, df_to_dok, df_to_lil, results_to_file, results_to_df
 from implementation.utils.split import holdout
 from implementation.utils.evaluation import Evaluation
 
@@ -34,7 +34,7 @@ from implementation.recommenders.item_knn import ItemKNNRecommender
 from implementation.recommenders.user_knn import UserKNNRecommender
 from implementation.recommenders.slim import SLIM, MultiThreadSLIM
 from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
-from implementation.recommenders.non_personalized import TopPop, GlobalEffects
+from implementation.recommenders.non_personalized import Random, TopPop, GlobalEffects
 from implementation.recommenders.content import ContentBasedRecommender
 from implementation.recommenders.cotraining import CoTraining
 
@@ -113,6 +113,58 @@ if args.params_2:
 if args.columns is not None:
     args.columns = args.columns.split(',')
 
+# read the dataset
+logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
+logger.info('Reading {}'.format(args.dataset))
+dataset, item_to_idx, user_to_idx = read_dataset(
+    args.dataset,
+    header=args.header,
+    sep=args.sep,
+    columns=args.columns,
+    make_binary=args.make_binary,
+    binary_th=args.binary_th,
+    item_key=args.item_key,
+    user_key=args.user_key,
+    rating_key=args.rating_key)
+
+nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
+logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
+
+# compute the k-fold split
+logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
+
+train_df, test_df = holdout(dataset,
+                            user_key=args.user_key,
+                            item_key=args.item_key,
+                            perc=args.holdout_perc,
+                            seed=1234,
+                            clean_test=True)
+
+# Create our label and unlabeled samples set.
+# As the train set will be modifed in the co-training approach, it's more
+# efficient to modify a dok_matrix than a csr_matrix.
+train = df_to_lil(train_df,
+                  is_binary=args.is_binary,
+                  nrows=nusers,
+                  ncols=nitems,
+                  item_key='item_idx',
+                  user_key='user_idx',
+                  rating_key=args.rating_key)
+
+# Create our test set.
+test = df_to_csr(test_df,
+                 is_binary=args.is_binary,
+                 nrows=nusers,
+                 ncols=nitems,
+                 item_key='item_idx',
+                 user_key='user_idx',
+                 rating_key=args.rating_key)
+
+# Baseline recommenders.
+global_effects = GlobalEffects()
+top_pop = TopPop()
+random = Random(seed=1234,binary_ratings=args.is_binary)
+
 # read the results
 filepath = args.results_path + args.results_file
 results = results_to_df(filepath)
@@ -122,8 +174,16 @@ h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Creating the evaluation instance.
-evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=None, val_set = None, at = args.rec_length, co_training=True)
+evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = args.rec_length, co_training=True)
 evaluation.df_to_eval(results, h1_ctr, h2_ctr)
+
+# Baseline fitting.
+global_effects.fit(train)
+top_pop.fit(train)
+random.fit(train)
+
+# Evaluate the baselines.
+evaluation.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
 
 # Plotting all the results.
 evaluation.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.

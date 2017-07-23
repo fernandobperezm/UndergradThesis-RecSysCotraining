@@ -40,9 +40,9 @@ class Random(Recommender):
     def predict(self, user_id, rated_indices,score_mode='user'):
         # 5) compute the predicted ratings using element-wise sum of the elements.
         # r_ui = mu + bu + bi
-        if (score_mode == 'user')
+        if (score_mode == 'user'):
             shape = rated_indices.shape
-            if (binary_ratings):
+            if (self.binary_ratings):
                 # For each rated index guess a rating by random choice.
                 return self.random_state.random_integers(low=0, high=1, size=shape)
             else:
@@ -89,7 +89,7 @@ class GlobalEffects(Recommender):
         self.lambda_item = lambda_item
 
     def fit(self, X):
-        pdb.set_trace()
+        # pdb.set_trace()
         X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         # convert to csc matrix for faster column-wise sum
@@ -134,16 +134,16 @@ class GlobalEffects(Recommender):
         self.bi[np.abs(self.bi) < 1e-6] = 0.0
         self.bu[np.abs(self.bu) < 1e-6] = 0.0
 
-    def recommend(self, user_id, k=None, exclude_seen=True):
+    def recommend(self, user_id, n=None, exclude_seen=True):
         ranking = self.item_ranking
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
-        return ranking[:k]
+        return ranking[:n]
 
     def predict(self, user_id, rated_indices,score_mode='user'):
         # 5) compute the predicted ratings using element-wise sum of the elements.
         # r_ui = mu + bu + bi
-        if (score_mode == 'user')
+        if (score_mode == 'user'):
             mu = self.mu
             bu = self.bu[user_id]
             bi = self.bi[rated_indices]

@@ -135,8 +135,6 @@ logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 
 # compute the k-fold split
 logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
-roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-roc_auc_2, precision_2, recall_2, map_2, mrr_2, ndcg_2 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 train_df, test_df = holdout(dataset,
                             user_key=args.user_key,
@@ -166,7 +164,7 @@ test = df_to_csr(test_df,
                  rating_key=args.rating_key)
 
 # Baseline recommenders.
-global_effects = GlobalEffects(lambda_user=0, lambda_item=0)
+global_effects = GlobalEffects()
 top_pop = TopPop()
 random = Random(seed=1234,binary_ratings=args.is_binary)
 
@@ -195,6 +193,9 @@ logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic
 global_effects.fit(train)
 top_pop.fit(train)
 random.fit(train)
+
+# Evaluate the baselines.
+eval_ctr.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
 
 # Plotting.
 try:
