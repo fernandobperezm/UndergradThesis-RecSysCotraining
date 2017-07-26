@@ -17,6 +17,7 @@ import numpy as np
 import scipy.sparse as sps
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
+from implementation.recommenders.base import check_matrix
 
 import pdb
 
@@ -46,6 +47,7 @@ class Evaluation(object):
         self.val_set = val_set
         self.at = at
         self.cotraining = co_training
+        self.rec_evals = dict()
         self.rmse = (list(), list())
         self.roc_auc = (list(), list())
         self.precision = (list(), list())
@@ -154,86 +156,109 @@ class Evaluation(object):
         self.baselines_eval['global_effects'] = [rmse_ge / n_eval, roc_auc_ge / n_eval, precision_ge / n_eval, recall_ge / n_eval, map_ge / n_eval, mrr_ge / n_eval, ndcg_ge / n_eval ]
         self.baselines_eval['top_pop'] = [0.0, roc_auc_tp / n_eval, precision_tp / n_eval, recall_tp / n_eval, map_tp / n_eval, mrr_tp / n_eval, ndcg_tp / n_eval]
 
-    def eval(self, rec_1, rec_2):
+    def eval(self, recommenders=None, minRatingsPerUser=1 ):
+        '''
+            recommenders: dict that contains as key the recommender name
+                          and as value the reference of the recommender.
+        '''
+        self.test_set = check_matrix(self.test_set, 'csr', dtype=np.float32)
+
         nusers, nitems = self.test_set.shape
         at = self.at
         n_eval = 0
-        rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        rmse2_, roc_auc2_, precision2_, recall2_, map2_, mrr2_, ndcg2_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
-        relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
-        for test_user in relevant_users:
-        # for test_user in np.arange(start=0,stop=nusers,dtype=np.int32):
+
+        rows = self.test_set.indptr
+        numRatings = np.ediff1d(rows)
+        mask = numRatings >= minRatingsPerUser
+        usersToEvaluate = np.arange(nusers)[mask]
+        usersToEvaluate = list(usersToEvaluate)
+
+        recommenders_to_evaluate = list(recommenders.keys())
+        n_recs = len(recommenders_to_evaluate)
+        rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,))
+        for rec_key in recommenders_to_evaluate:
+            if (not rec_key in self.rec_evals):
+                self.rec_evals[rec_key] = dict()
+                self.rec_evals[rec_key]['RMSE'] = list()
+                self.rec_evals[rec_key]['ROC_AUC'] = list()
+                self.rec_evals[rec_key]['Precision'] = list()
+                self.rec_evals[rec_key]['Recall'] = list()
+                self.rec_evals[rec_key]['MAP'] = list()
+                self.rec_evals[rec_key]['MRR'] = list()
+                self.rec_evals[rec_key]['NDCG'] = list()
+
+        # row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
+        # relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
+        # for test_user in relevant_users:
+        for test_user in usersToEvaluate:
             if (test_user % 10000 == 0):
                 logger.info("Evaluating user {}".format(test_user))
 
             # Getting user_profile by it's rated items (relevant_items) in the test.
-            # logger.info("Getting relevant items.")
             relevant_items = self.test_set[test_user].indices
+            relevant_predictions = self.test_set[test_user,relevant_items].toarray()
+            relevant_data = self.test_set[test_user].data
+            i = 0
+            for rec_key in recommenders_to_evaluate:
+                rec_to_eval = recommenders[rec_key]
 
-            # Getting user profile given the train set.
-            # user_profile = train_set[test_user]
+                ranked_items = rec_to_eval.recommend(user_id=test_user, n=at, exclude_seen=True)
+                predicted_relevant_items = rec_to_eval.predict(user_id=test_user, rated_indices=relevant_items)
 
-            # Recommender 1.
-            # recommender recommendation.
-            # this will rank self.at (n) items and will predict the score for the relevant items.
-            # logger.info("Ranking Rec1.")
-            ranked_items = rec_1.recommend(user_id=test_user, n=self.at, exclude_seen=True)
-            is_relevant = np.in1d(ranked_items, relevant_items, assume_unique=True)
-            # logger.info("Predicting Rec1.")
-            predicted_relevant_items = rec_1.predict(user_id=test_user, rated_indices=relevant_items)
+                # evaluate the recommendation list with RMSE and ranking metrics.
+                is_relevant = np.in1d(ranked_items, relevant_items, assume_unique=True)
+                rmse_[i] += metrics.rmse(predicted_relevant_items, relevant_predictions)
+                roc_auc_[i] += metrics.roc_auc(is_relevant)
+                precision_[i] += metrics.precision(is_relevant)
+                recall_[i] += metrics.recall(is_relevant, relevant_items)
+                map_[i] += metrics.map(is_relevant, relevant_items)
+                mrr_[i] += metrics.rr(is_relevant)
+                ndcg_[i] += metrics.ndcg(ranked_items, relevant_items, relevance=relevant_data, at=at)
 
-            # evaluate the recommendation list with RMSE and ranking metrics.
-            # logger.info("Evaluating rmse rec1.")
-            rmse_ += metrics.rmse(predicted_relevant_items, self.test_set[test_user,relevant_items].toarray())
-            # logger.info("Evaluating ranking metrics rec1")
-            roc_auc_ += metrics.roc_auc(is_relevant)
-            precision_ += metrics.precision(is_relevant)
-            recall_ += metrics.recall(is_relevant, relevant_items)
-            map_ += metrics.map(is_relevant, relevant_items)
-            mrr_ += metrics.rr(is_relevant)
-            ndcg_ += metrics.ndcg(ranked_items, relevant_items, relevance=self.test_set[test_user].data, at=at)
-
-
-            # Recommender 2.
-            # recommender recommendation.
-            # this will rank self.at (n) items and will predict the score for the relevant items.
-            # logger.info("Ranking rec2")
-            ranked_items_2 = rec_2.recommend(user_id=test_user, n=self.at, exclude_seen=True)
-            is_relevant = np.in1d(ranked_items_2, relevant_items, assume_unique=True)
-            # logger.info("Predicting rec2")
-            predicted_relevant_items_2 = rec_2.predict(user_id=test_user, rated_indices=relevant_items)
-
-            # evaluate the recommendation list with RMSE and ranking metrics.
-            # logger.info("Evaluating rmse rec2")
-            rmse2_ += metrics.rmse(predicted_relevant_items_2, self.test_set[test_user,relevant_items].toarray())
-            # logger.info("Evaluating ranking metrics rec2")
-            roc_auc2_ += metrics.roc_auc(is_relevant)
-            precision2_ += metrics.precision(is_relevant)
-            recall2_ += metrics.recall(is_relevant, relevant_items)
-            map2_ += metrics.map(is_relevant, relevant_items)
-            mrr2_ += metrics.rr(is_relevant)
-            ndcg2_ += metrics.ndcg(ranked_items_2, relevant_items, relevance=self.test_set[test_user].data, at=at)
+                i += 1
 
             # Increase the number of evaluations performed.
             n_eval += 1
 
         # Recommender evaluation.
-        self.rmse[0].append(rmse_ / n_eval)
-        self.roc_auc[0].append(roc_auc_ / n_eval)
-        self.precision[0].append(precision_ / n_eval)
-        self.recall[0].append(recall_ / n_eval)
-        self.map[0].append(map_ / n_eval)
-        self.mrr[0].append(mrr_ / n_eval)
-        self.ndcg[0].append(ndcg_ / n_eval)
+        i = 0
+        for rec_key in recommenders_to_evaluate:
+            # rec_to_eval = recommenders[rec_key]
+            # self.rec_evals[rec_to_eval.short_str()].append([
+            #                                rmse_[i] / n_eval,
+            #                                roc_auc_[i] / n_eval,
+            #                                precision_[i] / n_eval,
+            #                                recall_[i] / n_eval,
+            #                                map_[i] / n_eval,
+            #                                mrr_[i] / n_eval,
+            #                                ndcg_[i] / n_eval
+            #                                ]
+            #                             )
+            self.rec_evals[rec_key]['RMSE'].append(rmse_[i] / n_eval)
+            self.rec_evals[rec_key]['ROC_AUC'].append(roc_auc_[i] / n_eval)
+            self.rec_evals[rec_key]['Precision'].append(precision_[i] / n_eval)
+            self.rec_evals[rec_key]['Recall'].append(recall_[i] / n_eval)
+            self.rec_evals[rec_key]['MAP'].append(map_[i] / n_eval)
+            self.rec_evals[rec_key]['MRR'].append(mrr_[i] / n_eval)
+            self.rec_evals[rec_key]['NDCG'].append(ndcg_[i] / n_eval)
 
-        self.rmse[1].append(rmse2_ / n_eval)
-        self.roc_auc[1].append(roc_auc2_ / n_eval)
-        self.precision[1].append(precision2_ / n_eval)
-        self.recall[1].append(recall2_ / n_eval)
-        self.map[1].append(map2_ / n_eval)
-        self.mrr[1].append(mrr2_ / n_eval)
-        self.ndcg[1].append(ndcg2_ / n_eval)
+            i += 1
+
+        # self.rmse[0].append(rmse_ / n_eval)
+        # self.roc_auc[0].append(roc_auc_ / n_eval)
+        # self.precision[0].append(precision_ / n_eval)
+        # self.recall[0].append(recall_ / n_eval)
+        # self.map[0].append(map_ / n_eval)
+        # self.mrr[0].append(mrr_ / n_eval)
+        # self.ndcg[0].append(ndcg_ / n_eval)
+        #
+        # self.rmse[1].append(rmse2_ / n_eval)
+        # self.roc_auc[1].append(roc_auc2_ / n_eval)
+        # self.precision[1].append(precision2_ / n_eval)
+        # self.recall[1].append(recall2_ / n_eval)
+        # self.map[1].append(map2_ / n_eval)
+        # self.mrr[1].append(mrr2_ / n_eval)
+        # self.ndcg[1].append(ndcg2_ / n_eval)
 
     def log_all(self):
         for index in range(len(self.rmse)):
@@ -245,7 +270,14 @@ class Evaluation(object):
                         cotraining=self.cotraining,
                         iterations=index,
                         recommender1=rec_1,
-                        evaluation1=[self.rmse[0][index], self.roc_auc[0][index], self.precision[0][index], self.recall[0][index], self.map[0][index], self.mrr[0][index], self.ndcg[0][index]],
+                        evaluation1=[self.rec_evals[rec_1.short_str()]['RMSE'][index],
+                                     self.rec_evals[rec_1.short_str()]['ROC_AUC'][index],
+                                     self.rec_evals[rec_1.short_str()]['Precision'][index],
+                                     self.rec_evals[rec_1.short_str()]['Recall'][index],
+                                     self.rec_evals[rec_1.short_str()]['MAP'][index],
+                                     self.rec_evals[rec_1.short_str()]['MRR'][index],
+                                     self.rec_evals[rec_1.short_str()]['NDCG'][index]
+                                    ],
                         at=self.at
                         )
 
@@ -253,7 +285,14 @@ class Evaluation(object):
                         cotraining=self.cotraining,
                         iterations=index,
                         recommender1=rec_2,
-                        evaluation1=[self.rmse[1][index], self.roc_auc[1][index], self.precision[1][index], self.recall[1][index], self.map[1][index], self.mrr[1][index], self.ndcg[1][index]],
+                        evaluation1=[self.rec_evals[rec_2.short_str()]['RMSE'][index],
+                                     self.rec_evals[rec_2.short_str()]['ROC_AUC'][index],
+                                     self.rec_evals[rec_2.short_str()]['Precision'][index],
+                                     self.rec_evals[rec_2.short_str()]['Recall'][index],
+                                     self.rec_evals[rec_2.short_str()]['MAP'][index],
+                                     self.rec_evals[rec_2.short_str()]['MRR'][index],
+                                     self.rec_evals[rec_2.short_str()]['NDCG'][index]
+                                    ],
                         at=self.at
                         )
 
@@ -389,130 +428,172 @@ class Evaluation(object):
         plt.savefig(savepath)
         plt.clf()
 
-    def plot_all_recommenders(self, rec_1, rec_2):
+    def plot_all_recommenders(self, recommenders=None, n_iters=30):
         # pdb.set_trace()
-        random_eval = self.baselines_eval['random']
-        ge_eval = self.baselines_eval['global_effects']
-        tp_eval = self.baselines_eval['top_pop']
+        recommenders_to_evaluate = list(recommenders.keys())
+        n_recs = len(recommenders_to_evaluate)
+        iterations = np.arange(n_iters)
 
-        iterations = np.arange(len(self.rmse[0]))
-        n_iters = len(iterations)
-        # Plot each metric in a different file.
-        # RMSE.
-        plt.figure(1)
-        plt.title('RMSE between the recommenders.')
-        # self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.rmse[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.rmse[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[0]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[0]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[0]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('RMSE')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_RMSE_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+        colors = ['b-','g-','k-','r-','y-']
+        titles = ['RMSE between the recommenders.',
+                  'ROC-AUC@{} between the recommenders.'.format(self.at),
+                  'Precision@{} between the recommenders.'.format(self.at),
+                  'Recall@{} between the recommenders.'.format(self.at),
+                  'MAP@{} between the recommenders.'.format(self.at),
+                  'MRR@{} between the recommenders.'.format(self.at),
+                  'NDCG@{} between the recommenders.'.format(self.at)
+                 ]
+        savepaths = [self.results_path + "Together_RMSE_{}iter.png".format(n_iters),
+                     self.results_path + "Together_ROC-AUC_{}iter.png".format(n_iters),
+                     self.results_path + "Together_Precision_{}iter.png".format(n_iters),
+                     self.results_path + "Together_Recall_{}iter.png".format(n_iters),
+                     self.results_path + "Together_MAP_{}iter.png".format(n_iters),
+                     self.results_path + "Together_MRR_{}iter.png".format(n_iters),
+                     self.results_path + "Together_NDCG_{}iter.png".format(n_iters)
+                    ]
+        ylabels = ['RMSE', 'ROC_AUC', 'Precision', 'Recall', 'MAP', 'MRR', 'NDCG']
 
-        # ROC-AUC.
-        plt.figure(2)
-        plt.title('ROC-AUC@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.roc_auc[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.roc_auc[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[1]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[1]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[1]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('ROC-AUC')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_ROC-AUC_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+        # Iterating for each metric
+        for i in range(len(ylabels)):
+            plt.figure(i+1)
+            plt.title(titles[i])
+            plt.ylabel(ylabels[i])
+            plt.xlabel('Iterations')
+            plt.grid(True)
+            savepath = savepaths[i]
+            handles = []
 
-        # Precision
-        plt.figure(3)
-        plt.title('Precision@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.precision[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.precision[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[2]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[2]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[2]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('Precision')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_Precision_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+            j = 0
+            # Plotting in the same figure the different recommenders.
+            for rec_key in recommenders_to_evaluate:
+                rec = recommenders[rec_key] # load the recommender reference.
+                rec_eval = self.rec_evals[rec_key] # Load the recommender evaluation.
 
-        # Recall
-        plt.figure(4)
-        plt.title('Recall@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.recall[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.recall[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[3]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[3]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[3]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('Recall')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_Recall_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+                rec_plot, = plt.plot(iterations, rec_eval[ylabels[i]], colors[j], label=rec.short_str())
+                handles.append(rec_plot)
 
-        # MAP
-        plt.figure(5)
-        plt.title('MAP@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.map[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.map[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[4]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[4]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[4]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('MAP')
-        plt.xlabel('Iterations')
-        plt.grid(True)
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        savepath = self.results_path + "Together_MAP_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+                j += 1
 
-        # MRR
-        plt.figure(6)
-        plt.title('MRR@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.mrr[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.mrr[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[5]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[5]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[5]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('MRR')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_MRR_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+            plt.legend(handles=handles)
+            plt.savefig(savepath)
+            plt.clf()
 
-        # NDCG
-        plt.figure(7)
-        plt.title('NDCG@{} between the recommenders.'.format(self.at))
-        # self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
-        eval1_plot, = plt.plot(iterations, self.ndcg[0], 'b-', label=rec_1.short_str())
-        eval2_plot, = plt.plot(iterations, self.ndcg[1], 'g-', label=rec_2.short_str())
-        random_plot, = plt.plot(iterations, [random_eval[6]]*n_iters, 'k-', label='Random')
-        ge_plot, = plt.plot(iterations, [ge_eval[6]]*n_iters, 'r-', label='Global Effects')
-        tp_plot, = plt.plot(iterations, [tp_eval[6]]*n_iters, 'y-', label='Top Popular')
-        plt.ylabel('NDCG')
-        plt.xlabel('Iterations')
-        plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        plt.grid(True)
-        savepath = self.results_path + "Together_NDCG_{}iter.png".format(n_iters)
-        plt.savefig(savepath)
-        plt.clf()
+        # # Plot each metric in a different file.
+        # # RMSE.
+        # plt.figure(1)
+        # plt.title('RMSE between the recommenders.')
+        # # self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.rmse[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.rmse[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[0]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[0]]*n_iters, 'r-', label='Global Effects')
+        # # tp_plot, = plt.plot(iterations, [tp_eval[0]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('RMSE')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_RMSE_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # ROC-AUC.
+        # plt.figure(2)
+        # plt.title('ROC-AUC@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.roc_auc[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.roc_auc[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[1]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[1]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[1]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('ROC-AUC')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_ROC-AUC_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # Precision
+        # plt.figure(3)
+        # plt.title('Precision@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.precision[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.precision[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[2]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[2]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[2]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('Precision')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_Precision_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # Recall
+        # plt.figure(4)
+        # plt.title('Recall@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.recall[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.recall[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[3]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[3]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[3]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('Recall')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_Recall_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # MAP
+        # plt.figure(5)
+        # plt.title('MAP@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.map[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.map[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[4]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[4]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[4]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('MAP')
+        # plt.xlabel('Iterations')
+        # plt.grid(True)
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # savepath = self.results_path + "Together_MAP_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # MRR
+        # plt.figure(6)
+        # plt.title('MRR@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.mrr[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.mrr[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[5]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[5]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[5]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('MRR')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_MRR_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
+        #
+        # # NDCG
+        # plt.figure(7)
+        # plt.title('NDCG@{} between the recommenders.'.format(self.at))
+        # # self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
+        # eval1_plot, = plt.plot(iterations, self.ndcg[0], 'b-', label=rec_1.short_str())
+        # eval2_plot, = plt.plot(iterations, self.ndcg[1], 'g-', label=rec_2.short_str())
+        # random_plot, = plt.plot(iterations, [random_eval[6]]*n_iters, 'k-', label='Random')
+        # ge_plot, = plt.plot(iterations, [ge_eval[6]]*n_iters, 'r-', label='Global Effects')
+        # tp_plot, = plt.plot(iterations, [tp_eval[6]]*n_iters, 'y-', label='Top Popular')
+        # plt.ylabel('NDCG')
+        # plt.xlabel('Iterations')
+        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
+        # plt.grid(True)
+        # savepath = self.results_path + "Together_NDCG_{}iter.png".format(n_iters)
+        # plt.savefig(savepath)
+        # plt.clf()
