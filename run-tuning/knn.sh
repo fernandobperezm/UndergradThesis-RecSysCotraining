@@ -192,7 +192,6 @@
 # ################################################################################
 # Combination:
 #  Rec1 -> user_knn with Pearson, k=50 and shrinkage = 100 and normalization
-mkdir ../Results/tuning-knn-3
 python3 ../scripts/tuning.py \
     ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/tuning-knn-3/ \
