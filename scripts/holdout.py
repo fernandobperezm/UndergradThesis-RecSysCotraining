@@ -18,6 +18,8 @@ import logging
 from collections import OrderedDict
 from datetime import datetime as dt
 import pdb
+import sys
+import traceback
 
 # Numpy and scipy.
 import numpy as np
@@ -164,13 +166,29 @@ test = df_to_csr(test_df,
                  rating_key=args.rating_key)
 
 # Baseline recommenders.
-global_effects = GlobalEffects()
-top_pop = TopPop()
+global_effects_1 = GlobalEffects()
+global_effects_2 = GlobalEffects()
+top_pop_1 = TopPop()
+top_pop_2 = TopPop()
 random = Random(seed=1234,binary_ratings=args.is_binary)
+# baselines = dict()
+# baselines['global_effects'] = global_effects
+# baselines['top_pop'] = top_pop
+# baselines['random'] = random
 
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
+
+# Recommenders dictionary.
+recommenders = dict()
+recommenders[h1_ctr.short_str()] = h1_ctr
+recommenders[h2_ctr.short_str()] = h2_ctr
+recommenders["TopPop1"] = top_pop_1
+recommenders["TopPop2"] = top_pop_2
+recommenders["GlobalEffects1"] = global_effects_1
+recommenders["GlobalEffects2"] = global_effects_2
+recommenders[random.short_str()] = random
 
 # Evaluations cotrained.
 eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = 10,co_training=True)
@@ -186,21 +204,29 @@ results_to_file(args.results_path + args.results_file, header=True) # Write the 
 # Cotraining fitting and evaluation.
 logger.info('Beggining the Co-Training process.')
 tic = dt.now()
-cotraining.fit(train, eval_iter=True,binary_ratings=args.is_binary)
+cotraining.fit(train, eval_iter=True,binary_ratings=args.is_binary,recommenders=recommenders, baselines=True)
 logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
 
 # Baseline fitting.
-global_effects.fit(train)
-top_pop.fit(train)
-random.fit(train)
+# global_effects.fit(train)
+# top_pop.fit(train)
+# random.fit(train)
 
 # Evaluate the baselines.
-eval_ctr.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
+# eval_ctr.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
 
 # Plotting.
 try:
-    eval_ctr.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
-    eval_ctr.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
-    eval_ctr.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
+    only_h1 = recommenders.copy()
+    only_h2 = recommenders.copy()
+    del(only_h1[h2_ctr.short_str()])
+    del(only_h2[h1_ctr.short_str()])
+    eval_ctr.plot_all_recommenders(recommenders=recommenders, n_iters=args.number_iterations,file_prefix="Together_") # First 7 figures.
+    eval_ctr.plot_all_recommenders(recommenders=only_h1, n_iters=args.number_iterations,file_prefix=h1_ctr.short_str()+"_") # First 7 figures.
+    eval_ctr.plot_all_recommenders(recommenders=only_h2, n_iters=args.number_iterations,file_prefix=h2_ctr.short_str()+"_") # First 7 figures.
 except:
+    error_path = args.results_path + "errors.txt"
+    error_file = open(error_path, 'w')
     logger.info('Could not save the figures: {}'.format(sys.exc_info()))
+    traceback.print_exc(file=error_file)
+    error_file.close()
