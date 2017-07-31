@@ -60,7 +60,7 @@ class CoTraining(object):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
             self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)
 
-    def fit(self, X1, eval_iter=False, binary_ratings=False):
+    def fit(self, X1, eval_iter=False, binary_ratings=False,recommenders=None,baselines=False):
         '''
             Depending of the Co-Training approach, you can have two views or
             use different learners, in the case of X2 == None, it's supposed
@@ -80,6 +80,12 @@ class CoTraining(object):
         rng = np.random.RandomState(self.seed)
         error_path = self.eval.results_path + "errors.txt"
         error_file = open(error_path, 'w')
+        if (recommenders is not None and baselines == True):
+            ge_1 = recommenders['GlobalEffects1']
+            ge_2 = recommenders['GlobalEffects2']
+            tp_1 = recommenders['TopPop1']
+            tp_2 = recommenders['TopPop2']
+            random = recommenders['Random']
 
         # Create the pool of examples.
         # Using a LIL matrix to have a A[row[k], col[k]] = Data[k] representation
@@ -102,24 +108,25 @@ class CoTraining(object):
 
         logger.info("Pool created. Its size is: {}.".format(u_prime.nnz))
 
-        # i = 0
-        # while (i < self.n_labels):
-        #     rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
-        #     rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
-        #     if (X1[rnd_user,rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-        #         u_prime[rnd_user,rnd_item] = 1
-        #         i += 1
-
         # Training set for Rec2.
         X2 = X1.copy()
+
+        # Creating the dictionary of references.
+        # recommenders = dict()
+        # recommenders[self.rec_1.short_str()] = self.rec_1
+        # recommenders[self.rec_2.short_str()] = self.rec_2
+        # if (baselines):
+        #     recommenders[tp_1.short_str()] = tp_1
+        #     recommenders[ge_1.short_str()] = ge_1
+        #     recommenders[random.short_str()] = random
 
         # Co-Training iterations begin here.
         for i_iter in range(self.n_iters):
             logger.info("Iteration: {}".format(i_iter))
             if (i_iter % 10 == 0):
                 # Backup the dataset at each 10 iters.
-                sp.save_npz(file='../Datasets/training_set_1.npz',matrix=X1.tocoo(), compressed=True)
-                sp.save_npz(file='../Datasets/training_set_2.npz',matrix=X2.tocoo(), compressed=True)
+                sp.save_npz(file='../Datasets/training_set_1_iter{}.npz'.format(i_iter),matrix=X1.tocoo(), compressed=True)
+                sp.save_npz(file='../Datasets/training_set_2_iter{}.npz'.format(i_iter),matrix=X2.tocoo(), compressed=True)
 
             try:
                 logger.info('\tRecommender: {}'.format(self.rec_1))
@@ -141,11 +148,62 @@ class CoTraining(object):
                 logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
 
+            if (baselines):
+                try:
+                    logger.info('\tRecommender: {}'.format(ge_1))
+                    tic = dt.now()
+                    logger.info('\t\tTraining started for recommender: {}'.format(ge_1))
+                    ge_1.fit(X1)
+                    logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, ge_1))
+                except:
+                    logger.info('Could not fit the recommender global effects: {}'.format(sys.exc_info()))
+                    traceback.print_exc(file=error_file)
+
+                try:
+                    logger.info('\tRecommender: {}'.format(ge_2))
+                    tic = dt.now()
+                    logger.info('\t\tTraining started for recommender: {}'.format(ge_2))
+                    ge_2.fit(X2)
+                    logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, ge_2))
+                except:
+                    logger.info('Could not fit the recommender global effects: {}'.format(sys.exc_info()))
+                    traceback.print_exc(file=error_file)
+
+                try:
+                    logger.info('\tRecommender: {}'.format(tp_1))
+                    tic = dt.now()
+                    logger.info('\t\tTraining started for recommender: {}'.format(tp_1))
+                    tp_1.fit(X1)
+                    logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, tp_1))
+                except:
+                    logger.info('Could not fit the recommender top-pop: {}'.format(sys.exc_info()))
+                    traceback.print_exc(file=error_file)
+
+                try:
+                    logger.info('\tRecommender: {}'.format(tp_2))
+                    tic = dt.now()
+                    logger.info('\t\tTraining started for recommender: {}'.format(tp_2))
+                    tp_2.fit(X2)
+                    logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, tp_2))
+                except:
+                    logger.info('Could not fit the recommender top-pop: {}'.format(sys.exc_info()))
+                    traceback.print_exc(file=error_file)
+
+                try:
+                    logger.info('\tRecommender: {}'.format(random))
+                    tic = dt.now()
+                    logger.info('\t\tTraining started for recommender: {}'.format(random))
+                    random.fit(X1)
+                    logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, random))
+                except:
+                    logger.info('Could not fit the recommender random: {}'.format(sys.exc_info()))
+                    traceback.print_exc(file=error_file)
 
             # Evaluate the recommenders in this iteration.
             logger.info('\tEvaluating both recommenders.')
+
             try:
-                self.eval.eval(self.rec_1, self.rec_2)
+                self.eval.eval(recommenders=recommenders, minRatingsPerUser=1)
                 # self.eval2.eval(X2)
                 # self.eval_aggr.eval(X1) # TODO: change this.
                 self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
@@ -155,12 +213,11 @@ class CoTraining(object):
                 logger.info('Could not evaluate both recomemnders: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
 
+            # Evaluate the recommenders in this iteration.
+            logger.info('\tEvaluating both recommenders.')
 
             # Label positively and negatively examples from U' for both recommenders.
             logger.info('\tLabeling new items.')
-            # unlabeled = u_prime.keys()
-            # unl1 = list(unlabeled)
-            # unl2 = list(unlabeled)
             try:
                 labeled1 = self.rec_1.label(unlabeled_list=u_prime, binary_ratings=binary_ratings, exclude_seen=True, p_most=self.p_most, n_most=self.n_most)
             except:

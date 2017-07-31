@@ -50,7 +50,10 @@ class Random(Recommender):
                 return self.random_state.random_integers(low=1, high=5, size=shape)
 
     def __str__(self):
-        return "Random(sampling_type={})".format(self.sampling_type)
+        return "Random"
+
+    def short_str(self):
+        return "Random"
 
 class TopPop(Recommender):
     """Top Popular recommender"""
@@ -79,6 +82,8 @@ class TopPop(Recommender):
     def __str__(self):
         return "TopPop"
 
+    def short_str(self):
+        return "TopPop"
 
 class GlobalEffects(Recommender):
     """docstring for GlobalEffects"""
@@ -151,3 +156,6 @@ class GlobalEffects(Recommender):
 
     def __str__(self):
         return 'GlobalEffects'
+
+    def short_str(self):
+        return "GlobalEffects"

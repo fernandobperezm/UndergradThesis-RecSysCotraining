@@ -94,6 +94,8 @@ class BPRMF_THEANO(Recommender):
           (This should give an AUC of around 0.5 as the training and
           testing set are chosen at random)
         """
+        super(BPRMF_THEANO, self).__init__()
+        self.dataset = None
         self._rank = rank
         self._n_users = n_users
         self._n_items = n_items
@@ -181,26 +183,24 @@ class BPRMF_THEANO(Recommender):
           batches of length `batch_size`, and run one iteration of gradient
           descent for the batch.
         """
-        # To accomplish the specification of train data.
-        # pdb.set_trace()
-        train = check_matrix(train_data, 'lil', dtype=numpy.float32)
-        user_idx, item_idx = train.nonzero()
-        train_data = list(zip(user_idx,item_idx))
+        train_data = check_matrix(train_data, format='csr', dtype=numpy.float32)
+        self.dataset = train_data
 
-        if len(train_data) < batch_size:
-            sys.stderr.write("WARNING: Batch size is greater than number of training samples, switching to a batch size of %s\n" % str(len(train_data)))
-            batch_size = len(train_data)
-        self._train_dict, self._train_users, self._train_items = self._data_to_dict(train_data)
-        n_sgd_samples = len(train_data) * epochs
-        sgd_users, sgd_pos_items, sgd_neg_items = self._uniform_user_sampling(n_sgd_samples)
+        n_sgd_samples = epochs * train_data.nnz
+        self.URM_train = train_data
+        self.batch_size = batch_size
+        self.initializeFastSampling()
+
         z = 0
         t2 = t1 = t0 = time.time()
         while (z+1)*batch_size < n_sgd_samples:
+            sgd_users, sgd_pos_items, sgd_neg_items = self.sampleBatch()
             self.train_model(
-                sgd_users[z*batch_size: (z+1)*batch_size],
-                sgd_pos_items[z*batch_size: (z+1)*batch_size],
-                sgd_neg_items[z*batch_size: (z+1)*batch_size]
+                sgd_users,
+                sgd_pos_items,
+                sgd_neg_items
             )
+
             z += 1
             t2 = time.time()
             sys.stderr.write("\rProcessed %s ( %.2f%% ) in %.4f seconds" %(str(z*batch_size), 100.0 * float(z*batch_size)/n_sgd_samples, t2 - t1))
@@ -209,6 +209,71 @@ class BPRMF_THEANO(Recommender):
         if n_sgd_samples > 0:
             sys.stderr.write("\nTotal training time %.2f seconds; %e per sample\n" % (t2 - t0, (t2 - t0)/n_sgd_samples))
             sys.stderr.flush()
+
+        # # To accomplish the specification of train data.
+        # # pdb.set_trace()
+        # train = check_matrix(train_data, 'lil', dtype=numpy.float32)
+        # user_idx, item_idx = train.nonzero()
+        # train_data = list(zip(user_idx,item_idx))
+        #
+        # if len(train_data) < batch_size:
+        #     sys.stderr.write("WARNING: Batch size is greater than number of training samples, switching to a batch size of %s\n" % str(len(train_data)))
+        #     batch_size = len(train_data)
+        # self._train_dict, self._train_users, self._train_items = self._data_to_dict(train_data)
+        # n_sgd_samples = len(train_data) * epochs
+        # sgd_users, sgd_pos_items, sgd_neg_items = self._uniform_user_sampling(n_sgd_samples)
+        #z = 0
+        #t2 = t1 = t0 = time.time()
+        # while (z+1)*batch_size < n_sgd_samples:
+        #     self.train_model(
+        #         sgd_users[z*batch_size: (z+1)*batch_size],
+        #         sgd_pos_items[z*batch_size: (z+1)*batch_size],
+        #         sgd_neg_items[z*batch_size: (z+1)*batch_size]
+        #     )
+        #     z += 1
+        #     t2 = time.time()
+        #     sys.stderr.write("\rProcessed %s ( %.2f%% ) in %.4f seconds" %(str(z*batch_size), 100.0 * float(z*batch_size)/n_sgd_samples, t2 - t1))
+        #     sys.stderr.flush()
+        #     t1 = t2
+        # if n_sgd_samples > 0:
+        #     sys.stderr.write("\nTotal training time %.2f seconds; %e per sample\n" % (t2 - t0, (t2 - t0)/n_sgd_samples))
+        #     sys.stderr.flush()
+
+    def initializeFastSampling(self):
+        print("Initializing fast sampling")
+
+        self.eligibleUsers = []
+        self.userSeenItems = dict()
+
+        for user_id in range(self._n_users):
+
+            if (self.URM_train[user_id].nnz >0):
+
+                self.eligibleUsers.append(user_id)
+                self.userSeenItems[user_id] = self.URM_train[user_id].indices
+
+        self.eligibleUsers = numpy.array(self.eligibleUsers)
+
+    def sampleBatch(self):
+        user_id_list = numpy.random.choice(self.eligibleUsers, size=(self.batch_size))
+        pos_item_id_list = []
+        neg_item_id_list = []
+
+        for user_id in user_id_list:
+            pos_item_id_list.append(numpy.random.choice(self.userSeenItems[user_id]))
+
+            negItemSelected = False
+
+            # It's faster to just try again than to build a mapping of the non-seen items
+            # for every user
+            while(not negItemSelected):
+                neg_item_id = numpy.random.randint(0, self._n_items)
+
+                if(neg_item_id not in self.userSeenItems[user_id]):
+                    negItemSelected = True
+                    neg_item_id_list.append(neg_item_id)
+
+        return user_id_list, pos_item_id_list, neg_item_id_list
 
     def _uniform_user_sampling(self, n_samples):
         """
@@ -273,7 +338,7 @@ class BPRMF_THEANO(Recommender):
         """
         return self.predictions(user_index)[item_index]
 
-    def top_predictions(self, user_index, topn=10):
+    def top_predictions(self, user_index, topn=10,exclude_seen=True):
         """
           Returns the item indices of the top predictions
           for `user_index`. The number of predictions to return
@@ -281,10 +346,15 @@ class BPRMF_THEANO(Recommender):
           This won't return any of the items associated with `user_index`
           in the training set.
         """
-        return [
-            item_index for item_index in numpy.argsort(self.predictions(user_index))
-            if item_index not in self._train_dict[user_index]
-        ][::-1][:topn]
+
+        # return [
+        #     item_index for item_index in numpy.argsort(self.predictions(user_index))
+        #     if item_index not in self._train_dict[user_index]
+        # ][::-1][:topn]
+        ranking = numpy.argsort(self.predictions(user_index))[::-1]
+        if exclude_seen:
+            ranking = self._filter_seen(user_index, ranking)
+        return ranking[:topn]
 
     def fit(self, R):
         return self.train(train_data=R, epochs=10, batch_size=1000)
