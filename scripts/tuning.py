@@ -151,7 +151,6 @@ eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_
 # Recommender evaluation.
 results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
-# neighbors = range(10,201,10)
 neighbors = range(1,3000,500)
 shrinkages = range(0,10001,500)
 
@@ -180,6 +179,6 @@ for neighbor in neighbors:
 
 # Plotting.
 try:
-    eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr}, n_iters=args.number_iterations) 
+    eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr}, n_iters=args.number_iterations)
 except:
     logger.info('Could not save the figures: {}'.format(sys.exc_info()))
