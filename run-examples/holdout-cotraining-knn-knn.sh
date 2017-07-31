@@ -49,8 +49,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 70 \
-#     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=pearson,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=pearson,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -77,8 +77,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=cosine,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=pearson,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -105,8 +105,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=adj-cosine,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=pearson,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -133,8 +133,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=pearson,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=pearson,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -161,8 +161,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=cosine,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=cosine,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=cosine,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=cosine,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -189,8 +189,8 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=adj-cosine,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=adj-cosine,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=adj-cosine,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
 #
@@ -218,7 +218,7 @@ done
 #     --number_positives $PPOSITIVES \
 #     --number_negatives $NNEGATIVES \
 #     --number_unlabeled 700000 \
-#     --params_1 similarity=pearson,k=50,shrinkage=100,normalize=True \
-#     --params_2 similarity=pearson,k=50,shrinkage=100,normalize=True
+#     --params_1 similarity=pearson,k=5500,shrinkage=500,normalize=True \
+#     --params_2 similarity=pearson,k=5500,shrinkage=500,normalize=True
 #     #--columns -> Comma separated names for every column.
 #     #--is_binary --make_binary --binary_th 4.0 \ -> If the dataset is binary.
