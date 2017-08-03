@@ -269,8 +269,8 @@ class ItemKNNRecommender(Recommender):
             p_mask = (filtered_scores == 1.0)
             n_mask = (filtered_scores == 0.0)
         else:
-            p_mask = (filtered_scores >= 4.0) & (filtered_scores <= 5.0)
-            n_mask = (filtered_scores >= 1.0) & (filtered_scores <= 3.0)
+            p_mask = (filtered_scores >= 3.5)
+            n_mask = (filtered_scores <= 2.5)
             neutral_mask = (filtered_scores > 2.5) & (filtered_scores < 3.5)
 
         # In order to have the same array structure as mentioned before. Only
@@ -311,7 +311,8 @@ class ItemKNNRecommender(Recommender):
         meta['neg_set'] = set(zip(n_users, n_items))
         meta['neutral_set'] = set(zip(neutral_users, neutral_items))
 
-        scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+        scores = [(p_users[i], p_items[i], p_filtered_scores[i] if p_filtered_scores[i] < 5.0 else 5.0) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i] if p_filtered_scores > 1.0 else 1.0) for i in n_sorted_scores]
+        # scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
 
         # We sort the indices by user, then by item in order to make the
         # assignment to the LIL matrix faster.
