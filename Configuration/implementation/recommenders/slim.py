@@ -207,9 +207,18 @@ class SLIM(Recommender):
         else:
             scores = [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
 
+
+        meta = dict()
+        meta['pos_labels'] = len(p_sorted_scores)
+        meta['neg_labels'] = len(n_sorted_scores)
+        meta['total_labels'] = len(p_sorted_scores) + len(n_sorted_scores)
+        meta['pos_set'] = set([(users[i], items[i]) for i in p_sorted_scores])
+        meta['neg_set'] = set([(users[i], items[i]) for i in n_sorted_scores])
+        meta['neutral_set'] = set()
+
         # We sort the indices by user, then by item in order to make the
         # assignment to the LIL matrix faster.
-        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1])), meta
 
 
 from multiprocessing import Pool
