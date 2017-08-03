@@ -94,7 +94,7 @@ done
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> BPRMF_THEANO with rank=20,learning_rate = 0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-bprmf-3/ \
     --results_file holdout-knn-bprmf_theano-50.csv \
     --holdout_perc 0.8 \
@@ -103,11 +103,11 @@ python3 ../scripts/holdout.py \
     --rnd_seed 1234 \
     --recommender_2 item_knn --rec_length 10 \
     --recommender_1 BPRMF_THEANO --rec_length 10 \
-    --number_iterations 5 \
+    --number_iterations 50 \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
     --number_unlabeled 700000 \
-    --params_2 similarity=adj-cosine,k=5500,shrinkage=500,normalize=True \
+    --params_2 similarity=adj-cosine,k=350,shrinkage=0,normalize=True,sparse_weights=True \
     --params_1 rank=20,n_users=69878,n_items=10677,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
     # --params_1 rank=20,n_users=943,n_items=1682,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
     #--columns -> Comma separated names for every column.
