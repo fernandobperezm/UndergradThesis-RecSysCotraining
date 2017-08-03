@@ -311,7 +311,9 @@ class ItemKNNRecommender(Recommender):
         meta['neg_set'] = set(zip(n_users, n_items))
         meta['neutral_set'] = set(zip(neutral_users, neutral_items))
 
-        scores = [(p_users[i], p_items[i], p_filtered_scores[i] if p_filtered_scores[i] < 5.0 else 5.0) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i] if p_filtered_scores > 1.0 else 1.0) for i in n_sorted_scores]
+        scores = \
+         [(p_users[i], p_items[i], p_filtered_scores[i] if p_filtered_scores[i] < 5.0 else 5.0) for i in p_sorted_scores] +\
+         [(n_users[i], n_items[i], n_filtered_scores[i] if n_filtered_scores[i] > 1.0 else 1.0) for i in n_sorted_scores]
         # scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
 
         # We sort the indices by user, then by item in order to make the
