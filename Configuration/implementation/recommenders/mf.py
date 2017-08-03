@@ -158,8 +158,8 @@ class FunkSVD(Recommender):
             # then we will need to see which user is mapped to which index.
             filtered_scores = scores[user_to_idx,items]
 
-        # positive ratings: explicit ->[4,5], implicit -> [0.75,1]
-        # negative ratings: explicit -> [1,2,3], implicit -> [0,0.75)
+        # positive ratings: explicit ->[4,...], implicit -> [0.75,1]
+        # negative ratings: explicit -> [...,2], implicit -> [0,0.75)
         # Creating a mask to remove elements out of bounds.
         if (binary_ratings):
             p_mask = (filtered_scores >= 0.75) & (filtered_scores <= 1)
@@ -167,6 +167,7 @@ class FunkSVD(Recommender):
         else:
             p_mask = (filtered_scores >= 4.0) & (filtered_scores <= 5.0)
             n_mask = (filtered_scores >= 1.0) & (filtered_scores <= 3.0)
+            neutral_mask = (filtered_scores > 2.5) & (filtered_scores < 3.5)
 
         # In order to have the same array structure as mentioned before. Only
         # keeps positive ratings.
@@ -179,6 +180,11 @@ class FunkSVD(Recommender):
         n_users = users[n_mask]
         n_items = items[n_mask]
         n_filtered_scores = filtered_scores[n_mask]
+
+        # Keeping neutral ratings.
+        neutral_users = users[neutral_mask]
+        neutral_items = items[neutral_mask]
+        neutral_filtered_scores = filtered_scores[neutral_mask]
 
         # Filtered the scores to have the n-most and p-most.
         # The p-most are sorted decreasingly.
@@ -195,9 +201,17 @@ class FunkSVD(Recommender):
 
         scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
 
+        meta = dict()
+        meta['pos_labels'] = len(p_sorted_scores)
+        meta['neg_labels'] = len(n_sorted_scores)
+        meta['total_labels'] = len(p_sorted_scores) + len(n_sorted_scores)
+        meta['pos_set'] = set(zip(p_users, p_items))
+        meta['neg_set'] = set(zip(n_users, n_items))
+        meta['neutral_set'] = set(zip(neutral_users, neutral_items))
+
         # We sort the indices by user, then by item in order to make the
         # assignment to the LIL matrix faster.
-        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1])), meta
 
 class AsySVD(Recommender):
     '''

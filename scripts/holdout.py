@@ -40,6 +40,7 @@ from implementation.recommenders.non_personalized import Random, TopPop, GlobalE
 from implementation.recommenders.content import ContentBasedRecommender
 from implementation.recommenders.cotraining import CoTraining
 from implementation.recommenders.bpr import BPRMF_THEANO
+from implementation.recommenders.SLIM_BPR_Mono import SLIM_BPR_Mono
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -58,7 +59,8 @@ available_recommenders = OrderedDict([
     ('AsySVD', AsySVD),
     ('IALS_np', IALS_numpy),
     ('BPRMF', BPRMF),
-    ('BPRMF_THEANO', BPRMF_THEANO)
+    ('BPRMF_THEANO', BPRMF_THEANO),
+    ('SLIM_BPR', SLIM_BPR_Mono)
 ])
 
 # let's use an ArgumentParser to read input arguments
@@ -226,7 +228,7 @@ try:
     eval_ctr.plot_all_recommenders(recommenders=only_h2, n_iters=args.number_iterations,file_prefix=h2_ctr.short_str()+"_") # First 7 figures.
 except:
     error_path = args.results_path + "errors.txt"
-    error_file = open(error_path, 'w')
+    error_file = open(error_path, 'a')
     logger.info('Could not save the figures: {}'.format(sys.exc_info()))
     traceback.print_exc(file=error_file)
     error_file.close()

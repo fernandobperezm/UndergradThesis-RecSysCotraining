@@ -20,6 +20,7 @@ import implementation.utils.data_utils as data_utils
 from implementation.recommenders.base import check_matrix
 
 import pdb
+import csv
 
 import matplotlib
 matplotlib.use('Agg') # Directive to save the images in PNG without X windows environment.
@@ -158,6 +159,113 @@ class Evaluation(object):
         for index in range(len(self.rmse)):
             self.log_by_index(index)
 
+    def log_to_file(self,log_type,recommenders,args):
+        '''
+            recommenders: dictionary of recommenders to eval.
+            type:
+                * 'evaluation'
+                * 'labeling'
+                * 'tuning'
+            args: dictionary of arguments.
+                * 'index'
+                * 'rec_key': dictionary of recommenders containing:
+                    * pos_lab_rec, neg_lab_rec, total_lab_rec as a triplet
+                * 'pos_1'
+                * 'pos_2'
+                * 'neg_1'
+                * 'neg_2'
+                * 'both_pos'
+                * 'both_neg'
+                * 'both_neutral'
+        '''
+        filepath = self.results_path
+        columns = []
+        index = args['index']
+
+        if (log_type == 'evaluation'):
+            available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+            columns = ['cotraining','iteration', '@k', 'recommender'] + available_metrics
+            filepath += self.results_file
+
+            try:
+                csvfile = open(filepath, mode='r')
+                csvfile.close()
+            except:
+                logger.info("Creating header for file: {}".format(filepath))
+                with open(filepath, 'w', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter.writerow(columns)
+
+
+            with open(filepath, 'a', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+                for rec_key in recommenders.keys():
+                    recommender = recommenders[rec_key]
+                    rec_evaluation = [self.rec_evals[recommender.short_str()]['RMSE'][index],
+                                      self.rec_evals[recommender.short_str()]['ROC_AUC'][index],
+                                      self.rec_evals[recommender.short_str()]['Precision'][index],
+                                      self.rec_evals[recommender.short_str()]['Recall'][index],
+                                      self.rec_evals[recommender.short_str()]['MAP'][index],
+                                      self.rec_evals[recommender.short_str()]['MRR'][index],
+                                      self.rec_evals[recommender.short_str()]['NDCG'][index]
+                                    ]
+                    row = [self.cotraining, index, self.at, str(recommender)] + rec_evaluation
+                    csvwriter.writerow(row)
+
+        elif (log_type == 'labeling'):
+            columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled', 'total_labeled']
+            filepath1 = filepath + "numberlabeled.csv"
+
+            try:
+                csvfile = open(filepath1, mode='r')
+                csvfile.close()
+            except:
+                logger.info("Creating header for file: {}".format(filepath1))
+                with open(filepath1, 'w', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter.writerow(columns)
+
+            with open(filepath1, 'a', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+                for rec_key in recommenders.keys():
+                    recommender = recommenders[rec_key]
+                    pos_rec, neg_rec, total_rec = args[rec_key]
+                    row = [index, str(recommender), pos_rec, neg_rec, total_rec]
+                    csvwriter.writerow(row)
+
+            columns = ['iteration',
+                       'both_positive', 'both_negative', 'both_neutral',
+                       'pos_only_first', 'neg_only_first', 'neutral_only_first',
+                       'pos_only_second', 'neg_only_second', 'neutral_only_second']
+
+            filepath2 = filepath + "label_comparison.csv"
+
+            try:
+                csvfile = open(filepath2, mode='r')
+                csvfile.close()
+            except:
+                logger.info("Creating header for file: {}".format(filepath2))
+                with open(filepath2, 'w', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter.writerow(columns)
+
+            with open(filepath2, 'a', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+                row = [index,
+                       args['both_pos'], args['both_neg'], args['both_neutral'],
+                       args['pos_only_first'], args['neg_only_first'], args['neutral_only_first'],
+                       args['pos_only_second'], args['neg_only_second'], args['neutral_only_second']
+                       ]
+                csvwriter.writerow(row)
+
+
+        elif (log_type == 'tuning'):
+            filepath += "tuning.csv"
+            pass
+
     def log_by_index(self,index,rec_1, rec_2):
         filepath = self.results_path + self.results_file
         data_utils.results_to_file(filepath=filepath,
@@ -212,7 +320,7 @@ class Evaluation(object):
         # pdb.set_trace()
         recommenders_to_evaluate = list(recommenders.keys())
         n_recs = len(recommenders_to_evaluate)
-        iterations = np.arange(n_iters)
+        iterations = np.arange(n_iters+1)
 
         colors = ['b-*','g-s','k-8','r-^','y-X','c-d','m-*']
         titles = ['RMSE between the recommenders.',
