@@ -9,6 +9,8 @@ import numpy as np
 import scipy.sparse as sps
 import time
 
+import pdb
+
 def check_matrix(X, format='csc', dtype=np.float32):
     if format == 'csc' and not isinstance(X, sps.csc_matrix):
         return X.tocsc().astype(dtype)
@@ -29,7 +31,8 @@ def check_matrix(X, format='csc', dtype=np.float32):
 
 
 def similarityMatrixTopK(item_weights, forceSparseOutput = True, k=100):
-
+    print(k)
+    pdb.set_trace()
     assert (item_weights.shape[0] == item_weights.shape[1]), "selectTopK: ItemWeights is not a square matrix"
 
     start_time = time.time()

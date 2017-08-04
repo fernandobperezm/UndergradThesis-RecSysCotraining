@@ -12,7 +12,6 @@ import os
 from .Recommender import Recommender
 from .Recommender_utils import similarityMatrixTopK, check_matrix
 import scipy.sparse as sps
-from scipy.special import expit
 import subprocess
 
 import pdb
@@ -20,7 +19,17 @@ import pdb
 class SLIM_BPR_Mono(Recommender):
 
     # def __init__(self, URM_train, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05, topK = False):
-    def __init__(self, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05, topK = False):
+    def __init__(self, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05, topK = None):
+        """
+        WARNING: This class needs to save files on disk to call another executable. Neither this class nor the executable
+        are thread safe
+
+        :param URM_train:
+        :param lambda_i:
+        :param lambda_j:
+        :param learning_rate:
+        :param topK:
+        """
         super(SLIM_BPR_Mono, self).__init__()
 
         # self.URM_train = URM_train
@@ -33,12 +42,17 @@ class SLIM_BPR_Mono(Recommender):
         self.sparse_weights = True
         self.topK = topK
 
-        processPid = os.getpid()
-
         self.basePath = "../../../Datasets/ml10m/"
         self.executablePath = "./item_recommendation"
         self.trainFileName = "SLIM_BPR_Mono_URM_train.csv"
+        self.testFileName = "SLIM_BPR_Mono_URM_test.csv"
         self.outputModelName = "SLIM_BPR_Mono_Model.txt"
+
+        # self.basePath = "data/"
+        # self.executablePath = "MyMediaLite/bin/item_recommendation"
+
+        # Set permission to execute, code 0775, the o is needed in python to encode octal numbers
+        os.chmod(self.executablePath, 0o775)
 
     def __str__(self):
         return "SLIM_BPR_Mono(lambda_i={},lambda_j={},learning_rate={},topK={})".format(self.lambda_i, self.lambda_j, self.learning_rate, self.topK)
@@ -63,7 +77,6 @@ class SLIM_BPR_Mono(Recommender):
         os.remove(self.basePath + self.outputModelName)
 
     def writeSparseToFile(self, sparseMatrix, file):
-        nusers, nitems = sparseMatrix.shape
         sparseMatrix = sparseMatrix.tocoo()
 
         data = sparseMatrix.data
@@ -76,10 +89,6 @@ class SLIM_BPR_Mono(Recommender):
             #if (index % 500000 == 0):
             #    print("Processed {} rows of {}".format(index, len(data)))
 
-        # # In order to assure that the similarity matrix will have ALL items.
-        if (not nitems-1 in col):
-            file.write("{},{},{}\n".format(row[len(data)-1],nitems-1, 0.0))
-
         file.close()
 
     def loadModelIntoDenseMatrix(self, filePath):
@@ -88,9 +97,13 @@ class SLIM_BPR_Mono(Recommender):
         SLIMsimilarity.readline()  # 2.99
         line = SLIMsimilarity.readline()  # size
 
-        nitems = int(line.split(" ")[0])
-        print(nitems)
-        self.W = np.zeros((nitems,nitems), dtype=np.float32)
+        n_items_model = int(line.split(" ")[0])
+
+        if n_items_model<self.n_items:
+            print("The model file contains less items than the URM_train, it may be that some items do not have interactions.")
+
+        # Shape requires the number of cells, which is the number of items
+        self.W = np.zeros((self.n_items,self.n_items), dtype=np.float32)
 
         numCells = 0
         print("Loading SLIM model")
@@ -116,8 +129,7 @@ class SLIM_BPR_Mono(Recommender):
 
         self.W = self.W.T
 
-        if self.topK != False:
-
+        if (self.topK is not None):
             self.W_sparse = similarityMatrixTopK(self.W, k=self.topK)
 
             self.sparse_weights = True
@@ -136,7 +148,11 @@ class SLIM_BPR_Mono(Recommender):
         SLIMsimilarity.readline()  # 2.99
         line = SLIMsimilarity.readline()  # size
 
-        nitems = int(line.split(" ")[0])
+        n_items_model = int(line.split(" ")[0])
+
+        if n_items_model<self.n_items:
+            print("The model file contains less items than the URM_train, it may be that some items do not have interactions.")
+
 
         numCells = 0
         print("Loading SLIM model")
@@ -158,7 +174,7 @@ class SLIM_BPR_Mono(Recommender):
 
         SLIMsimilarity.close()
 
-        self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
+        self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(self.n_items, self.n_items), dtype=np.float32)
         self.W_sparse = self.W_sparse.T
         self.sparse_weights = True
 
@@ -173,7 +189,7 @@ class SLIM_BPR_Mono(Recommender):
         :param epochs:
         :return: -
         """
-
+        #
         self.URM_train = check_matrix(URM_train, format='csr')
         self.n_users, self.n_items = URM_train.shape
         print("Train users: {}, Train items: {}".format(self.n_users, self.n_items))

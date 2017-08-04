@@ -29,66 +29,6 @@ def check_matrix(X, format='csc', dtype=np.float32):
     else:
         return X.astype(dtype)
 
-
-def similarityMatrixTopK(item_weights, forceSparseOutput = True, k=100):
-
-    assert (item_weights.shape[0] == item_weights.shape[1]), "selectTopK: ItemWeights is not a square matrix"
-
-    start_time = time.time()
-    print("Generating topK matrix")
-
-    nitems = item_weights.shape[1]
-
-    # for each column, keep only the top-k scored items
-    sparse_weights = not isinstance(item_weights, np.ndarray)
-
-    if not sparse_weights:
-
-        idx_sorted = np.argsort(item_weights, axis=0)  # sort data inside each column
-
-        W = item_weights.copy()
-        # index of the items that don't belong to the top-k similar items of each column
-        not_top_k = idx_sorted[:-k, :]
-        # use numpy fancy indexing to zero-out the values in sim without using a for loop
-        W[not_top_k, np.arange(item_weights.shape[1])] = 0.0
-
-        if forceSparseOutput:
-            W_sparse = sps.csr_matrix(W, shape=(nitems, nitems))
-            return W_sparse
-
-        print("TopK matrix generated in {:.2f} seconds".format(time.time()-start_time))
-
-        return W
-
-    else:
-        # iterate over each column and keep only the top-k similar items
-        values, rows, cols = [], [], []
-
-        item_weights = item_weights.tocoo()
-
-        for item_idx in range(nitems):
-
-            dataMask = item_weights.col == item_idx
-            # Get indices of nonzero elements, first dimension of dataMask
-            dataIndices = np.nonzero(dataMask)[0]
-
-            dataValue = item_weights.data[dataIndices]
-            dataRow = item_weights.row[dataIndices]
-
-            idx_sorted = np.argsort(dataValue)  # sort by column
-            top_k_idx = idx_sorted[-k:]
-
-            values.extend(dataValue[top_k_idx])
-            rows.extend(dataRow[top_k_idx])
-            cols.extend(np.ones(len(top_k_idx)) * item_idx)
-
-            # During testing CSR is faster
-        W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
-
-        print("TopK matrix generated in {:.2f} seconds".format(time.time() - start_time))
-
-        return W_sparse
-
 def areURMequals(URM1, URM2):
     if (URM1 is None or URM2 is None):
         return False
@@ -166,7 +106,7 @@ class Recommender(object):
 
 
 
-    def evaluateRecommendations(self, URM_test, at=5, minRatingsPerUser=1, exclude_seen=True,
+    def evaluateRecommendations(self, URM_test, at=5, minRatingsPerUser=1, exclude_seen=False,
                                 mode='sequential', filterTopPop = None,
                                 fastValidation=True):
 
@@ -187,49 +127,47 @@ class Recommender(object):
         self.minRatingsPerUser = minRatingsPerUser
         self.exclude_seen = exclude_seen
 
+        if filterTopPop is not None:
 
-        # if filterTopPop is not None:
-        #
-        #     print("Filtering {} items".format(len(filterTopPop)))
-        #
-        #     self.filterTopPop = True
-        #     self.filterTopPop_ItemsID = filterTopPop
-        #
-        #     # Zero-out the items in order to be considered irrelevant
-        #     self.URM_train = check_matrix(self.URM_train, format='lil')
-        #     self.URM_train[:,self.filterTopPop_ItemsID] = 0
-        #     self.URM_train = check_matrix(self.URM_train, format='csr')
+            print("Filtering {} items".format(len(filterTopPop)))
 
+            self.filterTopPop = True
+            self.filterTopPop_ItemsID = filterTopPop
 
+            # Zero-out the items in order to be considered irrelevant
+            self.URM_train = check_matrix(self.URM_train, format='lil')
+            self.URM_train[:,self.filterTopPop_ItemsID] = 0
+            self.URM_train = check_matrix(self.URM_train, format='csr')
 
 
         nusers = URM_test.shape[0]
 
-        # # Prune users with an insufficient number of ratings
-        # rows = URM_test.indptr
-        # numRatings = np.ediff1d(rows)
-        # mask = numRatings >= minRatingsPerUser
-        # usersToEvaluate = np.arange(nusers)[mask]
-        #
-        # usersToEvaluate = list(usersToEvaluate)
+        # Prune users with an insufficient number of ratings
+        rows = URM_test.indptr
+        numRatings = np.ediff1d(rows)
+        mask = numRatings >= minRatingsPerUser
+        usersToEvaluate = np.arange(nusers)[mask]
+
+        usersToEvaluate = list(usersToEvaluate)
 
         # Generate dictionary data structure
         # - If no fast falidation required, basically recompute it anyway
         # - If fast validation required and URM_test is new
         if not fastValidation or recomputeFastValidationDictionary:
             self.initializeURMDictionary(self.URM_train, URM_test)
+            self.writeSparseToFile(URM_test, open(self.basePath + self.testFileName, "w"))
         else:
             print("URM_test fastValidation already initialised")
 
 
-        # if mode=='sequential':
-        #     return self.evaluateRecommendationsSequential(usersToEvaluate)
-        # elif mode=='parallel':
-        #     return self.evaluateRecommendationsParallel(usersToEvaluate)
-        # elif mode=='random-equivalent':
-        #     return self.evaluateRecommendationsRandomEquivalent(usersToEvaluate)
-        # else:
-        #     raise ValueError("Mode '{}' not available".format(mode))
+        if mode=='sequential':
+            return self.evaluateRecommendationsSequential(usersToEvaluate)
+        elif mode=='parallel':
+            return self.evaluateRecommendationsParallel(usersToEvaluate)
+        elif mode=='random-equivalent':
+            return self.evaluateRecommendationsRandomEquivalent(usersToEvaluate)
+        else:
+            raise ValueError("Mode '{}' not available".format(mode))
 
 
 

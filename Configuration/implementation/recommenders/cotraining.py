@@ -107,7 +107,7 @@ class CoTraining(object):
                 logger.info('\t\tTraining started for recommender: {}'.format(self.rec_1))
                 self.rec_1.fit(URM_1)
                 if (self.rec_1.short_str() == "SLIM_BPR_Mono"):
-                    self.rec_1.evaluateRecommendations(self.eval.test_set)
+                    print(self.rec_1.evaluateRecommendations(URM_test=self.eval.test_set, at=self.eval.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = None,fastValidation=True))
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_1))
             except:
                 logger.info('Could not fit the recommender 1: {}'.format(sys.exc_info()))
@@ -119,7 +119,7 @@ class CoTraining(object):
                 logger.info('\t\tTraining started for recommender: {}'.format(self.rec_2))
                 self.rec_2.fit(URM_2)
                 if (self.rec_2.short_str() == "SLIM_BPR_Mono"):
-                    self.rec_2.evaluateRecommendations(self.eval.test_set)
+                    print(self.rec_2.evaluateRecommendations(URM_test=self.eval.test_set, at=self.eval.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = None,fastValidation=True))
                 logger.info('\t\tTraining completed in {} for recommender: {}'.format(dt.now() - tic, self.rec_2))
             except:
                 logger.info('Could not fit the recommender 2: {}'.format(sys.exc_info()))
