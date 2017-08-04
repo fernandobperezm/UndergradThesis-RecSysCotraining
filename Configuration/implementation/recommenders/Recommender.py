@@ -90,7 +90,7 @@ def similarityMatrixTopK(item_weights, forceSparseOutput = True, k=100):
         return W_sparse
 
 def areURMequals(URM1, URM2):
-    if (URM1 is none or URM2 is none):
+    if (URM1 is None or URM2 is None):
         return False
 
     if(URM1.shape != URM2.shape):
@@ -140,7 +140,7 @@ class Recommender(object):
         super(Recommender, self).__init__()
         self.URM_train = None
         self.sparse_weights = True
-        self.normalize = False
+        self.normalize = True
         self.FastValidation_initialized = False
         self.filterTopPop = False
 
@@ -588,18 +588,17 @@ class Recommender(object):
         return (results)
 
 
-
-
-
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False):
         # compute the scores using the dot product
         user_profile = self.URM_train_user_profile[user_id]
-        print("user_profile.shape={}, self.W.shape={}".format(user_profile.shape, self.W.shape))
+
         #user_profile = self.URM_train[user_id]
         if self.sparse_weights:
+            # print("user_profile.shape={}, self.W_sparse.shape={}".format(user_profile.shape, self.W_sparse.shape))
             scores = user_profile.dot(self.W_sparse).toarray().ravel()
             #scores = self.scoresAll[user_id].toarray().ravel()
         else:
+            # print("user_profile.shape={}, self.W.shape={}".format(user_profile.shape, self.W.shape))
             scores = user_profile.dot(self.W).ravel()
         if self.normalize:
             # normalization will keep the scores in the same range

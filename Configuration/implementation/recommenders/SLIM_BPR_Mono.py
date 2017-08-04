@@ -9,10 +9,13 @@ Created on 28 June 2017
 import numpy as np
 import time
 import os
-from .Recommender import Recommender, similarityMatrixTopK, check_matrix
+from .Recommender import Recommender
+from .Recommender_utils import similarityMatrixTopK, check_matrix
 import scipy.sparse as sps
 from scipy.special import expit
 import subprocess
+
+import pdb
 
 class SLIM_BPR_Mono(Recommender):
 
@@ -31,7 +34,6 @@ class SLIM_BPR_Mono(Recommender):
         self.topK = topK
 
         processPid = os.getpid()
-        print(os.getcwd())
 
         self.basePath = "../../../Datasets/ml10m/"
         self.executablePath = "./item_recommendation"
@@ -44,15 +46,24 @@ class SLIM_BPR_Mono(Recommender):
     def short_str(self):
         return "SLIM_BPR_Mono"
 
+    def _get_user_ratings(self, user_id):
+        return self.URM_train[user_id]
+
     def removeTemporaryFiles(self):
 
         # Remove saved Model and URM
 
+        print("Removing: {}".format(self.basePath + self.trainFileName))
         os.remove(self.basePath + self.trainFileName)
+
+        print("Removing: {}".format(self.basePath + self.trainFileName + ".bin.PosOnlyFeedback"))
+        os.remove(self.basePath + self.trainFileName + ".bin.PosOnlyFeedback")
+
+        print("Removing: {}".format(self.basePath + self.outputModelName))
         os.remove(self.basePath + self.outputModelName)
 
     def writeSparseToFile(self, sparseMatrix, file):
-
+        nusers, nitems = sparseMatrix.shape
         sparseMatrix = sparseMatrix.tocoo()
 
         data = sparseMatrix.data
@@ -65,10 +76,13 @@ class SLIM_BPR_Mono(Recommender):
             #if (index % 500000 == 0):
             #    print("Processed {} rows of {}".format(index, len(data)))
 
+        # # In order to assure that the similarity matrix will have ALL items.
+        if (not nitems-1 in col):
+            file.write("{},{},{}\n".format(row[len(data)-1],nitems-1, 0.0))
+
         file.close()
 
     def loadModelIntoDenseMatrix(self, filePath):
-
         SLIMsimilarity = open(filePath, "r")
         SLIMsimilarity.readline()  # program name
         SLIMsimilarity.readline()  # 2.99
@@ -152,7 +166,7 @@ class SLIM_BPR_Mono(Recommender):
             self.W_sparse = similarityMatrixTopK(self.W_sparse, k=self.topK)
 
 
-    def fit(self, URM_train, epochs=30):
+    def fit(self, URM_train, epochs=30, deleteFiles=False):
         """
         Train SLIM wit BPR. If the model was already trained, overwrites matrix S
         Training is performed via batch gradient descent
@@ -160,20 +174,24 @@ class SLIM_BPR_Mono(Recommender):
         :return: -
         """
 
-
         self.URM_train = check_matrix(URM_train, format='csr')
-        self.n_users = URM_train.shape[0]
-        self.n_items = URM_train.shape[1]
+        self.n_users, self.n_items = URM_train.shape
+        print("Train users: {}, Train items: {}".format(self.n_users, self.n_items))
 
         recommenderMethod = "BPRSLIM"
 
-        # try:
-        #     trainFile = open(self.basePath + self.trainFileName, "r")
-        #     trainFile.close()
-        # except:
+        try:
+            # If train file already exist, clean all data
+            #trainFile = open(self.basePath + self.trainFileName, "r")
+            #trainFile.close()
+            print("Removing previous SLIM_BPR files")
+            self.removeTemporaryFiles()
+
+        except:
+            pass
+
         print("Writing URM_train to {}".format(self.basePath + self.trainFileName))
         self.writeSparseToFile(self.URM_train, open(self.basePath + self.trainFileName, "w"))
-
 
         recommenderOptions = 'reg_i={reg_i} reg_j={reg_j} learn_rate={learn_rate} num_iter={num_iter}'.format(
             reg_i=self.lambda_i,
@@ -197,7 +215,7 @@ class SLIM_BPR_Mono(Recommender):
                    '--recommender-options="{}"'.format(recommenderOptions)
                    ]
 
-        print("Evaluating hyperparameters: " + recommenderOptions)
+        print("SLIM BPR hyperparameters: " + recommenderOptions)
 
         start_time = time.time()
 
@@ -217,4 +235,98 @@ class SLIM_BPR_Mono(Recommender):
         #self.loadModelIntoSparseMatrix(basePath + outputModelName)
         self.loadModelIntoDenseMatrix(self.basePath + self.outputModelName)
 
-        self.removeTemporaryFiles()
+        if deleteFiles:
+            self.removeTemporaryFiles()
+
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+        # Calculate the scores only one time.
+        # users = []
+        # items = []
+        # for user_idx, item_idx in unlabeled_list:
+        #     users.append(user_idx)
+        #     items.append(item_idx)
+        #
+        # users = np.array(users,dtype=np.int32)
+        # items = np.array(items,dtype=np.int32)
+        unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
+        users,items = unlabeled_list.nonzero()
+        n_scores = len(users)
+        uniq_users, user_to_idx = np.unique(users,return_inverse=True)
+        if (score_mode == 'user'):
+            filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            curr_user = None
+            i = 0
+            for user,item in zip(users,items):
+                if (curr_user != user):
+                    curr_user = user
+                    self.calculate_scores_user(curr_user)
+
+                filtered_scores[i] = self.scores[item]
+                i += 1
+
+        elif (score_mode == 'batch'):
+            pass
+            # filtered_scores = []
+            # uniq_users, user_to_idx = np.unique(users,return_inverse=True)
+            # self.calculate_scores_batch(uniq_users)
+            # filtered_scores = self.scores[users,items]
+
+        elif (score_mode == 'matrix'):
+            pass
+
+        # At this point, we have all the predicted scores for the users inside
+        # U'. Now we will filter the scores by keeping only the scores of the
+        # items presented in U'. This will be an array where:
+        # filtered_scores[i] = scores[users[i],items[i]]
+
+        # Filtered the scores to have the n-most and p-most.
+        # sorted_filtered_scores is sorted incrementally
+        sorted_filtered_scores = filtered_scores.argsort()
+        p_sorted_scores = sorted_filtered_scores[-p_most:]
+        n_sorted_scores = sorted_filtered_scores[:n_most]
+
+        if binary_ratings:
+            scores = [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
+        else:
+            scores = [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
+
+
+        meta = dict()
+        meta['pos_labels'] = len(p_sorted_scores)
+        meta['neg_labels'] = len(n_sorted_scores)
+        meta['total_labels'] = len(p_sorted_scores) + len(n_sorted_scores)
+        meta['pos_set'] = set([(users[i], items[i]) for i in p_sorted_scores])
+        meta['neg_set'] = set([(users[i], items[i]) for i in n_sorted_scores])
+        meta['neutral_set'] = set()
+
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1])), meta
+
+    def calculate_scores_user(self,user_id):
+        user_profile = self._get_user_ratings(user_id)
+
+        if self.sparse_weights:
+            self.scores = user_profile.dot(self.W_sparse).toarray().ravel()
+        else:
+            self.scores = user_profile.dot(self.W).ravel()
+
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            self.scores /= den
+
+    def predict(self, user_id, rated_indices, score_mode='user'):
+        # return the scores for the rated items.
+        if (score_mode == 'user'):
+            self.calculate_scores_user(user_id)
+            return self.scores[rated_indices]
+        elif (score_mode == 'matrix'):
+            pass
