@@ -365,17 +365,63 @@ class BPRMF_THEANO(Recommender):
     def predict(self, user_id, rated_indices):
         return self.prediction(user_index=user_id,item_index=rated_indices)
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
+    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=numpy.float32)
         users,items = unlabeled_list.nonzero()
+        n_scores = len(users)
         uniq_users, user_to_idx = numpy.unique(users,return_inverse=True)
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
         # items presented in U'. This will be an array where:
         # filtered_scores[i] = scores[users[i],items[i]]
         # scores = np.dot(self.X[uniq_users], self.Y.T)
-        scores = self.predictions(user_index=uniq_users)
-        filtered_scores = scores[user_to_idx,items]
+
+
+
+        # At this point, we have all the predicted scores for the users inside
+        # U'. Now we will filter the scores by keeping only the scores of the
+        # items presented in U'. This will be an array where:
+        # filtered_scores[i] = scores[users[i],items[i]]
+        if (score_mode == 'user'):
+            filtered_scores = numpy.zeros(shape=n_scores,dtype=numpy.float32)
+            curr_user = None
+            i = 0
+            for user,item in zip(users,items):
+                if (curr_user != user):
+                    curr_user = user
+                    scores = self.predictions(user_index=curr_user)
+                    # scores = np.dot(self.X[curr_user], self.Y.T)
+
+                filtered_scores[i] = scores[item]
+                i += 1
+
+            # # Calculating where the user index changes.
+            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
+            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
+            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
+            # low = 0
+            # for idx in diff_user_idx:
+            #     high = idx+1 # As the idx marks the last one with the same value.
+            #     user = users[idx]
+            #     scores = np.dot(self.U[user], self.V.T)
+            #     filtered_scores[low:high] = scores[items[low:high]]
+            #     low = high
+            #
+            # # For the last indices that are not mentioned in the previous array.
+            # user = users[low]
+            # scores = np.dot(self.U[user], self.V.T)
+            # filtered_scores[low:] = scores[items[low:]]
+
+        elif (score_mode == 'batch'):
+            pass
+
+        elif (score_mode == 'matrix'):
+            # As scores is not a n_user/n_item matrix but a partial matrix
+            # then we will need to see which user is mapped to which index.
+            scores = self.predictions(user_index=uniq_users)
+            filtered_scores = scores[user_to_idx,items]
+
+
 
         # Filtered the scores to have the n-most and p-most.
         # sorted_filtered_scores is sorted incrementally
