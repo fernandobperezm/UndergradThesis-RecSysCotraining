@@ -71,7 +71,7 @@ done
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> SLIM_BPR with Pearson, k=50 and shrinkage = 100 and normalization
 python3 ../../../scripts/holdout.py \
-    ../../../Datasets/ml100k/ratings.csv \
+    ../../../Datasets/ml10m/ratings.csv \
     --results_path ../../../Results/knn-slim-3/ \
     --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
@@ -80,11 +80,11 @@ python3 ../../../scripts/holdout.py \
     --rnd_seed 1234 \
     --recommender_2 item_knn --rec_length 10 \
     --recommender_1 SLIM_BPR --rec_length 10 \
-    --number_iterations 10 \
+    --number_iterations 50 \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
-    --number_unlabeled 7000 \
+    --number_unlabeled 700000 \
     --params_2 similarity=adj-cosine,k=300,shrinkage=0,normalize=True \
-    --params_1 lambda_i=0.0025,lambda_j=0.00025,learning_rate=0.05,topK=True
+    --params_1 lambda_i=0.0025,lambda_j=0.00025,learning_rate=0.05
     # --is_binary --make_binary --binary_th 4.0 #\ -> If the dataset is binary.
     #--columns -> Comma separated names for every column.

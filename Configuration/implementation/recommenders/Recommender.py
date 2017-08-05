@@ -6,72 +6,11 @@
 
 import numpy as np
 import scipy.sparse as sps
-from .metrics import roc_auc, precision, recall, map, ndcg, rr
+from ..utils.metrics import roc_auc, precision, recall, map, ndcg, rr
+from .Recommender_utils import check_matrix, areURMequals, removeTopPop
 import multiprocessing
 import time
 import random
-
-def check_matrix(X, format='csc', dtype=np.float32):
-    if format == 'csc' and not isinstance(X, sps.csc_matrix):
-        return X.tocsc().astype(dtype)
-    elif format == 'csr' and not isinstance(X, sps.csr_matrix):
-        return X.tocsr().astype(dtype)
-    elif format == 'coo' and not isinstance(X, sps.coo_matrix):
-        return X.tocoo().astype(dtype)
-    elif format == 'dok' and not isinstance(X, sps.dok_matrix):
-        return X.todok().astype(dtype)
-    elif format == 'bsr' and not isinstance(X, sps.bsr_matrix):
-        return X.tobsr().astype(dtype)
-    elif format == 'dia' and not isinstance(X, sps.dia_matrix):
-        return X.todia().astype(dtype)
-    elif format == 'lil' and not isinstance(X, sps.lil_matrix):
-        return X.tolil().astype(dtype)
-    else:
-        return X.astype(dtype)
-
-def areURMequals(URM1, URM2):
-    if (URM1 is None or URM2 is None):
-        return False
-
-    if(URM1.shape != URM2.shape):
-        return False
-
-    return (URM1-URM2).nnz ==0
-
-
-def removeTopPop(URM_1, URM_2=None, percentageToRemove=0.2):
-    """
-    Remove the top popular items from the matrix
-    :param URM_1: user X items
-    :param URM_2: user X items
-    :param percentageToRemove: value 1 corresponds to 100%
-    :return: URM: user X selectedItems, obtained from URM_1
-             Array: itemMappings[selectedItemIndex] = originalItemIndex
-             Array: removedItems
-    """
-
-    if URM_2 != None:
-        URM = (URM_1+URM_2)>0
-    else:
-        URM = URM_1
-
-    item_pop = URM.sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
-    item_pop = np.asarray(item_pop).squeeze()  # necessary to convert it into a numpy.array of size (nitems,)
-    popularItemsSorted = np.argsort(item_pop)[::-1]
-
-    numItemsToRemove = int(len(popularItemsSorted)*percentageToRemove)
-
-    # Choose which columns to keep
-    itemMask = np.in1d(np.arange(len(popularItemsSorted)), popularItemsSorted[:numItemsToRemove],  invert=True)
-
-    # Map the column index of the new URM to the original ItemID
-    itemMappings = np.arange(len(popularItemsSorted))[itemMask]
-
-    removedItems = np.arange(len(popularItemsSorted))[np.logical_not(itemMask)]
-
-    return URM_1[:,itemMask], itemMappings, removedItems
-
-
 
 class Recommender(object):
     """Abstract Recommender"""
@@ -80,7 +19,7 @@ class Recommender(object):
         super(Recommender, self).__init__()
         self.URM_train = None
         self.sparse_weights = True
-        self.normalize = True
+        self.normalize = False
         self.FastValidation_initialized = False
         self.filterTopPop = False
 
@@ -98,52 +37,70 @@ class Recommender(object):
         nonTopPop_mask = np.in1d(ranking, self.filterTopPop_ItemsID, assume_unique=True, invert=True)
         return ranking[nonTopPop_mask]
 
+    def _filter_TopPop_on_scores(self, scores):
+        scores[self.filterTopPop_ItemsID] = -np.inf
+        return scores
+
+    def _filter_seen_on_scores(self, user_id, scores):
+        seen = self.URM_train_relevantItems[user_id]
+        scores[seen] = -np.inf
+        return scores
 
     def _filter_seen(self, user_id, ranking):
         seen = self.URM_train_relevantItems[user_id]
         unseen_mask = np.in1d(ranking, seen, assume_unique=True, invert=True)
         return ranking[unseen_mask]
 
-
-
-    def evaluateRecommendations(self, URM_test, at=5, minRatingsPerUser=1, exclude_seen=False,
-                                mode='sequential', filterTopPop = None,
+    def evaluateRecommendations(self, URM_test_new, at=5, minRatingsPerUser=1, exclude_seen=True,
+                                mode='sequential', filterTopPop = False,
                                 fastValidation=True):
+        """
 
+        :param URM_test_new:            URM to be used for testing
+        :param at: 5                    Length of the recommended items
+        :param minRatingsPerUser: 1     Users with less than this number of interactions will not be evaluated
+        :param exclude_seen: True       Whether to remove already seen items from the recommended items
+        :param fastValidation: True     Use a faster but memory consuming dictionary to store the URM. Advisable if performing
+                                        many validations on the same model
+
+        :param mode: 'sequential', 'parallel'
+        :param filterTopPop: False or decimal number        Percentage of items to be removed from recommended list and testing interactions
+        :return:
+        """
+
+        if filterTopPop != False:
+
+            self.filterTopPop = True
+
+            _,_, self.filterTopPop_ItemsID = removeTopPop(self.URM_train, URM_2 = URM_test_new, percentageToRemove=filterTopPop)
+
+            print("Filtering {}% TopPop items, count is: {}".format(filterTopPop*100, len(self.filterTopPop_ItemsID)))
+
+            # Zero-out the items in order to be considered irrelevant
+            URM_test_new = check_matrix(URM_test_new, format='lil')
+            URM_test_new[:,self.filterTopPop_ItemsID] = 0
+            URM_test_new = check_matrix(URM_test_new, format='csr')
 
         if self.FastValidation_initialized:
 
             # If all the data structures are initialized, recompute it only if URM_test changed
-            recomputeFastValidationDictionary = not areURMequals(self.URM_test, URM_test)
+            recomputeFastValidationDictionary = not areURMequals(self.URM_test, URM_test_new)
 
         else:
             recomputeFastValidationDictionary = True
 
-
         # During testing CSR is faster
-        self.URM_test = check_matrix(URM_test, format='csr')
+        self.URM_test = check_matrix(URM_test_new, format='csr')
         self.URM_train = check_matrix(self.URM_train, format='csr')
         self.at = at
         self.minRatingsPerUser = minRatingsPerUser
         self.exclude_seen = exclude_seen
 
-        if filterTopPop is not None:
 
-            print("Filtering {} items".format(len(filterTopPop)))
-
-            self.filterTopPop = True
-            self.filterTopPop_ItemsID = filterTopPop
-
-            # Zero-out the items in order to be considered irrelevant
-            self.URM_train = check_matrix(self.URM_train, format='lil')
-            self.URM_train[:,self.filterTopPop_ItemsID] = 0
-            self.URM_train = check_matrix(self.URM_train, format='csr')
-
-
-        nusers = URM_test.shape[0]
+        nusers = self.URM_test.shape[0]
 
         # Prune users with an insufficient number of ratings
-        rows = URM_test.indptr
+        rows = self.URM_test.indptr
         numRatings = np.ediff1d(rows)
         mask = numRatings >= minRatingsPerUser
         usersToEvaluate = np.arange(nusers)[mask]
@@ -154,8 +111,7 @@ class Recommender(object):
         # - If no fast falidation required, basically recompute it anyway
         # - If fast validation required and URM_test is new
         if not fastValidation or recomputeFastValidationDictionary:
-            self.initializeURMDictionary(self.URM_train, URM_test)
-            self.writeSparseToFile(URM_test, open(self.basePath + self.testFileName, "w"))
+            self.initializeURMDictionary(self.URM_train, self.URM_test)
         else:
             print("URM_test fastValidation already initialised")
 
@@ -168,8 +124,6 @@ class Recommender(object):
             return self.evaluateRecommendationsRandomEquivalent(usersToEvaluate)
         else:
             raise ValueError("Mode '{}' not available".format(mode))
-
-
 
 
     def evaluateRecommendationsSequential(self, usersToEvaluate):
@@ -527,16 +481,17 @@ class Recommender(object):
 
 
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False):
-        # compute the scores using the dot product
-        user_profile = self.URM_train_user_profile[user_id]
+        # Get the user profile
+        if self.FastValidation_initialized:
+            user_profile = self.URM_train_user_profile[user_id]
+        else:
+            user_profile = self.URM_train[user_id]
 
-        #user_profile = self.URM_train[user_id]
+        # compute the scores using the dot product
         if self.sparse_weights:
-            # print("user_profile.shape={}, self.W_sparse.shape={}".format(user_profile.shape, self.W_sparse.shape))
             scores = user_profile.dot(self.W_sparse).toarray().ravel()
             #scores = self.scoresAll[user_id].toarray().ravel()
         else:
-            # print("user_profile.shape={}, self.W.shape={}".format(user_profile.shape, self.W.shape))
             scores = user_profile.dot(self.W).ravel()
         if self.normalize:
             # normalization will keep the scores in the same range
@@ -550,20 +505,26 @@ class Recommender(object):
             den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
             scores /= den
 
+        if exclude_seen:
+            scores = self._filter_seen_on_scores(user_id, scores)
+
+        if filterTopPop:
+            scores = self._filter_TopPop_on_scores(scores)
+
+
         # rank items and mirror column to obtain a ranking in descending score
         ranking = scores.argsort()
         ranking = np.flip(ranking, axis=0)
 
+        """
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
 
         if filterTopPop:
             ranking = self._filter_TopPop(ranking)
+        """
 
         return ranking[:n]
-
-
-
 
     def recommendBatch(self, users_to_recommend_list, n=None, exclude_seen=False, relevant_items=None):
 

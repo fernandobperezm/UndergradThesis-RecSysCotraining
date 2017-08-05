@@ -64,7 +64,7 @@ def map(is_relevant, pos_items):
     #ranked_list = ranked_list[:at]
     #is_relevant = np.in1d(ranked_list, pos_items, assume_unique=True)
     p_at_k = is_relevant * np.cumsum(is_relevant, dtype=np.float32) / (1 + np.arange(is_relevant.shape[0]))
-    map_score = np.sum(p_at_k) / np.min([pos_items.shape[0], len(is_relevant)])
+    map_score = np.sum(p_at_k) / np.min([pos_items.shape[0], is_relevant.shape[0]])
     assert 0 <= map_score <= 1, map_score
     return map_score
 

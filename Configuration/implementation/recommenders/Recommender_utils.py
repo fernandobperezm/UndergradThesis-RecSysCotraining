@@ -9,8 +9,6 @@ import numpy as np
 import scipy.sparse as sps
 import time
 
-import pdb
-
 def check_matrix(X, format='csc', dtype=np.float32):
     if format == 'csc' and not isinstance(X, sps.csc_matrix):
         return X.tocsc().astype(dtype)
@@ -31,8 +29,7 @@ def check_matrix(X, format='csc', dtype=np.float32):
 
 
 def similarityMatrixTopK(item_weights, forceSparseOutput = True, k=100):
-    print(k)
-    pdb.set_trace()
+
     assert (item_weights.shape[0] == item_weights.shape[1]), "selectTopK: ItemWeights is not a square matrix"
 
     start_time = time.time()
@@ -65,25 +62,22 @@ def similarityMatrixTopK(item_weights, forceSparseOutput = True, k=100):
         # iterate over each column and keep only the top-k similar items
         values, rows, cols = [], [], []
 
-        item_weights = item_weights.tocoo()
+        item_weights = item_weights.tocsc()
 
         for item_idx in range(nitems):
 
-            dataMask = item_weights.col == item_idx
-            # Get indices of nonzero elements, first dimension of dataMask
-            dataIndices = np.nonzero(dataMask)[0]
-
-            dataValue = item_weights.data[dataIndices]
-            dataRow = item_weights.row[dataIndices]
+            item_column = item_weights[:,item_idx]
+            dataValue = item_column.data
+            dataRow = item_column.indices
 
             idx_sorted = np.argsort(dataValue)  # sort by column
             top_k_idx = idx_sorted[-k:]
 
             values.extend(dataValue[top_k_idx])
             rows.extend(dataRow[top_k_idx])
-            cols.extend(np.ones(len(top_k_idx)) * item_idx)
+            cols.extend(np.ones(len(top_k_idx), dtype=np.int) * item_idx)
 
-            # During testing CSR is faster
+        # During testing CSR is faster
         W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
         print("TopK matrix generated in {:.2f} seconds".format(time.time() - start_time))
@@ -109,12 +103,17 @@ def removeTopPop(URM_1, URM_2=None, percentageToRemove=0.2):
              Array: removedItems
     """
 
-    if URM_2 != None:
-        URM = (URM_1+URM_2)>0
-    else:
-        URM = URM_1
 
-    item_pop = URM.sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
+    item_pop = URM_1.sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
+
+    if URM_2 != None:
+
+        assert URM_2.shape[1] == URM_1.shape[1], \
+            "The two URM do not contain the same number of columns, URM_1 has {}, URM_2 has {}".format(URM_1.shape[1], URM_2.shape[1])
+
+        item_pop += URM_2.sum(axis=0)
+
+
     item_pop = np.asarray(item_pop).squeeze()  # necessary to convert it into a numpy.array of size (nitems,)
     popularItemsSorted = np.argsort(item_pop)[::-1]
 
