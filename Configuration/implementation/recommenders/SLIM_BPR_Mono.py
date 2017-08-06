@@ -43,7 +43,7 @@ class SLIM_BPR_Mono(Recommender):
         self.topK = topK
 
         print(os.path.dirname(os.path.abspath(__file__)))
-        print(os.getcwd)
+        print(os.getcwd())
 
         self.basePath = "../../../Datasets/ml10m/"
         self.executablePath = "./item_recommendation"
