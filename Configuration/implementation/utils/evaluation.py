@@ -63,7 +63,6 @@ class Evaluation(object):
 
     def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None):
         # Getting rec1 and rows.
-        pdb.set_trace()
         for rec_key in recommenders.keys():
             recommender = recommenders[rec_key]
             if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
