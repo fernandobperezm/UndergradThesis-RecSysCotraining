@@ -61,18 +61,50 @@ class Evaluation(object):
         return "Evaluation(Rec={}\n)".format(
             self.recommender.__str__())
 
-    def df_to_eval(self, df, rec_1, rec_2):
+    def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None):
         # Getting rec1 and rows.
-        rows_rec1 = df.loc[df.recommender == str(rec_1)]
-        rows_rec2 = df.loc[df.recommender == str(rec_2)]
+        pdb.set_trace()
+        for rec_key in recommenders.keys():
+            recommender = recommenders[rec_key]
+            if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                rows_rec = df.loc[df.recommender == str(rec_key)]
+            else:
+                rows_rec = df.loc[df.recommender == str(recommender)]
 
-        self.rmse = ( rows_rec1.rmse.values, rows_rec2.rmse.values )
-        self.roc_auc = ( rows_rec1.roc_auc.values, rows_rec2.roc_auc.values )
-        self.precision = ( rows_rec1.precision.values, rows_rec2.precision.values )
-        self.recall = ( rows_rec1.recall.values, rows_rec2.recall.values )
-        self.map = ( rows_rec1.map.values, rows_rec2.map.values )
-        self.mrr = ( rows_rec1.mrr.values, rows_rec2.mrr.values )
-        self.ndcg = ( rows_rec1.ndcg.values, rows_rec2.ndcg.values )
+            self.rec_evals[rec_key] = dict()
+
+            # Put the information.
+            self.rec_evals[rec_key]['RMSE'] = list(rows_rec.rmse.values[:read_iter])
+            self.rec_evals[rec_key]['ROC_AUC'] = list(rows_rec.roc_auc.values[:read_iter])
+            self.rec_evals[rec_key]['Precision'] = list(rows_rec.precision.values[:read_iter])
+            self.rec_evals[rec_key]['Recall'] = list(rows_rec.recall.values[:read_iter])
+            self.rec_evals[rec_key]['MAP'] = list(rows_rec.map.values[:read_iter])
+            self.rec_evals[rec_key]['MRR'] = list(rows_rec.mrr.values[:read_iter])
+            self.rec_evals[rec_key]['NDCG'] = list(rows_rec.ndcg.values[:read_iter])
+
+        # rows_rec1 = df.loc[df.recommender == str(rec_1)]
+        # rows_rec2 = df.loc[df.recommender == str(rec_2)]
+        #
+        # # Create the dictionary for each recommender.
+        # self.rec_evals[rec_1.short_str()] = dict()
+        # self.rec_evals[rec_2.short_str()] = dict()
+        #
+        # # Put the information.
+        # self.rec_evals[rec_1.short_str()]['RMSE'] = list(rows_rec1.rmse.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['ROC_AUC'] = list(rows_rec1.roc_auc.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['Precision'] = list(rows_rec1.precision.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['Recall'] = list(rows_rec1.recall.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['MAP'] = list(rows_rec1.map.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['MRR'] = list(rows_rec1.mrr.values[:read_iter])
+        # self.rec_evals[rec_1.short_str()]['NDCG'] = list(rows_rec1.ndcg.values[:read_iter])
+        #
+        # self.rec_evals[rec_2.short_str()]['RMSE'] = list(rows_rec2.rmse.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['ROC_AUC'] = list(rows_rec2.roc_auc.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['Precision'] = list(rows_rec2.precision.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['Recall'] = list(rows_rec2.recall.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['MAP'] = list(rows_rec2.map.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['MRR'] = list(rows_rec2.mrr.values[:read_iter])
+        # self.rec_evals[rec_2.short_str()]['NDCG'] = list(rows_rec2.ndcg.values[:read_iter])
 
     def eval(self, recommenders=None, minRatingsPerUser=1 ):
         '''
@@ -202,16 +234,31 @@ class Evaluation(object):
 
                 for rec_key in recommenders.keys():
                     recommender = recommenders[rec_key]
-                    rec_evaluation = [self.rec_evals[recommender.short_str()]['RMSE'][index],
-                                      self.rec_evals[recommender.short_str()]['ROC_AUC'][index],
-                                      self.rec_evals[recommender.short_str()]['Precision'][index],
-                                      self.rec_evals[recommender.short_str()]['Recall'][index],
-                                      self.rec_evals[recommender.short_str()]['MAP'][index],
-                                      self.rec_evals[recommender.short_str()]['MRR'][index],
-                                      self.rec_evals[recommender.short_str()]['NDCG'][index]
-                                    ]
-                    row = [self.cotraining, index, self.at, str(recommender)] + rec_evaluation
-                    csvwriter.writerow(row)
+                    if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                        try:
+                            rec_evaluation = [self.rec_evals[rec_key]['RMSE'][index],
+                                              self.rec_evals[rec_key]['ROC_AUC'][index],
+                                              self.rec_evals[rec_key]['Precision'][index],
+                                              self.rec_evals[rec_key]['Recall'][index],
+                                              self.rec_evals[rec_key]['MAP'][index],
+                                              self.rec_evals[rec_key]['MRR'][index],
+                                              self.rec_evals[rec_key]['NDCG'][index]
+                                            ]
+                            row = [self.cotraining, index, self.at, rec_key] + rec_evaluation
+                            csvwriter.writerow(row)
+                        except:
+                            pass
+                    else:
+                        rec_evaluation = [self.rec_evals[rec_key]['RMSE'][index],
+                                          self.rec_evals[rec_key]['ROC_AUC'][index],
+                                          self.rec_evals[rec_key]['Precision'][index],
+                                          self.rec_evals[rec_key]['Recall'][index],
+                                          self.rec_evals[rec_key]['MAP'][index],
+                                          self.rec_evals[rec_key]['MRR'][index],
+                                          self.rec_evals[rec_key]['NDCG'][index]
+                                          ]
+                        row = [self.cotraining, index, self.at, str(recommender)] + rec_evaluation
+                        csvwriter.writerow(row)
 
         elif (log_type == 'labeling'):
             columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled', 'total_labeled']

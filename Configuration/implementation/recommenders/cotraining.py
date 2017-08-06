@@ -60,7 +60,7 @@ class CoTraining(object):
         return "CoTrainingEnv(Rec1={},Rec2={},Iterations={})".format(
             self.rec_1.__str__(), self.rec_2.__str__(), self.n_iters)
 
-    def fit(self, URM_1, eval_iter=False, binary_ratings=False,recommenders=None,baselines=False):
+    def fit(self, URM_1, eval_iter=False, binary_ratings=False,recommenders=None,baselines=False, recover_cotraining=False, recover_iter=0):
         '''
             Depending of the Co-Training approach, you can have two views or
             use different learners, in the case of URM_2 == None, it's supposed
@@ -88,11 +88,16 @@ class CoTraining(object):
             tp_2 = recommenders['TopPop2']
             random = recommenders['Random']
 
-        # Training set for Rec2.
-        URM_2 = URM_1.copy()
+        if (recover_cotraining):
+            begin_iter = recover_iter
+            URM_1 = sp.load_npz(file=self.eval.results_path + 'training_set_1_iter{}.npz'.format(recover_iter)).tolil()
+            URM_2 = sp.load_npz(file=self.eval.results_path + 'training_set_2_iter{}.npz'.format(recover_iter)).tolil()
+        else:
+            begin_iter = 0
+            URM_2 = URM_1.copy()
 
         # Co-Training iterations begin here.
-        for i_iter in range(self.n_iters+1):
+        for i_iter in range(begin_iter,self.n_iters+1):
             logger.info("Iteration: {}".format(i_iter))
             u_prime = self.generate_unlabeled_pool(URM_1=URM_1, URM_2=URM_2, nusers=nusers, nitems=nitems, random_state=random_state)
 
@@ -185,13 +190,15 @@ class CoTraining(object):
                 # self.eval.log_by_index(i_iter, self.rec_1, self.rec_2)
                 self.eval.log_to_file(
                                       log_type="evaluation",
-                                      recommenders=
-                                        {self.rec_1.short_str():self.rec_1,
-                                         self.rec_2.short_str():self.rec_2
-                                        },
+                                      recommenders=recommenders,
                                       args=
                                         {'index':i_iter
-                                        }
+                                        },
+                                    #   recommenders=
+                                    #     {self.rec_1.short_str():self.rec_1,
+                                    #      self.rec_2.short_str():self.rec_2
+                                    #     },
+
                                       )
                 # self.eval2.log_by_index(i_iter)
                 # self.eval_aggr.log_by_index(i_iter)
