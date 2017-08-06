@@ -71,7 +71,7 @@ done
 #  Rec1 -> item_knn with Cosine, k=50 and shrinkage = 100 and normalization
 #  Rec2 -> FunkSVD with num_factors=20,lrate=0.01,reg=0.01
 python3 ../scripts/holdout.py \
-    ../Datasets/ml10m/ratings.csv \
+    ../Datasets/ml100k/ratings.csv \
     --results_path ../Results/knn-funksvd-3/ \
     --results_file holdout-knn-funksvd-50.csv \
     --holdout_perc 0.8 \
@@ -83,8 +83,9 @@ python3 ../scripts/holdout.py \
     --number_iterations 50 \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
-    --number_unlabeled 700000 \
+    --number_unlabeled 7000 \
     --params_1 similarity=adj-cosine,k=350,shrinkage=0,normalize=True,sparse_weights=True \
-    --params_2 num_factors=20,lrate=0.01,reg=0.01
+    --params_2 num_factors=20,lrate=0.01,reg=0.01 \
+    --recover_cotraining --recover_iter 10
     #--is_binary --make_binary --binary_th 4.0 #\ -> If the dataset is binary.
     #--columns -> Comma separated names for every column.
