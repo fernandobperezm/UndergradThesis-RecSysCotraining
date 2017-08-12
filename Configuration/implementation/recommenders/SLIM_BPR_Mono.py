@@ -66,6 +66,10 @@ class SLIM_BPR_Mono(Recommender):
     def _get_user_ratings(self, user_id):
         return self.URM_train[user_id]
 
+    def writeTestToFile(self, URM_test):
+        if URM_test is not None:
+            self.writeSparseToFile(URM_test, open(self.basePath + self.testFileName, "w"))
+
     def removeTemporaryFiles(self):
 
         # Remove saved Model and URM
