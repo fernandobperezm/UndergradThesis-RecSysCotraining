@@ -107,7 +107,7 @@ python3 ../scripts/holdout.py \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
     --number_unlabeled 700000 \
-    --params_2 similarity=adj-cosine,k=350,shrinkage=0,normalize=True,sparse_weights=True \
+    --params_2 similarity=adj-cosine,k=500,shrinkage=300,normalize=True,sparse_weights=True \
     --params_1 rank=20,n_users=69878,n_items=10677,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0 \
     --recover_cotraining --recover_iter 10
     # --params_1 rank=20,n_users=943,n_items=1682,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
