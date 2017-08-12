@@ -42,9 +42,6 @@ class SLIM_BPR_Mono(Recommender):
         self.sparse_weights = True
         self.topK = topK
 
-        print(os.path.dirname(os.path.abspath(__file__)))
-        print(os.getcwd())
-
         self.basePath = "../../../Datasets/ml10m/"
         self.executablePath = "./item_recommendation"
         self.trainFileName = "SLIM_BPR_Mono_URM_train.csv"
@@ -144,6 +141,7 @@ class SLIM_BPR_Mono(Recommender):
 
         else:
             self.sparse_weights = False
+            print("No sparse_weights")
 
 
     def loadModelIntoSparseMatrix(self, filePath):
