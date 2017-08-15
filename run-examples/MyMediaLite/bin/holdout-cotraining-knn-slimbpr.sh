@@ -85,7 +85,7 @@ python3 ../../../scripts/holdout.py \
     --number_negatives $NNEGATIVES \
     --number_unlabeled 700000 \
     --params_2 similarity=adj-cosine,k=500,shrinkage=300,normalize=True \
-    --params_1 lambda_i=0.0025,lambda_j=0.00025,learning_rate=0.05 
+    --params_1 lambda_i=0.0025,lambda_j=0.00025,learning_rate=0.05,topK=2000  
     # --recover_cotraining --recover_iter 10
     # --is_binary --make_binary --binary_th 4.0 #\ -> If the dataset is binary.
     #--columns -> Comma separated names for every column.

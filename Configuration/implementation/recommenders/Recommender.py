@@ -489,9 +489,11 @@ class Recommender(object):
 
         # compute the scores using the dot product
         if self.sparse_weights:
+            print("sparse")
             scores = user_profile.dot(self.W_sparse).toarray().ravel()
             #scores = self.scoresAll[user_id].toarray().ravel()
         else:
+            print("complete")
             scores = user_profile.dot(self.W).ravel()
         if self.normalize:
             # normalization will keep the scores in the same range

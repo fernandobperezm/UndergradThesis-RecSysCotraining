@@ -333,6 +333,7 @@ class SLIM_BPR_Mono(Recommender):
             self.scores = user_profile.dot(self.W).ravel()
 
         if self.normalize:
+            print("Normalizing")
             # normalization will keep the scores in the same range
             # of value of the ratings in dataset
             rated = user_profile.copy()
