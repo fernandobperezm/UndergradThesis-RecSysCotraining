@@ -116,14 +116,14 @@ class Recommender(object):
             print("URM_test fastValidation already initialised")
 
 
-        if mode=='sequential':
-            return self.evaluateRecommendationsSequential(usersToEvaluate)
-        elif mode=='parallel':
-            return self.evaluateRecommendationsParallel(usersToEvaluate)
-        elif mode=='random-equivalent':
-            return self.evaluateRecommendationsRandomEquivalent(usersToEvaluate)
-        else:
-            raise ValueError("Mode '{}' not available".format(mode))
+        # if mode=='sequential':
+        #     return self.evaluateRecommendationsSequential(usersToEvaluate)
+        # elif mode=='parallel':
+        #     return self.evaluateRecommendationsParallel(usersToEvaluate)
+        # elif mode=='random-equivalent':
+        #     return self.evaluateRecommendationsRandomEquivalent(usersToEvaluate)
+        # else:
+        #     raise ValueError("Mode '{}' not available".format(mode))
 
 
     def evaluateRecommendationsSequential(self, usersToEvaluate):
