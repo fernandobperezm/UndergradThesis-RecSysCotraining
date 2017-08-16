@@ -151,8 +151,8 @@ eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_
 # Recommender evaluation.
 results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
-neighbors = range(1,3000,500)
-shrinkages = range(0,10001,500)
+neighbors = range(1,501,50)
+shrinkages = range(0,300,50)
 
 i = 0
 for neighbor in neighbors:
