@@ -152,7 +152,7 @@ eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_
 results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
 
 neighbors = range(1,501,50)
-shrinkages = range(0,300,50)
+shrinkages = [300]
 
 i = 0
 for neighbor in neighbors:
@@ -171,7 +171,8 @@ for neighbor in neighbors:
         logger.info('Evaluating recommender.')
         tic = dt.now()
         eval_ctr.eval(recommenders={h1_ctr.short_str(): h1_ctr}, minRatingsPerUser=1)
-        eval_ctr.log_by_index(i, h1_ctr, h1_ctr)
+        eval_ctr.log_to_file(log_type="tuning",recommenders={h1_ctr.short_str(): h1_ctr},args={'index':i})
+        # eval_ctr.log_by_index(i, h1_ctr, h1_ctr)
         logger.info('Finished the Evaluation process in time: {}'.format(dt.now() - tic))
 
         i += 1

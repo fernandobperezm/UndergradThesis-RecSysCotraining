@@ -309,8 +309,49 @@ class Evaluation(object):
 
 
         elif (log_type == 'tuning'):
+            available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+            columns = ['recommender'] + available_metrics
             filepath += "tuning.csv"
-            pass
+
+            try:
+                csvfile = open(filepath, mode='r')
+                csvfile.close()
+            except:
+                logger.info("Creating header for file: {}".format(filepath))
+                with open(filepath, 'w', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter.writerow(columns)
+
+            with open(filepath, 'a', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+                for rec_key in recommenders.keys():
+                    recommender = recommenders[rec_key]
+                    if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                        try:
+                            rec_evaluation = [self.rec_evals[rec_key]['RMSE'][index],
+                                              self.rec_evals[rec_key]['ROC_AUC'][index],
+                                              self.rec_evals[rec_key]['Precision'][index],
+                                              self.rec_evals[rec_key]['Recall'][index],
+                                              self.rec_evals[rec_key]['MAP'][index],
+                                              self.rec_evals[rec_key]['MRR'][index],
+                                              self.rec_evals[rec_key]['NDCG'][index]
+                                            ]
+                            row = [rec_key] + rec_evaluation
+                            csvwriter.writerow(row)
+                        except:
+                            pass
+                    else:
+                        rec_evaluation = [self.rec_evals[rec_key]['RMSE'][index],
+                                          self.rec_evals[rec_key]['ROC_AUC'][index],
+                                          self.rec_evals[rec_key]['Precision'][index],
+                                          self.rec_evals[rec_key]['Recall'][index],
+                                          self.rec_evals[rec_key]['MAP'][index],
+                                          self.rec_evals[rec_key]['MRR'][index],
+                                          self.rec_evals[rec_key]['NDCG'][index]
+                                          ]
+                        row = [str(recommender)] + rec_evaluation
+                        csvwriter.writerow(row)
 
     def log_by_index(self,index,rec_1, rec_2):
         filepath = self.results_path + self.results_file
