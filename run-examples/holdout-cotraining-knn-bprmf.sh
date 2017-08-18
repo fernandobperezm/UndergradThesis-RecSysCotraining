@@ -3,12 +3,13 @@
 # The options are: -p <number> -n <number>
 # -p represents the number of positive examples to label.
 # -n represents the number of negative examples to label.
-while getopts p:n: option
+while getopts p:n:u: option
 do
     case "${option}"
         in
         p) PPOSITIVES=${OPTARG};;
         n) NNEGATIVES=${OPTARG};;
+        u) UNLABELED=${OPTARG};;
     esac
 done
 
@@ -106,9 +107,9 @@ python3 ../scripts/holdout.py \
     --number_iterations 50 \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
-    --number_unlabeled 700000 \
+    --number_unlabeled $UNLABELED \
     --params_2 similarity=adj-cosine,k=500,shrinkage=300,normalize=True,sparse_weights=True \
-    --params_1 rank=20,n_users=69878,n_items=10677,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0 
+    --params_1 rank=20,n_users=69878,n_items=10677,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
     # --recover_cotraining --recover_iter 10
     # --params_1 rank=20,n_users=943,n_items=1682,learning_rate=0.1,lambda_u=0.1,lambda_i=0.1,lambda_j=0.001,lambda_bias=0.0
     #--columns -> Comma separated names for every column.
