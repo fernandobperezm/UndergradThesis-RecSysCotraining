@@ -31,6 +31,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
+
 class Evaluation(object):
     """ EVALUATION class for RecSys"""
 
@@ -48,6 +49,7 @@ class Evaluation(object):
         self.val_set = val_set
         self.at = at
         self.cotraining = co_training
+        self.bins = dict()
         self.rec_evals = dict()
         self.rmse = (list(), list())
         self.roc_auc = (list(), list())
@@ -60,6 +62,64 @@ class Evaluation(object):
     def __str__(self):
         return "Evaluation(Rec={}\n)".format(
             self.recommender.__str__())
+
+    def check_ranked_in_bins(self,ranked_list,user_idx,rec_key,n=10):
+        # pdb.set_trace()
+        if (not 'item_pop_bin' in self.rec_evals[rec_key].keys()):
+            self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10)
+
+        # if (not rec_key in self.bins['item_pop_bin']):
+        #     self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10)
+
+        for item_idx in ranked_list:
+            # in self.bins['item_pop_bin'][item_idx] we will have to which bin
+            # the item belongs.
+            bin_idx = self.bins['item_pop_bin'][item_idx]
+            self.rec_evals[rec_key]['item_pop_bin'][bin_idx] += 1
+
+    def matrix_to_eval(self,URM, type_res):
+        nbins = 10
+        if (type_res == "item_pop_bin"):
+            # Supposing a CSC matrix, dataset.
+            item_pop = np.asarray(np.sum(URM > 0, axis=0)).squeeze().astype(np.int32)
+            nitems, = item_pop.shape
+
+            # ascending order popularity, item[0] is the least item idx , item[size-1] is the most popular
+            item_idx_pop = item_pop.argsort()
+
+            partition_size = int(nitems / nbins)
+            pop_bin = 0 # Least popular bin.
+            bins_list = []
+            for low in range(0, nitems, partition_size):
+                high = low + partition_size
+                bins_list += list(zip(item_idx_pop[low:high], [pop_bin]*partition_size))
+                if (pop_bin) < nbins - 1:
+                    pop_bin += 1
+
+            if (self.bins is None):
+                self.bins = dict()
+            self.bins['item_pop_bin'] = dict(bins_list)
+
+        if (type_res == "user_pop_bin"):
+            # Supposing a CSR matrix, dataset.
+            user_pop = np.asarray(np.sum(URM > 0, axis=1)).squeeze().astype(np.int32)
+            nusers, = user_pop.shape
+
+            # ascending order popularity, user[0] is the least user idx , user[size-1] is the most popular
+            user_idx_pop = user_pop.argsort()
+
+            partition_size = int(nusers / nbins)
+            pop_bin = 0 # Least popular bin.
+            bins_list = []
+            for low in range(0, nusers, partition_size):
+                high = low + partition_size
+                bins_list += list(zip(user_idx_pop[low:high], [pop_bin]*partition_size))
+                if (pop_bin) < nbins - 1:
+                    pop_bin += 1
+
+            if (self.bins is None):
+                self.bins = dict()
+            self.bins['user_pop_bin'] = dict(bins_list)
 
     def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None, type_res=None ):
         # Getting rec1 and rows.
@@ -125,6 +185,24 @@ class Evaluation(object):
                 self.rec_evals[rec_key]['negative'] = neg_col
                 self.rec_evals[rec_key]['neutral'] = neutral_col
 
+            elif (type_res == "dataset_item_pop"):
+                pdb.set_trace()
+                # This creates an array where item_pop[item_idx] = popularity
+                items_pop = df.item_idx.value_counts()
+                nitems, = items_pop.shape
+                partition_size = nitems / 10
+                # for item_idx in range(nitems):
+                #
+                #
+                # print(df)
+                # pass
+
+            elif (type_res == "dataset_user_pop"):
+                pdb.set_trace()
+                users = df.user_idx.unique()
+                # print(df)
+                # pass
+
     def eval(self, recommenders=None, minRatingsPerUser=1 ):
         '''
             recommenders: dict that contains as key the recommender name
@@ -187,6 +265,12 @@ class Evaluation(object):
                 map_[i] += metrics.map(is_relevant, relevant_items)
                 mrr_[i] += metrics.rr(is_relevant)
                 ndcg_[i] += metrics.ndcg(ranked_items, relevant_items, relevance=relevant_data, at=at)
+
+                if (rec_key != "TopPop1" and rec_key != "TopPop2" and
+                    rec_key != "GlobalEffects1" and rec_key != "GlobalEffects2" and
+                    rec_key != "Random"):
+
+                    self.check_ranked_in_bins(ranked_list=ranked_items,user_idx=test_user,rec_key=rec_key,n=at)
 
                 i += 1
 
@@ -423,6 +507,42 @@ class Evaluation(object):
                         at=self.at
                         )
 
+    def plot_popularity_bins(self, recommenders, niter, file_prefix, bin_type):
+        # pdb.set_trace()
+        # X data.
+        nbins = 10
+        xdata_rangebins = np.arange(nbins)
+
+        # Properties.
+        width = 0.25
+        colors = ['#ff0000','#00ff00','#0000ff']
+
+        fig, ax = plt.subplots()
+        # add some text for labels, title and axes ticks
+        ax.set_ylabel('Recommended items')
+        ax.set_xlabel('Popularity bin')
+        ax.set_title('Number of recommended items by their bin')
+
+        savepath = self.results_path + file_prefix + "Popularity_Bin_ITER{}".format(niter)
+        i = 0
+        handles = []
+        for rec_key in recommenders.keys():
+            recommender, pos = recommenders[rec_key]
+
+            ydata_n_elements_by_bin = self.rec_evals[rec_key][bin_type]
+            rects = plt.bar(xdata_rangebins + i * width,
+                             ydata_n_elements_by_bin,
+                             width,
+                             color=colors[i],
+                             label=rec_key+"-TrainingSet{}".format(pos)
+                            )
+            handles.append(rects)
+            i +=1
+
+        plt.legend(handles=handles)
+        plt.savefig(savepath, bbox_inches="tight")
+        plt.clf()
+
     def plot_statistics(self, recommenders=None, n_iters=30, file_prefix="", statistic_type=None):
         if (statistic_type is None):
             self.plot_all_recommenders(recommenders=recommenders, n_iters=n_iters, file_prefix=file_prefix)
@@ -563,8 +683,6 @@ class Evaluation(object):
                                   )
                         plt.savefig(savepath, bbox_inches="tight")
                         plt.clf()
-
-
 
     def plot_all_recommenders(self, recommenders=None, n_iters=30, file_prefix=""):
         # pdb.set_trace()

@@ -170,7 +170,7 @@ def results_to_df(filepath, type_res=None):
         available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
         columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
 
-    elif (type_res == "numberlabeled"):
+    if (type_res == "numberlabeled"):
         columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled','total_labeled']
 
     elif (type_res == "label_comparison"):
@@ -178,6 +178,10 @@ def results_to_df(filepath, type_res=None):
                    'both_positive', 'both_negative', 'both_neutral',
                    'pos_only_first', 'neg_only_first', 'neutral_only_first',
                    'pos_only_second', 'neg_only_second', 'neutral_only_second']
+
+    else:
+        return None
+
 
     results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
     return results

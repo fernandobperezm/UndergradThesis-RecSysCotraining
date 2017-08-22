@@ -18,10 +18,10 @@ import logging
 from collections import OrderedDict
 from datetime import datetime as dt
 import pdb
+import scipy.sparse as sparse
 
 # Numpy and scipy.
 import numpy as np
-import scipy as sp
 import pandas as pd
 
 # Import utils such as
@@ -83,6 +83,7 @@ parser.add_argument('--number_positives', type=int, default=1)
 parser.add_argument('--number_negatives', type=int, default=3)
 parser.add_argument('--number_unlabeled', type=int, default=75)
 parser.add_argument('--to_read',type=str,default=None)
+parser.add_argument('--make_pop_bins', action="store_true", default=False)
 args = parser.parse_args()
 
 # get the recommender class
@@ -115,55 +116,55 @@ if args.columns is not None:
     args.columns = args.columns.split(',')
 
 # read the dataset
-# logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
-# logger.info('Reading {}'.format(args.dataset))
-# dataset, item_to_idx, user_to_idx = read_dataset(
-#     args.dataset,
-#     header=args.header,
-#     sep=args.sep,
-#     columns=args.columns,
-#     make_binary=args.make_binary,
-#     binary_th=args.binary_th,
-#     item_key=args.item_key,
-#     user_key=args.user_key,
-#     rating_key=args.rating_key)
+logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
+logger.info('Reading {}'.format(args.dataset))
+dataset, item_to_idx, user_to_idx = read_dataset(
+    args.dataset,
+    header=args.header,
+    sep=args.sep,
+    columns=args.columns,
+    make_binary=args.make_binary,
+    binary_th=args.binary_th,
+    item_key=args.item_key,
+    user_key=args.user_key,
+    rating_key=args.rating_key)
 
-# nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
-# logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
-#
-# # compute the k-fold split
-# logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
+nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
+logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 
-# train_df, test_df = holdout(dataset,
-#                             user_key=args.user_key,
-#                             item_key=args.item_key,
-#                             perc=args.holdout_perc,
-#                             seed=1234,
-#                             clean_test=True)
-#
-# # Create our label and unlabeled samples set.
-# # As the train set will be modifed in the co-training approach, it's more
-# # efficient to modify a dok_matrix than a csr_matrix.
-# train = df_to_lil(train_df,
-#                   is_binary=args.is_binary,
-#                   nrows=nusers,
-#                   ncols=nitems,
-#                   item_key='item_idx',
-#                   user_key='user_idx',
-#                   rating_key=args.rating_key)
-#
-# # Create our test set.
-# test = df_to_csr(test_df,
-#                  is_binary=args.is_binary,
-#                  nrows=nusers,
-#                  ncols=nitems,
-#                  item_key='item_idx',
-#                  user_key='user_idx',
-#                  rating_key=args.rating_key)
-# # Baseline recommenders.
-# global_effects = GlobalEffects()
-# top_pop = TopPop()
-# random = Random(seed=1234,binary_ratings=args.is_binary)
+# compute the k-fold split
+logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
+
+train_df, test_df = holdout(dataset,
+                            user_key=args.user_key,
+                            item_key=args.item_key,
+                            perc=args.holdout_perc,
+                            seed=1234,
+                            clean_test=True)
+
+# Create our label and unlabeled samples set.
+# As the train set will be modifed in the co-training approach, it's more
+# efficient to modify a dok_matrix than a csr_matrix.
+train = df_to_lil(train_df,
+                  is_binary=args.is_binary,
+                  nrows=nusers,
+                  ncols=nitems,
+                  item_key='item_idx',
+                  user_key='user_idx',
+                  rating_key=args.rating_key)
+
+# Create our test set.
+test = df_to_csr(test_df,
+                 is_binary=args.is_binary,
+                 nrows=nusers,
+                 ncols=nitems,
+                 item_key='item_idx',
+                 user_key='user_idx',
+                 rating_key=args.rating_key)
+# Baseline recommenders.
+global_effects = GlobalEffects()
+top_pop = TopPop()
+random = Random(seed=1234,binary_ratings=args.is_binary)
 
 # read the results
 filepath = args.results_path + args.results_file
@@ -174,7 +175,7 @@ h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Creating the evaluation instance.
-evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=None, val_set = None, at = args.rec_length, co_training=True)
+evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = args.rec_length, co_training=True)
 # evaluation.df_to_eval(results, h1_ctr, h2_ctr)
 
 # Baseline fitting.
@@ -189,6 +190,60 @@ evaluation = Evaluation(results_path=args.results_path, results_file=args.result
 # evaluation.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
 # evaluation.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
 # evaluation.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
+if (args.make_pop_bins):
+    # Creation of the bins.
+    n_iter = 0
+    dataset = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
+    evaluation.matrix_to_eval(URM=dataset.tocsc(), type_res="item_pop_bin")
+    evaluation.matrix_to_eval(URM=dataset.tocsr(), type_res="user_pop_bin")
+
+    # For each saved dataset, load the dataset, fit the two recommenders, evaluate them (cheking the bins)
+    # and plot it
+    for n_iter in range(0,args.number_iterations+1,10):
+        # pdb.set_trace()
+        URM_1 = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
+        URM_2 = sparse.load_npz(file=evaluation.results_path + 'training_set_2_iter{}.npz'.format(n_iter))
+        h1_ctr.fit(URM_1)
+        h2_ctr.fit(URM_2)
+        if (h1_ctr.short_str() == "SLIM_BPR_Mono"):
+            h1_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set, at=evaluation.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = False,fastValidation=True)
+
+
+        if (h2_ctr.short_str() == "SLIM_BPR_Mono"):
+            h2_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set, at=evaluation.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = False,fastValidation=True)
+
+        evaluation.eval(recommenders={h1_ctr.short_str():h1_ctr,
+                                      h2_ctr.short_str():h2_ctr,
+                                    },
+                        minRatingsPerUser=1
+                       )
+
+        evaluation.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                      h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix="Together_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        evaluation.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h1_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        evaluation.plot_popularity_bins(recommenders={h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h2_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        evaluation.rec_evals[h1_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
+        evaluation.rec_evals[h2_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
+        # evaluation.matrix_to_eval(URM=dataset.tocsc(), type_res="item_pop_bin")
+        # evaluation.matrix_to_eval(URM=dataset.tocsr(), type_res="user_pop_bin")
 
 if args.to_read is not None:
     list_to_read = args.to_read.split(",")
