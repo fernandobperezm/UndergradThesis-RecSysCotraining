@@ -61,49 +61,69 @@ class Evaluation(object):
         return "Evaluation(Rec={}\n)".format(
             self.recommender.__str__())
 
-    def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None):
+    def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None, type_res=None ):
         # Getting rec1 and rows.
+        # pdb.set_trace()
         for rec_key in recommenders.keys():
-            recommender = recommenders[rec_key]
-            if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
-                rows_rec = df.loc[df.recommender == str(rec_key)]
-            else:
-                rows_rec = df.loc[df.recommender == str(recommender)]
+            recommender,pos = recommenders[rec_key]
 
-            self.rec_evals[rec_key] = dict()
+            if (not rec_key in self.rec_evals.keys()):
+                self.rec_evals[rec_key] = dict()
 
-            # Put the information.
-            self.rec_evals[rec_key]['RMSE'] = list(rows_rec.rmse.values[:read_iter])
-            self.rec_evals[rec_key]['ROC_AUC'] = list(rows_rec.roc_auc.values[:read_iter])
-            self.rec_evals[rec_key]['Precision'] = list(rows_rec.precision.values[:read_iter])
-            self.rec_evals[rec_key]['Recall'] = list(rows_rec.recall.values[:read_iter])
-            self.rec_evals[rec_key]['MAP'] = list(rows_rec.map.values[:read_iter])
-            self.rec_evals[rec_key]['MRR'] = list(rows_rec.mrr.values[:read_iter])
-            self.rec_evals[rec_key]['NDCG'] = list(rows_rec.ndcg.values[:read_iter])
+            if (type_res is None):
+                if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                    # Returns all the rows that have in the column 'recommender'
+                    # the recommender name.
+                    rows_rec = df.loc[df.recommender == str(rec_key)]
+                else:
+                    rows_rec = df.loc[df.recommender == str(recommender)]
 
-        # rows_rec1 = df.loc[df.recommender == str(rec_1)]
-        # rows_rec2 = df.loc[df.recommender == str(rec_2)]
-        #
-        # # Create the dictionary for each recommender.
-        # self.rec_evals[rec_1.short_str()] = dict()
-        # self.rec_evals[rec_2.short_str()] = dict()
-        #
-        # # Put the information.
-        # self.rec_evals[rec_1.short_str()]['RMSE'] = list(rows_rec1.rmse.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['ROC_AUC'] = list(rows_rec1.roc_auc.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['Precision'] = list(rows_rec1.precision.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['Recall'] = list(rows_rec1.recall.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['MAP'] = list(rows_rec1.map.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['MRR'] = list(rows_rec1.mrr.values[:read_iter])
-        # self.rec_evals[rec_1.short_str()]['NDCG'] = list(rows_rec1.ndcg.values[:read_iter])
-        #
-        # self.rec_evals[rec_2.short_str()]['RMSE'] = list(rows_rec2.rmse.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['ROC_AUC'] = list(rows_rec2.roc_auc.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['Precision'] = list(rows_rec2.precision.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['Recall'] = list(rows_rec2.recall.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['MAP'] = list(rows_rec2.map.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['MRR'] = list(rows_rec2.mrr.values[:read_iter])
-        # self.rec_evals[rec_2.short_str()]['NDCG'] = list(rows_rec2.ndcg.values[:read_iter])
+                self.rec_evals[rec_key] = dict()
+
+                # Put the information.
+                self.rec_evals[rec_key]['RMSE'] = list(rows_rec.rmse.values[:read_iter])
+                self.rec_evals[rec_key]['ROC_AUC'] = list(rows_rec.roc_auc.values[:read_iter])
+                self.rec_evals[rec_key]['Precision'] = list(rows_rec.precision.values[:read_iter])
+                self.rec_evals[rec_key]['Recall'] = list(rows_rec.recall.values[:read_iter])
+                self.rec_evals[rec_key]['MAP'] = list(rows_rec.map.values[:read_iter])
+                self.rec_evals[rec_key]['MRR'] = list(rows_rec.mrr.values[:read_iter])
+                self.rec_evals[rec_key]['NDCG'] = list(rows_rec.ndcg.values[:read_iter])
+
+            elif (type_res == "numberlabeled"):
+                if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                    rows_rec = df.loc[df.recommender == str(rec_key)]
+                else:
+                    rows_rec = df.loc[df.recommender == str(recommender)]
+
+                self.rec_evals[rec_key]['pos_labeled'] = list(rows_rec.pos_labeled.values[:read_iter])
+                self.rec_evals[rec_key]['neg_labeled'] = list(rows_rec.neg_labeled.values[:read_iter])
+                self.rec_evals[rec_key]['total_labeled'] = list(rows_rec.total_labeled.values[:read_iter])
+
+            elif (type_res == "label_comparison"):
+                columns = ['iteration',
+                           'both_positive', 'both_negative', 'both_neutral',
+                           'pos_only_first', 'neg_only_first', 'neutral_only_first',
+                           'pos_only_second', 'neg_only_second', 'neutral_only_second']
+
+                if (not 'both' in self.rec_evals.keys()):
+                    self.rec_evals['both'] = dict()
+                    self.rec_evals['both']['positive'] = list(df.both_positive.values[:read_iter])
+                    self.rec_evals['both']['negative'] = list(df.both_negative.values[:read_iter])
+                    self.rec_evals['both']['neutral'] = list(df.both_neutral.values[:read_iter])
+
+                if (pos == 1):
+                    pos_col = list(df.pos_only_first.values[:read_iter])
+                    neg_col = list(df.neg_only_first.values[:read_iter])
+                    neutral_col = list(df.neutral_only_first.values[:read_iter])
+
+                elif (pos == 2):
+                    pos_col = list(df.pos_only_second.values[:read_iter])
+                    neg_col = list(df.neg_only_second.values[:read_iter])
+                    neutral_col = list(df.neutral_only_second.values[:read_iter])
+
+                self.rec_evals[rec_key]['positive'] = pos_col
+                self.rec_evals[rec_key]['negative'] = neg_col
+                self.rec_evals[rec_key]['neutral'] = neutral_col
 
     def eval(self, recommenders=None, minRatingsPerUser=1 ):
         '''
@@ -403,6 +423,149 @@ class Evaluation(object):
                         at=self.at
                         )
 
+    def plot_statistics(self, recommenders=None, n_iters=30, file_prefix="", statistic_type=None):
+        if (statistic_type is None):
+            self.plot_all_recommenders(recommenders=recommenders, n_iters=n_iters, file_prefix=file_prefix)
+
+        else:
+            for rec_key in recommenders.keys():
+                recommender, pos = recommenders[rec_key]
+
+                if (statistic_type == 'numberlabeled'):
+                    # self.rec_evals[rec_key]['number_pos'] = list(rows_rec.pos_labeled.values[:read_iter])
+                    # self.rec_evals[rec_key]['number_neg'] = list(rows_rec.neg_labeled.values[:read_iter])
+                    # self.rec_evals[rec_key]['number_total'] = list(rows_rec.total_labeled.values[:read_iter])
+                    # if ('both' in recommenders.keys()):
+                    #     del recommenders['both']
+
+                    recommenders_to_evaluate = list(recommenders.keys())
+                    n_recs = len(recommenders_to_evaluate)
+                    iterations = np.arange(n_iters+1)
+
+                    # colors = ['b-*','g-s','k-8','r-^','y-X','c-d','m-*',]
+                    markers = ['*','s','^']
+                    linestyle = '-'
+                    colors = ['#ff0000','#00ff00','#0000ff']
+
+                    titles = ['Number and type of items labeled by each recommender.',
+                             ]
+                    savepaths = [self.results_path + file_prefix + "number_labeled_ITER{}".format(n_iters),
+                                ]
+                    ylabels = ['Number of rated items']
+                    label_types = ['pos_labeled','neg_labeled','total_labeled']
+
+                    # Iterating for each metric
+                    for i in range(len(ylabels)):
+                        fig = plt.figure(i)
+                        plt.title(titles[i])
+                        plt.ylabel(ylabels[i])
+                        plt.xlabel('Iterations')
+                        plt.grid(True)
+                        savepath = savepaths[i]
+                        handles = []
+
+                        j = 0
+                        # Plotting in the same figure the different recommenders.
+                        for rec_key in recommenders_to_evaluate:
+                            rec = recommenders[rec_key] # load the recommender reference.
+                            rec_eval = self.rec_evals[rec_key] # Load the recommender evaluation.
+
+                            if (rec_key !='both'):
+                                k = 0
+                                for label in label_types:
+                                    rec_plot, = plt.plot(iterations,
+                                                         rec_eval[label],
+                                                         marker = markers[k],
+                                                         linestyle = linestyle,
+                                                         color=colors[j],
+                                                         markerfacecolor=colors[j],
+                                                         markeredgecolor=colors[j],
+                                                         label=rec_key+label)
+                                    handles.append(rec_plot)
+                                    k +=1
+                                j += 1
+
+                        # plt.legend(handles=handles,
+                        #            bbox_to_anchor=(0,0),
+                        #            loc="upper left",
+                        #            bbox_transform=fig.transFigure,
+                        #            ncol=3
+                        #           )
+                        plt.legend(handles=handles,
+                                  bbox_to_anchor=(0,-0.35,1,0.2),
+                                   loc="upper left",
+                                   mode="expand",
+                                   borderaxespad=0,
+                                   ncol=2
+                                  )
+                        plt.savefig(savepath, bbox_inches="tight")
+                        plt.clf()
+
+                elif (statistic_type == 'label_comparison'):
+                    recommenders_to_evaluate = list(recommenders.keys())
+                    n_recs = len(recommenders_to_evaluate)
+                    iterations = np.arange(n_iters+1)
+
+                    # colors = ['b-*','g-s','k-8','r-^','y-X','c-d','m-*',]
+                    markers = ['*','s','^']
+                    linestyle = '-'
+                    colors = ['#ff0000','#00ff00','#0000ff']
+                    titles = ['Comparison between labeled items for the recommenders.',
+                             ]
+                    savepaths = [self.results_path + file_prefix + "label_comparison_ITER{}".format(n_iters),
+                                ]
+                    ylabels = ['Number of rated items']
+                    label_types = ['positive','negative','neutral']
+
+                    # Iterating for each metric
+                    for i in range(len(ylabels)):
+                        fig = plt.figure(i)
+                        plt.title(titles[i])
+                        plt.ylabel(ylabels[i])
+                        plt.xlabel('Iterations')
+                        plt.grid(True)
+                        savepath = savepaths[i]
+                        handles = []
+
+                        j = 0
+                        # Plotting in the same figure the different recommenders.
+                        for rec_key in recommenders_to_evaluate:
+                            # rec = recommenders[rec_key] # load the recommender reference.
+                            rec_eval = self.rec_evals[rec_key] # Load the recommender evaluation.
+
+                            k = 0
+                            for label in label_types:
+                                # rec_plot, = plt.plot(iterations, rec_eval[label], colors[j], label=rec_key+label)
+                                rec_plot, = plt.plot(iterations,
+                                                     rec_eval[label],
+                                                     marker = markers[k],
+                                                     linestyle = linestyle,
+                                                     color=colors[j],
+                                                     markerfacecolor=colors[j],
+                                                     markeredgecolor=colors[j],
+                                                     label=rec_key+label)
+                                handles.append(rec_plot)
+                                k +=1
+                            j += 1
+
+                        # plt.legend(handles=handles,
+                        #            bbox_to_anchor=(0,0),
+                        #            loc="upper left",
+                        #            bbox_transform=fig.transFigure,
+                        #            ncol=3
+                        #           )
+                        plt.legend(handles=handles,
+                                  bbox_to_anchor=(0,-0.35,1,0.2),
+                                   loc="upper left",
+                                   mode="expand",
+                                   borderaxespad=0,
+                                   ncol=3
+                                  )
+                        plt.savefig(savepath, bbox_inches="tight")
+                        plt.clf()
+
+
+
     def plot_all_recommenders(self, recommenders=None, n_iters=30, file_prefix=""):
         # pdb.set_trace()
         recommenders_to_evaluate = list(recommenders.keys())
@@ -430,7 +593,7 @@ class Evaluation(object):
 
         # Iterating for each metric
         for i in range(len(ylabels)):
-            plt.figure(i+1)
+            fig = plt.figure(i+1)
             plt.title(titles[i])
             plt.ylabel(ylabels[i])
             plt.xlabel('Iterations')
@@ -450,13 +613,25 @@ class Evaluation(object):
 
                 j += 1
 
-            plt.legend(handles=handles)
-            plt.savefig(savepath)
+            # plt.legend(handles=handles,
+            #            bbox_to_anchor=(0,0),
+            #            loc="upper left",
+            #            bbox_transform=fig.transFigure,
+            #            ncol=3
+            #           )
+            plt.legend(handles=handles,
+                      bbox_to_anchor=(0,-0.35,1,0.2),
+                       loc="upper left",
+                       mode="expand",
+                       borderaxespad=0,
+                       ncol=3
+                      )
+            plt.savefig(savepath, bbox_inches="tight")
             plt.clf()
 
         # # Plot each metric in a different file.
         # # RMSE.
-        # plt.figure(1)
+        # fig = plt.figure(1)
         # plt.title('RMSE between the recommenders.')
         # # self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.rmse[0], 'b-', label=rec_1.short_str())
@@ -473,7 +648,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # ROC-AUC.
-        # plt.figure(2)
+        # fig = plt.figure(2)
         # plt.title('ROC-AUC@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.roc_auc[0], 'b-', label=rec_1.short_str())
@@ -490,7 +665,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # Precision
-        # plt.figure(3)
+        # fig = plt.figure(3)
         # plt.title('Precision@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.precision[0], 'b-', label=rec_1.short_str())
@@ -507,7 +682,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # Recall
-        # plt.figure(4)
+        # fig = plt.figure(4)
         # plt.title('Recall@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.recall[0], 'b-', label=rec_1.short_str())
@@ -524,7 +699,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # MAP
-        # plt.figure(5)
+        # fig = plt.figure(5)
         # plt.title('MAP@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.map[0], 'b-', label=rec_1.short_str())
@@ -541,7 +716,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # MRR
-        # plt.figure(6)
+        # fig = plt.figure(6)
         # plt.title('MRR@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.mrr[0], 'b-', label=rec_1.short_str())
@@ -558,7 +733,7 @@ class Evaluation(object):
         # plt.clf()
         #
         # # NDCG
-        # plt.figure(7)
+        # fig = plt.figure(7)
         # plt.title('NDCG@{} between the recommenders.'.format(self.at))
         # # self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
         # eval1_plot, = plt.plot(iterations, self.ndcg[0], 'b-', label=rec_1.short_str())

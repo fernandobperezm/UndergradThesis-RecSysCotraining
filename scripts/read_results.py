@@ -82,6 +82,7 @@ parser.add_argument('--number_iterations', type=int, default=30)
 parser.add_argument('--number_positives', type=int, default=1)
 parser.add_argument('--number_negatives', type=int, default=3)
 parser.add_argument('--number_unlabeled', type=int, default=75)
+parser.add_argument('--to_read',type=str,default=None)
 args = parser.parse_args()
 
 # get the recommender class
@@ -114,56 +115,55 @@ if args.columns is not None:
     args.columns = args.columns.split(',')
 
 # read the dataset
-logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
-logger.info('Reading {}'.format(args.dataset))
-dataset, item_to_idx, user_to_idx = read_dataset(
-    args.dataset,
-    header=args.header,
-    sep=args.sep,
-    columns=args.columns,
-    make_binary=args.make_binary,
-    binary_th=args.binary_th,
-    item_key=args.item_key,
-    user_key=args.user_key,
-    rating_key=args.rating_key)
+# logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
+# logger.info('Reading {}'.format(args.dataset))
+# dataset, item_to_idx, user_to_idx = read_dataset(
+#     args.dataset,
+#     header=args.header,
+#     sep=args.sep,
+#     columns=args.columns,
+#     make_binary=args.make_binary,
+#     binary_th=args.binary_th,
+#     item_key=args.item_key,
+#     user_key=args.user_key,
+#     rating_key=args.rating_key)
 
-nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
-logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
+# nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
+# logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
+#
+# # compute the k-fold split
+# logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
 
-# compute the k-fold split
-logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
-
-train_df, test_df = holdout(dataset,
-                            user_key=args.user_key,
-                            item_key=args.item_key,
-                            perc=args.holdout_perc,
-                            seed=1234,
-                            clean_test=True)
-
-# Create our label and unlabeled samples set.
-# As the train set will be modifed in the co-training approach, it's more
-# efficient to modify a dok_matrix than a csr_matrix.
-train = df_to_lil(train_df,
-                  is_binary=args.is_binary,
-                  nrows=nusers,
-                  ncols=nitems,
-                  item_key='item_idx',
-                  user_key='user_idx',
-                  rating_key=args.rating_key)
-
-# Create our test set.
-test = df_to_csr(test_df,
-                 is_binary=args.is_binary,
-                 nrows=nusers,
-                 ncols=nitems,
-                 item_key='item_idx',
-                 user_key='user_idx',
-                 rating_key=args.rating_key)
-
-# Baseline recommenders.
-global_effects = GlobalEffects()
-top_pop = TopPop()
-random = Random(seed=1234,binary_ratings=args.is_binary)
+# train_df, test_df = holdout(dataset,
+#                             user_key=args.user_key,
+#                             item_key=args.item_key,
+#                             perc=args.holdout_perc,
+#                             seed=1234,
+#                             clean_test=True)
+#
+# # Create our label and unlabeled samples set.
+# # As the train set will be modifed in the co-training approach, it's more
+# # efficient to modify a dok_matrix than a csr_matrix.
+# train = df_to_lil(train_df,
+#                   is_binary=args.is_binary,
+#                   nrows=nusers,
+#                   ncols=nitems,
+#                   item_key='item_idx',
+#                   user_key='user_idx',
+#                   rating_key=args.rating_key)
+#
+# # Create our test set.
+# test = df_to_csr(test_df,
+#                  is_binary=args.is_binary,
+#                  nrows=nusers,
+#                  ncols=nitems,
+#                  item_key='item_idx',
+#                  user_key='user_idx',
+#                  rating_key=args.rating_key)
+# # Baseline recommenders.
+# global_effects = GlobalEffects()
+# top_pop = TopPop()
+# random = Random(seed=1234,binary_ratings=args.is_binary)
 
 # read the results
 filepath = args.results_path + args.results_file
@@ -174,18 +174,66 @@ h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Creating the evaluation instance.
-evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = args.rec_length, co_training=True)
-evaluation.df_to_eval(results, h1_ctr, h2_ctr)
+evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=None, val_set = None, at = args.rec_length, co_training=True)
+# evaluation.df_to_eval(results, h1_ctr, h2_ctr)
 
 # Baseline fitting.
-global_effects.fit(train)
-top_pop.fit(train)
-random.fit(train)
+# global_effects.fit(train)
+# top_pop.fit(train)
+# random.fit(train)
 
 # Evaluate the baselines.
-evaluation.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
+# evaluation.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
+#
+# # Plotting all the results.
+# evaluation.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
+# evaluation.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
+# evaluation.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
 
-# Plotting all the results.
-evaluation.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
-evaluation.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
-evaluation.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
+if args.to_read is not None:
+    list_to_read = args.to_read.split(",")
+    for option_to_read in list_to_read:
+        filename = args.results_path + option_to_read + ".csv"
+        results = results_to_df(filename,type_res=option_to_read)
+        evaluation.df_to_eval(df=results,
+                              rec_1=h1_ctr,
+                              rec_2=h2_ctr,
+                              recommenders = {h1_ctr.short_str(): (h1_ctr,1),
+                                              h2_ctr.short_str(): (h2_ctr,2)
+                                             },
+                              read_iter=None,
+                              type_res=option_to_read
+                             )
+        evaluation.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                                 h2_ctr.short_str(): (h2_ctr,2),
+                                                 'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix="Together_",
+                                   statistic_type=option_to_read
+                                  )
+        evaluation.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h1_ctr.short_str() + "_",
+                                   statistic_type=option_to_read
+                                  )
+        evaluation.plot_statistics(recommenders={h2_ctr.short_str(): (h2_ctr,2)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h2_ctr.short_str() + "_",
+                                   statistic_type=option_to_read
+                                  )
+
+        evaluation.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=option_to_read
+                                  )
+        evaluation.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=option_to_read
+                                  )

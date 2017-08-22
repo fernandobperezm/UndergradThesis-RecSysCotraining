@@ -163,14 +163,23 @@ def df_to_dok(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
 
     return data
 
-def results_to_df(filepath):
-    available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
-    columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
-    sep = ' '
+def results_to_df(filepath, type_res=None):
     header = 0
+    sep = ' '
+    if (type_res is None):
+        available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+        columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
+
+    elif (type_res == "numberlabeled"):
+        columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled','total_labeled']
+
+    elif (type_res == "label_comparison"):
+        columns = ['iteration',
+                   'both_positive', 'both_negative', 'both_neutral',
+                   'pos_only_first', 'neg_only_first', 'neutral_only_first',
+                   'pos_only_second', 'neg_only_second', 'neutral_only_second']
 
     results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
-
     return results
 
 def results_to_file(filepath,
