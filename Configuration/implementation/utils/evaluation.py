@@ -519,9 +519,9 @@ class Evaluation(object):
 
         fig, ax = plt.subplots()
         # add some text for labels, title and axes ticks
-        ax.set_ylabel('Recommended items')
-        ax.set_xlabel('Popularity bin')
-        ax.set_title('Number of recommended items by their bin')
+        ax.set_ylabel('Number of recommended items')
+        ax.set_xlabel('Popularity bins from least to most popular')
+        ax.set_title('Number of recommended items with respect to their popularity bin')
 
         savepath = self.results_path + file_prefix + "Popularity_Bin_ITER{}".format(niter)
         i = 0
@@ -539,7 +539,13 @@ class Evaluation(object):
             handles.append(rects)
             i +=1
 
-        plt.legend(handles=handles)
+        plt.legend(handles=handles,
+                   bbox_to_anchor=(0,-0.35,1,0.2),
+                   loc="upper left",
+                   mode="expand",
+                   borderaxespad=0,
+                   ncol=2
+                  )
         plt.savefig(savepath, bbox_inches="tight")
         plt.clf()
 
@@ -612,7 +618,7 @@ class Evaluation(object):
                         #            ncol=3
                         #           )
                         plt.legend(handles=handles,
-                                  bbox_to_anchor=(0,-0.35,1,0.2),
+                                   bbox_to_anchor=(0,-0.35,1,0.2),
                                    loc="upper left",
                                    mode="expand",
                                    borderaxespad=0,
