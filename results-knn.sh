@@ -96,7 +96,7 @@ mkdir Results/knn-funksvd-3; mkdir Results/knn-slimmt-3; mkdir Results/knn-bprmf
 #
 # Running each recommender in sequence, it may take more time but won't make
 # going out of space while using MovieLens10M, MovieLens20M or Netflix100M.
-cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
-cd run-examples/ ; sh holdout-cotraining-knn-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
-cd run-examples/ ; sh holdout-cotraining-knn-slim.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd read-results/ ; sh holdout-cotraining-knn-funksvd.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd read-results/ ; sh holdout-cotraining-knn-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd read-results/ ; sh holdout-cotraining-knn-slim.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
 cd run-examples/MyMediaLite/bin/ ; sh read-results-knn-slimbpr.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
