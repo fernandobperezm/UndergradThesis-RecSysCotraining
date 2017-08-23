@@ -176,20 +176,7 @@ h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Creating the evaluation instance.
 evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = args.rec_length, co_training=True)
-# evaluation.df_to_eval(results, h1_ctr, h2_ctr)
 
-# Baseline fitting.
-# global_effects.fit(train)
-# top_pop.fit(train)
-# random.fit(train)
-
-# Evaluate the baselines.
-# evaluation.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
-#
-# # Plotting all the results.
-# evaluation.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
-# evaluation.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
-# evaluation.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
 if (args.make_pop_bins):
     # Creation of the bins.
     n_iter = 0
@@ -242,8 +229,6 @@ if (args.make_pop_bins):
 
         evaluation.rec_evals[h1_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
         evaluation.rec_evals[h2_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
-        # evaluation.matrix_to_eval(URM=dataset.tocsc(), type_res="item_pop_bin")
-        # evaluation.matrix_to_eval(URM=dataset.tocsr(), type_res="user_pop_bin")
 
 if args.to_read is not None:
     list_to_read = args.to_read.split(",")
