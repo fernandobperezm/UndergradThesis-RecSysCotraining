@@ -35,7 +35,7 @@ logging.basicConfig(
 class Evaluation(object):
     """ EVALUATION class for RecSys"""
 
-    def __init__(self, results_path, results_file, test_set, val_set = None, at = 10, co_training=False):
+    def __init__(self, results_path, results_file, test_set, val_set = None, at = 10, co_training=False, eval_bins = False):
         '''
             Args:
                 * recommender: A Recommender Class object that represents the first
@@ -50,6 +50,7 @@ class Evaluation(object):
         self.at = at
         self.cotraining = co_training
         self.bins = dict()
+        self.eval_bins = eval_bins
         self.rec_evals = dict()
         self.rmse = (list(), list())
         self.roc_auc = (list(), list())
@@ -203,7 +204,7 @@ class Evaluation(object):
                 # print(df)
                 # pass
 
-    def eval(self, recommenders=None, minRatingsPerUser=1 ):
+    def eval(self, recommenders=None, minRatingsPerUser=1,  ):
         '''
             recommenders: dict that contains as key the recommender name
                           and as value the reference of the recommender.
@@ -266,7 +267,8 @@ class Evaluation(object):
                 mrr_[i] += metrics.rr(is_relevant)
                 ndcg_[i] += metrics.ndcg(ranked_items, relevant_items, relevance=relevant_data, at=at)
 
-                if (rec_key != "TopPop1" and rec_key != "TopPop2" and
+                if (self.eval_bins and
+                    rec_key != "TopPop1" and rec_key != "TopPop2" and
                     rec_key != "GlobalEffects1" and rec_key != "GlobalEffects2" and
                     rec_key != "Random"):
 

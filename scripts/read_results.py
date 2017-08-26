@@ -179,7 +179,13 @@ h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
 # Creating the evaluation instance.
-evaluation = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = args.rec_length, co_training=True)
+evaluation = Evaluation(results_path=args.results_path,
+                        results_file=args.results_file,
+                        test_set=test,
+                        val_set = None,
+                        at = args.rec_length,
+                        co_training=True
+                        eval_bins = args.make_pop_bins)
 
 if (args.make_pop_bins):
     # Creation of the bins.
