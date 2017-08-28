@@ -184,7 +184,7 @@ evaluation = Evaluation(results_path=args.results_path,
                         test_set=test,
                         val_set = None,
                         at = args.rec_length,
-                        co_training=True
+                        co_training=True,
                         eval_bins = args.make_pop_bins)
 
 if (args.make_pop_bins):
