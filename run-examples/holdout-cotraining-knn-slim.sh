@@ -85,7 +85,7 @@ python3 ../scripts/holdout.py \
     --number_positives $PPOSITIVES \
     --number_negatives $NNEGATIVES \
     --number_unlabeled $UNLABELED \
-    --params_1 similarity=adj-cosine,k=350,shrinkage=0,normalize=True,sparse_weights=True \
+    --params_1 similarity=adj-cosine,k=50,shrinkage=100,normalize=True,sparse_weights=True \
     --params_2 l2_penalty=0.1,l1_penalty=0.001 #\
     #--is_binary --make_binary --binary_th 4.0 #\ -> If the dataset is binary.
     # --recover_cotraining --recover_iter 10
