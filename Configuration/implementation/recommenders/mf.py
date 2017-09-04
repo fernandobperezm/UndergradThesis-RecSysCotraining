@@ -101,15 +101,6 @@ class FunkSVD(Recommender):
         return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
-        # Calculate the scores only one time.
-        # users = []
-        # items = []
-        # for user_idx, item_idx in unlabeled_list:
-        #     users.append(user_idx)
-        #     items.append(item_idx)
-        #
-        # users = np.array(users,dtype=np.int32)
-        # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
@@ -129,23 +120,6 @@ class FunkSVD(Recommender):
 
                 filtered_scores[i] = scores[item]
                 i += 1
-
-            # # Calculating where the user index changes.
-            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
-            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
-            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
-            # low = 0
-            # for idx in diff_user_idx:
-            #     high = idx+1 # As the idx marks the last one with the same value.
-            #     user = users[idx]
-            #     scores = np.dot(self.U[user], self.V.T)
-            #     filtered_scores[low:high] = scores[items[low:high]]
-            #     low = high
-            #
-            # # For the last indices that are not mentioned in the previous array.
-            # user = users[low]
-            # scores = np.dot(self.U[user], self.V.T)
-            # filtered_scores[low:] = scores[items[low:]]
 
         elif (score_mode == 'batch'):
             pass

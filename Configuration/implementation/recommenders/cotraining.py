@@ -36,8 +36,8 @@ class CoTraining(object):
                          recommender.
                 * rec_2: A Recommender Class object that represents the second
                          recommender.
-                * eval_obj: An Evaluation Class object that represents the evaluation
-                            metrics for the recommender1.
+                * eval_obj: An Evaluation Class object that represents the
+                            evaluation metrics
                 * n_iters: Represents the number of Co-Training iterations.
                 * n_labels: The number of elements to label in each Co-Training
                             iteration.
@@ -255,28 +255,6 @@ class CoTraining(object):
                 logger.info('Could not include labeled into URM_1: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
 
-            # # Replenish U' with 2*p + 2*n samples from U.
-            # logger.info("U' is being replenished, n_elems: {}".format(u_prime.nnz))
-            # try:
-            #     diff = self.n_labels - u_prime.nnz
-            #     users_items = set()
-            #     while (len(users_items) < diff):
-            #         rnd_user = rng.randint(0, high=nusers, dtype=np.int32)
-            #         rnd_item = rng.randint(0, high=nitems, dtype=np.int32)
-            #         if (URM_1[rnd_user,rnd_item] == 0.0 and URM_2[rnd_user,rnd_item] == 0.0 and u_prime[rnd_user,rnd_item] == 0): # TODO: user better precision (machine epsilon instead of == 0.0)
-            #             users_items.add((rnd_user,rnd_item))
-            #
-            #     # As LIL matrices works better if the (user,item) pairs are sorted
-            #     # first by user and then by item.
-            #     for user,item in sorted(users_items, key=lambda u_i: (u_i[0], u_i[1])):
-            #         u_prime[user,item] = 1
-            #
-            #     logger.info("U' replenished, n_elems: {}".format(u_prime.nnz))
-            # except:
-            #     error_file = open(error_path, 'a')
-            #     logger.info("Could not replenish U': {}".format(sys.exc_info()))
-            #     traceback.print_exc(file=error_file)
-            #     error_file.close()
         error_file.close()
 
     def label(self, unlabeled_set, binary_ratings=False, exclude_seen=True, p_most=1000, n_most=100000, error_file=None):
@@ -347,19 +325,3 @@ class CoTraining(object):
         logger.info("Pool created. Its size is: {}.".format(u_prime.nnz))
 
         return u_prime
-
-    def random_user_sample_random_item_sample(self, dataset, n_samples = 75):
-        '''
-            Returns a set of randomly choosen user/item pairs which doesn't have
-            rating.
-        '''
-        nusers, nitems = dataset.shape
-        i_sample = 0
-        random_pop = set()
-        while (i_sample < n_samples):
-            rnd_user = np.random.randint(0, high=nusers, dtype=np.int32)
-            rnd_item = np.random.randint(0, high=nitems, dtype=np.int32)
-            if (dataset[rnd_user, rnd_item] == 0.0): # TODO: user better precision (machine epsilon instead of == 0.0)
-                random_pop.add( (rnd_user, rnd_item) )
-                i_sample +=1
-        return random_pop

@@ -204,7 +204,7 @@ class Evaluation(object):
                 # print(df)
                 # pass
 
-    def eval(self, recommenders=None, minRatingsPerUser=1,  ):
+    def eval(self, recommenders=None, minRatingsPerUser=1):
         '''
             recommenders: dict that contains as key the recommender name
                           and as value the reference of the recommender.
