@@ -7,13 +7,12 @@ Description: This file contains the implementation of a matrix format checker an
              the definition of the Recommender abstract class.
 
 Created by: Massimo Quadrana.
-Modified by Fernando Pérez.
+Modified by: Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 """
 import numpy as np
 import scipy.sparse as sps
-
 
 def check_matrix(X, format='csc', dtype=np.float32):
     """Checks if a sparse matrix is an instance of a specific Scipy.Sparse format.

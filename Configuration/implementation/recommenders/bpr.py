@@ -1,4 +1,4 @@
-# theano-bpr
+# bpr.py
 #
 # Copyright (c) 2014 British Broadcasting Corporation
 #
@@ -14,6 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+bpr.py
+
+Description: This file contains the class BPRMF_THEANO which is an implementation
+             of a BPR-optimized Matrix Factorisation algorithm for Recommender
+             Systems.
+
+Created by: British Broadcasting Corporation.
+Modified by: Fernando Pérez.
+
+Last modified on 05/09/2017.
+"""
+
 import theano, numpy
 import theano.tensor as T
 import time
@@ -21,25 +34,33 @@ import sys
 from collections import defaultdict
 from .base import Recommender, check_matrix
 
-import pdb
-
-from multiprocessing import Pool
-from functools import partial
-
-# Memory consumption problem solved by:
-# https://stackoverflow.com/questions/38140693/python3-multiprocessing-consumes-extensively-much-ram-and-slows-down
-def _partial_uniform_sampling(tup, X):
-    sgd_user,n_items = tup
-    # to avoid race conditions.
-    train = X.copy()
-    pos_item = train[sgd_user][numpy.random.randint(len(train[sgd_user]))]
-    neg_item = numpy.random.randint(n_items)
-    while neg_item in train[sgd_user]:
-        neg_item = numpy.random.randint(n_items)
-
-    return sgd_user, pos_items, neg_items
-
 class BPRMF_THEANO(Recommender):
+    """Class that implements a BPRMF recommender using THEANO for fast computations.
+
+        Attributes:
+            * _rank: refers to the rank of the low-rank matrices W and H
+            * _n_users: number of users in the dataset.
+            * _n_items: number of items in the dataset.
+            * _lambda_u: regularisation term for the user.
+            * _lambda_i: regularisation term for the positive items.
+            * _lambda_j: regularisation term for the negative items.
+            * _lambda_bias: regularisation term for the initial bias.
+            * _learning_rate: learning rate for the SGD.
+            * _train_users: set that represents the users used for training.
+            * _train_items: set that represents the items used for training.
+            * _train_dict: dictionary that holds users, positive items and
+                           negative items.
+            * _configure_theano(): function that initializes THEANO config.
+            * _generate_train_model_function(): function that initializes the
+                                                model functions.
+            * batch_size: size for each batch for the SGD.
+            * eligibleUsers: users with at least one rating in the dataset.
+            * userSeenItems: dictionary that contains the indices of the items
+                             seen for each eligible user.
+            * W: Low rank matrix representing the user interests.
+            * H: Low rank matrix representing the items interests.
+
+    """
 
     def __init__(self, rank, n_users, n_items, lambda_u = 0.0025, lambda_i = 0.0025, lambda_j = 0.00025, lambda_bias = 0.0, learning_rate = 0.05):
         """
@@ -95,7 +116,6 @@ class BPRMF_THEANO(Recommender):
           testing set are chosen at random)
         """
         super(BPRMF_THEANO, self).__init__()
-        self.dataset = None
         self._rank = rank
         self._n_users = n_users
         self._n_items = n_items
@@ -111,18 +131,17 @@ class BPRMF_THEANO(Recommender):
         self._generate_train_model_function()
 
     def short_str(self):
+        """ Short string used for dictionaries. """
         return "BPRMF_THEANO"
 
     def __str__(self):
+        """ String representation of the class. """
         return "BPRMF_THEANO(num_factors={},lrate={},user_reg={},pos_reg={},neg_reg={})".format(
             self._rank, self._learning_rate, self._lambda_u, self._lambda_i, self._lambda_j
         )
 
     def _configure_theano(self):
-        """
-          Configures Theano to run in fast mode
-          and using 32-bit floats.
-        """
+        """ Configures Theano to run in fast mode and using 32-bit floats. """
         theano.config.mode = 'FAST_RUN'
         theano.config.floatX = 'float32'
 
@@ -210,36 +229,13 @@ class BPRMF_THEANO(Recommender):
             sys.stderr.write("\nTotal training time %.2f seconds; %e per sample\n" % (t2 - t0, (t2 - t0)/n_sgd_samples))
             sys.stderr.flush()
 
-        # # To accomplish the specification of train data.
-        # # pdb.set_trace()
-        # train = check_matrix(train_data, 'lil', dtype=numpy.float32)
-        # user_idx, item_idx = train.nonzero()
-        # train_data = list(zip(user_idx,item_idx))
-        #
-        # if len(train_data) < batch_size:
-        #     sys.stderr.write("WARNING: Batch size is greater than number of training samples, switching to a batch size of %s\n" % str(len(train_data)))
-        #     batch_size = len(train_data)
-        # self._train_dict, self._train_users, self._train_items = self._data_to_dict(train_data)
-        # n_sgd_samples = len(train_data) * epochs
-        # sgd_users, sgd_pos_items, sgd_neg_items = self._uniform_user_sampling(n_sgd_samples)
-        #z = 0
-        #t2 = t1 = t0 = time.time()
-        # while (z+1)*batch_size < n_sgd_samples:
-        #     self.train_model(
-        #         sgd_users[z*batch_size: (z+1)*batch_size],
-        #         sgd_pos_items[z*batch_size: (z+1)*batch_size],
-        #         sgd_neg_items[z*batch_size: (z+1)*batch_size]
-        #     )
-        #     z += 1
-        #     t2 = time.time()
-        #     sys.stderr.write("\rProcessed %s ( %.2f%% ) in %.4f seconds" %(str(z*batch_size), 100.0 * float(z*batch_size)/n_sgd_samples, t2 - t1))
-        #     sys.stderr.flush()
-        #     t1 = t2
-        # if n_sgd_samples > 0:
-        #     sys.stderr.write("\nTotal training time %.2f seconds; %e per sample\n" % (t2 - t0, (t2 - t0)/n_sgd_samples))
-        #     sys.stderr.flush()
-
     def initializeFastSampling(self):
+        """Checks with users have at least one item rated and which items have rated.
+
+            The function creates a numpy.array of users with at least one rating
+            and a dictionary that holds the indices of the seen items for each
+            eligible user.
+        """
         print("Initializing fast sampling")
 
         self.eligibleUsers = []
@@ -255,6 +251,30 @@ class BPRMF_THEANO(Recommender):
         self.eligibleUsers = numpy.array(self.eligibleUsers)
 
     def sampleBatch(self):
+        """Function that creates a batch of users, positive items and negative items.
+
+            It creates three separate lists, `user_id_list`, `pos_item_id_list`
+            and `neg_item_id_list`. The first one relates list of sample users,
+            the second as a list of positive items, i.e., items that a user has
+            rated or interacted with and the latter as a list of negative items,
+            i.e., items that the user has not rated or interacted with.
+
+            Note:
+                If we define:
+                    u = user_id_list[i]
+                    pos_i = pos_item_id_list[i]
+                    neg_i = neg_item_id_list[i]
+
+                Then u is a random user, pos_i represents the item index of
+                an item that u has rated or interacted with, similarly, neg_i
+                represents the item index of an item that u has not interacted
+                with.
+
+            Returns:
+                A triplet of lists which contains the sample users, the positive
+                items and the negative items.
+
+        """
         user_id_list = numpy.random.choice(self.eligibleUsers, size=(self.batch_size))
         pos_item_id_list = []
         neg_item_id_list = []
@@ -282,41 +302,22 @@ class BPRMF_THEANO(Recommender):
           and then sample a positive and a negative item for each
           user sample.
         """
-        # pdb.set_trace()
         sys.stderr.write("Generating %s random training samples\n" % str(n_samples))
         sgd_users = numpy.array(list(self._train_users))[numpy.random.randint(len(list(self._train_users)), size=n_samples)]
-        # sgd_pos_items, sgd_neg_items = [], []
         sgd_pos_items = numpy.zeros(n_samples,dtype=numpy.int32)
         sgd_neg_items = numpy.zeros(n_samples,dtype=numpy.int32)
         i = 0
-        # self.workers = 4
-        # _partial_sampling = partial(_partial_uniform_sampling, X=self._train_users)
-        # pool = Pool(processes=self.workers)
-        # args_tuple = ((sgd_user,self._n_items) for sgd_user in sgd_users)
-        # res = pool.map(_partial_sampling, args_tuple)
-        # pool.close()
-        # pool.join()
-        #
-        # print("The Training samples are created.")
-        # # res contains a vector of (values, rows, cols) tuples
-        # sgd_users, sgd_pos_items, sgd_neg_items = [], [], []
-        # for user_, pos_item_, neg_item_ in res:
-        #     sgd_users.append(user_)
-        #     sgd_pos_items.append(pos_item_)
-        #     sgd_neg_items.append(neg_item_)
+
         for sgd_user in sgd_users:
             if (i % 1000000 == 0):
                 print("Sample: {}".format(i))
             pos_item = self._train_dict[sgd_user][numpy.random.randint(len(self._train_dict[sgd_user]))]
-            # sgd_pos_items.append(pos_item)
             sgd_pos_items[i] = pos_item
             neg_item = numpy.random.randint(self._n_items)
             while neg_item in self._train_dict[sgd_user]:
                 neg_item = numpy.random.randint(self._n_items)
-            # sgd_neg_items.append(neg_item)
             sgd_neg_items[i] = neg_item
             i += 1
-        # pool = None
         return sgd_users, sgd_pos_items, sgd_neg_items
 
     def predictions(self, user_index):
@@ -346,37 +347,106 @@ class BPRMF_THEANO(Recommender):
           This won't return any of the items associated with `user_index`
           in the training set.
         """
-
-        # return [
-        #     item_index for item_index in numpy.argsort(self.predictions(user_index))
-        #     if item_index not in self._train_dict[user_index]
-        # ][::-1][:topn]
         ranking = numpy.argsort(self.predictions(user_index))[::-1]
         if exclude_seen:
             ranking = self._filter_seen(user_index, ranking)
         return ranking[:topn]
 
     def fit(self, R):
+        """Trains and builds the model given a dataset.
+
+            Args:
+                * R: User-Rating Matrix for which we will train the model.
+
+            Args type:
+                * R: Scipy.Sparse matrix.
+        """
         return self.train(train_data=R, epochs=10, batch_size=1000)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
-        return self.top_predictions(user_index=user_id,topn=n)
+        """Makes a top-N recommendation list for a specific user.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * n: size of the list.
+                * exclude_seen: tells if we should remove already-seen items from
+                                the list.
+
+            Args type:
+                * user_id: int
+                * n: int
+                * exclude_seen: bool
+
+            Returns:
+                A personalised ranked list of items represented by their indices.
+        """
+        return self.top_predictions(user_index=user_id,topn=n,exclude_seen=exclude_seen)
 
     def predict(self, user_id, rated_indices):
+        """Calculates the predicted preference of a user for a list of items.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * rated_indices: list that holds the items for which we will
+                                 predict the user preference.
+
+            Args type:
+                * user_id: int
+                * rated_indices: list of int.
+
+            Returns:
+                A list of predicted preferences for each item in the list given.
+        """
         return self.prediction(user_index=user_id,item_index=rated_indices)
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+    def label(self, unlabeled_list, binary_ratings=False, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+        """Rates new user-item pairs.
+
+           This function is part of the Co-Training process in which we rate
+           all user-item pairs inside an unlabeled pool of samples, afterwards,
+           we separate them into positive and negative items based on their score.
+           Lastly, we take the p-most positive and n-most negative items from all
+           the rated items.
+
+           Inside the function we also measure some statistics that help us to
+           analyze the effects of the Co-Training process, such as, number of
+           positive, negative and neutral items rated and sets of positive, negative
+           and neutral user-item pairs to see the agreement of the recommenders.
+           We put all these inside a dictionary.
+
+           Args:
+               * unlabeled_list: a matrix that holds the user-item that we must
+                                 predict their rating.
+               * binary_ratings: tells us if we must predict based on an implicit
+                                 (0,1) dataset or an explicit.
+               * exclude_seen: tells us if we need to exclude already-seen items.
+               * p_most: tells the number of p-most positive items that we
+                         should choose.
+               * n_most: tells the number of n-most negative items that we
+                         should choose.
+               * score_mode: the type of score prediction, 'user' represents by
+                             sequentially user-by-user, 'batch' represents by
+                             taking batches of users, 'matrix' represents to
+                             make the preditions by a matrix multiplication.
+
+           Args type:
+               * unlabeled_list: Scipy.Sparse matrix.
+               * binary_ratings: bool
+               * exclude_seen: bool
+               * p_most: int
+               * n_most: int
+               * score_mode: str
+
+           Returns:
+               A list containing the user-item-rating triplets and the meta
+               dictionary for statistics.
+        """
+
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=numpy.float32)
+
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
         uniq_users, user_to_idx = numpy.unique(users,return_inverse=True)
-        # At this point, we have all the predicted scores for the users inside
-        # U'. Now we will filter the scores by keeping only the scores of the
-        # items presented in U'. This will be an array where:
-        # filtered_scores[i] = scores[users[i],items[i]]
-        # scores = np.dot(self.X[uniq_users], self.Y.T)
-
-
 
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
@@ -390,27 +460,9 @@ class BPRMF_THEANO(Recommender):
                 if (curr_user != user):
                     curr_user = user
                     scores = self.predictions(user_index=curr_user)
-                    # scores = np.dot(self.X[curr_user], self.Y.T)
 
                 filtered_scores[i] = scores[item]
                 i += 1
-
-            # # Calculating where the user index changes.
-            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
-            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
-            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
-            # low = 0
-            # for idx in diff_user_idx:
-            #     high = idx+1 # As the idx marks the last one with the same value.
-            #     user = users[idx]
-            #     scores = np.dot(self.U[user], self.V.T)
-            #     filtered_scores[low:high] = scores[items[low:high]]
-            #     low = high
-            #
-            # # For the last indices that are not mentioned in the previous array.
-            # user = users[low]
-            # scores = np.dot(self.U[user], self.V.T)
-            # filtered_scores[low:] = scores[items[low:]]
 
         elif (score_mode == 'batch'):
             pass
@@ -421,19 +473,20 @@ class BPRMF_THEANO(Recommender):
             scores = self.predictions(user_index=uniq_users)
             filtered_scores = scores[user_to_idx,items]
 
-
-
         # Filtered the scores to have the n-most and p-most.
         # sorted_filtered_scores is sorted incrementally
         sorted_filtered_scores = filtered_scores.argsort()
         p_sorted_scores = sorted_filtered_scores[-p_most:]
         n_sorted_scores = sorted_filtered_scores[:n_most]
 
+        # creating the user-item-rating triplets to be returned based on the
+        # dataset interaction type.
         if binary_ratings:
             scores = [(users[i], items[i], 1.0) for i in p_sorted_scores] + [(users[i], items[i], 0.0) for i in n_sorted_scores]
         else:
             scores = [(users[i], items[i], 5.0) for i in p_sorted_scores] + [(users[i], items[i], 1.0) for i in n_sorted_scores]
 
+        # Creation of statistic sets begin here.
         meta = dict()
         meta['pos_labels'] = len(p_sorted_scores)
         meta['neg_labels'] = len(n_sorted_scores)
@@ -445,7 +498,6 @@ class BPRMF_THEANO(Recommender):
         # We sort the indices by user, then by item in order to make the
         # assignment to the LIL matrix faster.
         return sorted(scores, key=lambda triplet: (triplet[0],triplet[1])), meta
-
 
     def test(self, test_data):
         """
