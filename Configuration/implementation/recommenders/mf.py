@@ -359,15 +359,6 @@ class AsySVD(Recommender):
         return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
-        # Calculate the scores only one time.
-        # users = []
-        # items = []
-        # for user_idx, item_idx in unlabeled_list:
-        #     users.append(user_idx)
-        #     items.append(item_idx)
-        #
-        # users = np.array(users,dtype=np.int32)
-        # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         uniq_users, user_to_idx = np.unique(users,return_inverse=True)
@@ -530,34 +521,6 @@ class IALS_numpy(Recommender):
         scores = np.dot(self.X[user_id], self.Y.T)
         return scores[rated_indices]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
-        # Shuffle the unlabeled list of tuples (user_idx, item_idx).
-        # Labeling of p-most positive and n-most negative ratings.
-
-        labels = []
-        number_p_most_labeled = 0
-        number_n_most_labeled = 0
-        for user_idx, item_idx in unlabeled_list:
-            # compute the scores using the dot product
-            scores = np.dot(self.X[user_idx], self.Y.T)
-
-            # As IALS only works with binary ratings, we only bound for binary ratings.
-            # TODO: fill
-            # if (number_p_most_labeled < p_most):
-            #     if (binary_ratings and scores[item_idx] == 1.0):
-            #         labels.append( (user_idx, item_idx, scores[item_idx]) )
-            #         number_p_most_labeled += 1
-            #
-            # if (number_n_most_labeled < n_most):
-            #     if (binary_ratings and scores[item_idx] == 0.0):
-            #         labels.append( (user_idx, item_idx, scores[item_idx]) )
-            #         number_n_most_labeled += 1
-            #
-            # if (number_p_most_labeled == p_most and number_n_most_labeled == n_most):
-            #     break
-
-        return labels
-
     def _lsq_solver(self, C, X, Y, reg):
         # precompute YtY
         rows, factors = X.shape
@@ -715,15 +678,6 @@ class BPRMF(Recommender):
         return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3,score_mode='user'):
-        # Calculate the scores only one time.
-        # users = []
-        # items = []
-        # for user_idx, item_idx in unlabeled_list:
-        #     users.append(user_idx)
-        #     items.append(item_idx)
-        #
-        # users = np.array(users,dtype=np.int32)
-        # items = np.array(items,dtype=np.int32)
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
@@ -743,23 +697,6 @@ class BPRMF(Recommender):
 
                 filtered_scores[i] = scores[item]
                 i += 1
-
-            # # Calculating where the user index changes.
-            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
-            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
-            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
-            # low = 0
-            # for idx in diff_user_idx:
-            #     high = idx+1 # As the idx marks the last one with the same value.
-            #     user = users[idx]
-            #     scores = np.dot(self.U[user], self.V.T)
-            #     filtered_scores[low:high] = scores[items[low:high]]
-            #     low = high
-            #
-            # # For the last indices that are not mentioned in the previous array.
-            # user = users[low]
-            # scores = np.dot(self.U[user], self.V.T)
-            # filtered_scores[low:] = scores[items[low:]]
 
         elif (score_mode == 'batch'):
             pass
