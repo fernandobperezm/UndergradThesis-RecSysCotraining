@@ -6,9 +6,9 @@ Description: This file contains the definition and implementation of a
              ItemKNN-based Recommender.
 
 Created by: Massimo Quadrana.
-Modified by Fernando Pérez.
+Modified by: Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 '''
 
 import random as random
@@ -18,12 +18,48 @@ import scipy.sparse as sps
 from .base import Recommender, check_matrix
 from .similarity import Cosine, Pearson, AdjustedCosine
 
-import pdb
 
 class ItemKNNRecommender(Recommender):
-    """ ItemKNN recommender"""
+    """Class that implements an ItemKNN recommender system.
+
+       This type of recommender build a similarity matrix between the items
+       and calculates the score for an unknown rating
+
+       Attributes:
+            * k: represents the number of neirest neighbors for each item.
+            * shrinkage: shrinkage to be applied to reduce the effect of
+                         items with not many ratings.
+            * normalize: normalize the scores between a range.
+            * dataset: dataset which will be used to build the model.
+            * similarity_name: name of the similarity function to apply.
+            * sparse_weights: consider sparse or dense representation to
+                              store the k-most-similar items.
+            * scores: the scores are already calculated or not.
+            * distance: instance of the similarity function to apply.
+            * W: the top-k most similar items for each item in a dense representation.
+            * W_sparse: the top-k most similar items for each item in a sparse representation.
+    """
 
     def __init__(self, k=50, shrinkage=100, similarity='cosine', normalize=False, sparse_weights=True):
+        """Constructor of the ItemKNNRecommender class.
+
+           Args:
+                * k: represents the number of neirest neighbors for each item.
+                * shrinkage: shrinkage to be applied to reduce the effect of
+                             items with not many ratings.
+                * normalize: normalize the scores between a range.
+                * similarity: name of similarity function to apply.
+                * sparse_weights: consider sparse or dense representation to
+                                  store the k-most-similar items.
+
+           Args type:
+                * k = k
+                * shrinkage: int
+                * normalize: bool
+                * similarity: str
+                * sparse_weights: bool
+
+        """
         super(ItemKNNRecommender, self).__init__()
         self.k = k
         self.shrinkage = shrinkage
@@ -42,23 +78,41 @@ class ItemKNNRecommender(Recommender):
             raise NotImplementedError('Distance {} not implemented'.format(similarity))
 
     def short_str(self):
+        """ Short string used for dictionaries. """
         return "ItemKNN"
 
     def __str__(self):
+        """ String representation of the class. """
         return "ItemKNN(similarity={},k={},shrinkage={},normalize={},sparse_weights={})".format(
             self.similarity_name, self.k, self.shrinkage, self.normalize, self.sparse_weights)
 
     def fit(self, X):
-        '''
-            X: represents the dataset. It must be of type
-        '''
+        """Trains and builds the model given a dataset.
+
+            The fit function inside the ItemKNN class builds a similarity matrix
+            between all the items using the similarity function as defined in
+            `self.distance`. Afterwards, for each item it takes only the top-k
+            most similar items to it and stores them inside a matrix that can
+            be either dense matrix or Scipy.Sparse.
+
+            Args:
+                * X: User-Rating Matrix for which we will train the model.
+
+            Args type:
+                * X: Scipy.Sparse matrix.
+        """
         # convert X to csr matrix for faster row-wise operations
         X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         self.scores = None
+
+        # Calculation of the similarity matrix.
         item_weights = self.distance.compute(X)
-        # for each column, keep only the top-k scored items
-        idx_sorted = np.argsort(item_weights, axis=0)  # sort by column
+
+        # for each column, keep only the top-k most similar items
+        idx_sorted = np.argsort(item_weights, axis=0)
+
+        # Decide to use sparse or dense representations.
         if not self.sparse_weights:
             self.W = item_weights.copy()
             # index of the items that don't belong to the top-k similar items of each column
@@ -77,6 +131,15 @@ class ItemKNNRecommender(Recommender):
             self.W_sparse = sps.csr_matrix((values, (rows, cols)), shape=(nitems, nitems), dtype=np.float32)
 
     def calculate_scores_matrix(self):
+        """Calculates the score for all the items for all the users.
+
+           This function makes the matrix multiplication between the URM and the
+           similarities matrix W. In this way, calculate the predicted score for
+           each user for all the items.
+
+           All the scores are stored inside `self.scores`, and can be either
+           normalized or not.
+        """
         if self.sparse_weights:
             self.scores = self.dataset.dot(self.W_sparse).toarray()
         else:
@@ -95,6 +158,24 @@ class ItemKNNRecommender(Recommender):
             self.scores /= den
 
     def calculate_scores_batch(self,users):
+        """Calculates the score for all the items for a batch of users.
+
+           This function makes the matrix multiplication between the profiles
+           of the users inside the batch and the item similarities. This matrix
+           multiplication returns the scores for each user and all the items.
+
+           The batch process is done by partitioning the list of users into
+           different batches, of an specific size, then
+
+           All the scores are stored inside `self.scores`, and can be either
+           normalized or not.
+
+           Args:
+                * users: list containing the users indices inside the system.
+
+            Args type:
+                * users: list of int.
+        """
         u_begin, u_stop = users.min(), users.max()
         partition_size = 1000
         partitions = np.arange(start=u_begin,stop=u_stop+1,step=partition_size,dtype=np.int32)
@@ -123,6 +204,23 @@ class ItemKNNRecommender(Recommender):
                 self.scores[low_user:high_user] /= den
 
     def calculate_scores_user(self,user_id):
+        """Calculates the score for all the items for a batch of users.
+
+           This function makes the matrix multiplication between the profile
+           of the user and the item similarities. This matrix multiplication
+           returns the predicted score for all the items based on the users
+           preferences.
+           
+           All the scores are stored inside `self.scores`, and can be either
+           normalized or not.
+
+           Args:
+                * user_id: the user index inside the system.
+
+            Args type:
+                * users: int.
+        """
+
         user_profile = self._get_user_ratings(user_id)
 
         if self.sparse_weights:
@@ -142,7 +240,26 @@ class ItemKNNRecommender(Recommender):
             den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
             self.scores /= den
 
-    def recommend(self, user_id, n=None, exclude_seen=True,score_mode='user'):
+    def recommend(self, user_id, n=None, exclude_seen=True, score_mode='user'):
+        """Makes a top-N recommendation list for a specific user.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * n: size of the list.
+                * exclude_seen: tells if we should remove already-seen items from
+                                the list.
+                * score_mode: the score is created only for one user or it is
+                              created for all the users.
+
+            Args type:
+                * user_id: int
+                * n: int
+                * exclude_seen: bool
+                * score_mode: str
+
+            Returns:
+                A personalised ranked list of items represented by their indices.
+        """
         if (score_mode == 'user'):
             self.calculate_scores_user(user_id)
             ranking = self.scores.argsort()[::-1]
@@ -155,6 +272,22 @@ class ItemKNNRecommender(Recommender):
         return ranking[:n]
 
     def recommend_new_user(self, user_profile, n=None, exclude_seen=True):
+        """Makes a top-N recommendation list for a specific user.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * n: size of the list.
+                * exclude_seen: tells if we should remove already-seen items from
+                                the list.
+
+            Args type:
+                * user_id: int
+                * n: int
+                * exclude_seen: bool
+
+            Returns:
+                A personalised ranked list of items represented by their indices.
+        """
         # compute the scores using the dot product
         if self.sparse_weights:
             assert user_profile.shape[1] == self.W_sparse.shape[0], 'The number of items does not match!'
@@ -182,30 +315,69 @@ class ItemKNNRecommender(Recommender):
         return ranking[:n]
 
     def predict(self, user_id, rated_indices,score_mode='user'):
+        """Calculates the predicted preference of a user for a list of items.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * rated_indices: list that holds the items for which we will
+                                 predict the user preference.
+
+            Args type:
+                * user_id: int
+                * rated_indices: list of int.
+
+            Returns:
+                A list of predicted preferences for each item in the list given.
+        """
         # return the scores for the rated items.
         if (score_mode == 'user'):
             return self.scores[rated_indices]
         elif (score_mode == 'matrix'):
             return self.scores[user_id,rated_indices]
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
-        '''
-            Arguments:
-                * unlabeled_list: Its the pool of user/item keys without ratings.
-                                  from which we will label. It must be an instance
-                                  of a LIL matrix.
+    def label(self, unlabeled_list, binary_ratings=False, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+        """Rates new user-item pairs.
 
-        '''
+           This function is part of the Co-Training process in which we rate
+           all user-item pairs inside an unlabeled pool of samples, afterwards,
+           we separate them into positive and negative items based on their score.
+           Lastly, we take the p-most positive and n-most negative items from all
+           the rated items.
 
-        # Calculate the scores only one time.
-        # users = []
-        # items = []
-        # for user_idx, item_idx in unlabeled_list:
-        #     users.append(user_idx)
-        #     items.append(item_idx)
-        #
-        # users = np.array(users,dtype=np.int32)
-        # items = np.array(items,dtype=np.int32)
+           Inside the function we also measure some statistics that help us to
+           analyze the effects of the Co-Training process, such as, number of
+           positive, negative and neutral items rated and sets of positive, negative
+           and neutral user-item pairs to see the agreement of the recommenders.
+           We put all these inside a dictionary.
+
+           Args:
+               * unlabeled_list: a matrix that holds the user-item that we must
+                                 predict their rating.
+               * binary_ratings: tells us if we must predict based on an implicit
+                                 (0,1) dataset or an explicit.
+               * exclude_seen: tells us if we need to exclude already-seen items.
+               * p_most: tells the number of p-most positive items that we
+                         should choose.
+               * n_most: tells the number of n-most negative items that we
+                         should choose.
+               * score_mode: the type of score prediction, 'user' represents by
+                             sequentially user-by-user, 'batch' represents by
+                             taking batches of users, 'matrix' represents to
+                             make the preditions by a matrix multiplication.
+
+           Args type:
+               * unlabeled_list: Scipy.Sparse matrix.
+               * binary_ratings: bool
+               * exclude_seen: bool
+               * p_most: int
+               * n_most: int
+               * score_mode: str
+
+           Returns:
+               A list containing the user-item-rating triplets and the meta
+               dictionary for statistics.
+        """
+
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
@@ -214,7 +386,6 @@ class ItemKNNRecommender(Recommender):
         # it can decrease, example:
         # users = [0,0,0,0,0, 1,1,1, 2], items = [1,6,8,9,19, 0,4,5, 2]
 
-        # pdb.set_trace()
         if (score_mode == 'user'):
             filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
             curr_user = None
@@ -226,23 +397,6 @@ class ItemKNNRecommender(Recommender):
 
                 filtered_scores[i] = self.scores[item]
                 i += 1
-
-            # # Calculating where the user index changes.
-            # diff_user_idx = np.where(users[:-1] != users[1:])[0]
-            # # example: [4,8,9] -> users = [0,0,0,0, 0 ,5,5,5, 5 , 6 ,7]
-            # filtered_scores = np.zeros(shape=n_scores,dtype=np.float32)
-            # low = 0
-            # for idx in diff_user_idx:
-            #     high = idx+1 # As the idx marks the last one with the same value.
-            #     user = users[idx]
-            #     self.calculate_scores_user(user)
-            #     filtered_scores[low:high] = self.scores[items[low:high]]
-            #     low = high
-            #
-            # # For the last indices that are not mentioned in the previous array.
-            # user = users[low]
-            # self.calculate_scores_user(user)
-            # filtered_scores[low:] = self.scores[items[low:]]
 
         elif (score_mode == 'batch'):
             filtered_scores = []
@@ -303,6 +457,11 @@ class ItemKNNRecommender(Recommender):
         # Similar to p_most but with n_most.
         n_sorted_scores = n_sorted_scores[:n_most]
 
+        scores = \
+         [(p_users[i], p_items[i], p_filtered_scores[i] if p_filtered_scores[i] < 5.0 else 5.0) for i in p_sorted_scores] +\
+         [(n_users[i], n_items[i], n_filtered_scores[i] if n_filtered_scores[i] > 1.0 else 1.0) for i in n_sorted_scores]
+
+        # Creation of statistic sets begin here.
         meta = dict()
         meta['pos_labels'] = len(p_sorted_scores)
         meta['neg_labels'] = len(n_sorted_scores)
@@ -310,11 +469,6 @@ class ItemKNNRecommender(Recommender):
         meta['pos_set'] = set(zip(p_users, p_items))
         meta['neg_set'] = set(zip(n_users, n_items))
         meta['neutral_set'] = set(zip(neutral_users, neutral_items))
-
-        scores = \
-         [(p_users[i], p_items[i], p_filtered_scores[i] if p_filtered_scores[i] < 5.0 else 5.0) for i in p_sorted_scores] +\
-         [(n_users[i], n_items[i], n_filtered_scores[i] if n_filtered_scores[i] > 1.0 else 1.0) for i in n_sorted_scores]
-        # scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
 
         # We sort the indices by user, then by item in order to make the
         # assignment to the LIL matrix faster.
