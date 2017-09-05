@@ -243,6 +243,10 @@ class ItemKNNRecommender(Recommender):
     def recommend(self, user_id, n=None, exclude_seen=True, score_mode='user'):
         """Makes a top-N recommendation list for a specific user.
 
+            The score is calculated by the dot product between the user preferences
+            and each item vector in the similarity matrix. The resulting scores
+            are then sorted from highest to lowest.
+
             Args:
                 * user_id: user index to which we will build the top-N list.
                 * n: size of the list.
