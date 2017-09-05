@@ -1,23 +1,21 @@
-'''
+"""
 Politecnico di Milano.
-item_knn.py
+mf.py
 
 Description: This file contains the definition and implementation of
              Matrix-Factorization-based Recommenders, such as FunkSVD,
              AsymmetricSVD, Alternating Least Squares, BPR-MF.
 
 Created by: Massimo Quadrana.
-Modified by Fernando Pérez.
+Modified by: Fernando Pérez.
 
-Last modified on 25/03/2017.
-'''
+Last modified on 05/09/2017.
+"""
 
 import numpy as np
 from .base import Recommender, check_matrix
 from .._cython._mf import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 import logging
-
-import pdb
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -26,7 +24,7 @@ logging.basicConfig(
 
 
 class FunkSVD(Recommender):
-    '''
+    """
     FunkSVD model
     Reference: http://sifter.org/~simon/journal/20061211.html
 
@@ -35,9 +33,8 @@ class FunkSVD(Recommender):
     The model is learned by solving the following regularized Least-squares objective function with Stochastic Gradient Descent
     \operatornamewithlimits{argmin} \limits_{U,V}\frac{1}{2}||R - UV^T||^2_2 + \frac{\lambda}{2}(||U||^2_F + ||V||^2_F)
     Latent factors are initialized from a Normal distribution with given mean and std.
-    '''
+    """
 
-    # TODO: add global effects
     def __init__(self,
                  num_factors=50,
                  lrate=0.01,
@@ -47,7 +44,7 @@ class FunkSVD(Recommender):
                  init_std=0.1,
                  lrate_decay=1.0,
                  rnd_seed=42):
-        '''
+        """
         Initialize the model
         :param num_factors: number of latent factors
         :param lrate: initial learning rate used in SGD
@@ -57,7 +54,7 @@ class FunkSVD(Recommender):
         :param init_std: standard deviation used to initialize the latent factors
         :param lrate_decay: learning rate decay
         :param rnd_seed: random seed
-        '''
+        """
         super(FunkSVD, self).__init__()
         self.num_factors = num_factors
         self.lrate = lrate
@@ -69,9 +66,11 @@ class FunkSVD(Recommender):
         self.rnd_seed = rnd_seed
 
     def short_str(self):
+        """ Short string used for dictionaries. """
         return "FunkSVD"
 
     def __str__(self):
+        """ String representation of the class. """
         return "FunkSVD(num_factors={},lrate={},reg={},iters={},init_mean={}," \
                "init_std={},lrate_decay={},rnd_seed={})".format(
             self.num_factors, self.lrate, self.reg, self.iters, self.init_mean, self.init_std, self.lrate_decay,
@@ -79,6 +78,17 @@ class FunkSVD(Recommender):
         )
 
     def fit(self, X):
+        """Trains and builds the model given a dataset.
+
+            The fit function inside the FunkSVD class performs SGD to learn the
+            low-rank matrices U and V.
+
+            Args:
+                * X: User-Rating Matrix for which we will train the model.
+
+            Args type:
+                * X: Scipy.Sparse matrix.
+        """
         X = check_matrix(X, 'csr', dtype=np.float32)
         self.dataset = X
         self.U, self.V = FunkSVD_sgd(X, self.num_factors, self.lrate, self.reg, self.iters, self.init_mean,
@@ -89,6 +99,26 @@ class FunkSVD(Recommender):
         return np.dot(self.U[user_id], self.V.T)
 
     def recommend(self, user_id, n=None, exclude_seen=True):
+        """Makes a top-N recommendation list for a specific user.
+
+            The score is calculated by the dot product between the user preferences
+            and each item vector in the similarity matrix. The resulting scores
+            are then sorted from highest to lowest.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * n: size of the list.
+                * exclude_seen: tells if we should remove already-seen items from
+                                the list.
+
+            Args type:
+                * user_id: int
+                * n: int
+                * exclude_seen: bool
+
+            Returns:
+                A personalised ranked list of items represented by their indices.
+        """
         scores = np.dot(self.U[user_id], self.V.T)
         ranking = scores.argsort()[::-1]
         # rank items
@@ -97,10 +127,67 @@ class FunkSVD(Recommender):
         return ranking[:n]
 
     def predict(self, user_id, rated_indices):
+        """Calculates the predicted preference of a user for a list of items.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * rated_indices: list that holds the items for which we will
+                                 predict the user preference.
+                * score_mode: the score is created only for one user or it is
+                              created for all the users.
+
+            Args type:
+                * user_id: int
+                * rated_indices: list of int.
+
+            Returns:
+                A list of predicted preferences for each item in the list given.
+        """
         scores = np.dot(self.U[user_id], self.V.T)
         return scores[rated_indices]
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+        """Rates new user-item pairs.
+
+           This function is part of the Co-Training process in which we rate
+           all user-item pairs inside an unlabeled pool of samples, afterwards,
+           we separate them into positive and negative items based on their score.
+           Lastly, we take the p-most positive and n-most negative items from all
+           the rated items.
+
+           Inside the function we also measure some statistics that help us to
+           analyze the effects of the Co-Training process, such as, number of
+           positive, negative and neutral items rated and sets of positive, negative
+           and neutral user-item pairs to see the agreement of the recommenders.
+           We put all these inside a dictionary.
+
+           Args:
+               * unlabeled_list: a matrix that holds the user-item that we must
+                                 predict their rating.
+               * binary_ratings: tells us if we must predict based on an implicit
+                                 (0,1) dataset or an explicit.
+               * exclude_seen: tells us if we need to exclude already-seen items.
+               * p_most: tells the number of p-most positive items that we
+                         should choose.
+               * n_most: tells the number of n-most negative items that we
+                         should choose.
+               * score_mode: the type of score prediction, 'user' represents by
+                             sequentially user-by-user, 'batch' represents by
+                             taking batches of users, 'matrix' represents to
+                             make the preditions by a matrix multiplication.
+
+           Args type:
+               * unlabeled_list: Scipy.Sparse matrix.
+               * binary_ratings: bool
+               * exclude_seen: bool
+               * p_most: int
+               * n_most: int
+               * score_mode: str
+
+           Returns:
+               A list containing the user-item-rating triplets and the meta
+               dictionary for statistics.
+        """
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
