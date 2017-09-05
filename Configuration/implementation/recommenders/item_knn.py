@@ -210,7 +210,7 @@ class ItemKNNRecommender(Recommender):
            of the user and the item similarities. This matrix multiplication
            returns the predicted score for all the items based on the users
            preferences.
-           
+
            All the scores are stored inside `self.scores`, and can be either
            normalized or not.
 
@@ -272,7 +272,7 @@ class ItemKNNRecommender(Recommender):
         return ranking[:n]
 
     def recommend_new_user(self, user_profile, n=None, exclude_seen=True):
-        """Makes a top-N recommendation list for a specific user.
+        """Makes a top-N recommendation list for a new user user.
 
             Args:
                 * user_id: user index to which we will build the top-N list.
@@ -321,6 +321,8 @@ class ItemKNNRecommender(Recommender):
                 * user_id: user index to which we will build the top-N list.
                 * rated_indices: list that holds the items for which we will
                                  predict the user preference.
+                * score_mode: the score is created only for one user or it is
+                              created for all the users.
 
             Args type:
                 * user_id: int
