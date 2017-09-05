@@ -1,6 +1,6 @@
 '''
 Politecnico di Milano.
-item_knn.py
+similarity.py
 
 Description: This file contains the definition of a ISimilarity abstract class
              and the implementation of Cosine, Pearson and Adjusted Cosine

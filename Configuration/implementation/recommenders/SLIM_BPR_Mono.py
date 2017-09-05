@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on 28 June 2017
+Politecnico di Milano.
+SLIM_BPR_Mono.py
+
+Description: This file contains the definition and implementation of a SLIM
+             recommender BPR-optimized.
 
 @author: Maurizio Ferrari Dacrema
+Modified by: Fernando Pérez.
+
+Created on 28 June 2017
+Last modified on 05/09/2017.
 """
 
 import numpy as np
@@ -14,27 +22,73 @@ from .Recommender_utils import similarityMatrixTopK, check_matrix
 import scipy.sparse as sps
 import subprocess
 
-import pdb
-
 class SLIM_BPR_Mono(Recommender):
+    """
+    Train a Sparse Linear Methods (SLIM) item similarity model.
+    This model is optimized for ranking, specifically, using BPR.
+    This class uses MyMediaLite.
 
-    # def __init__(self, URM_train, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05, topK = False):
+    See:
+        Efficient Top-N Recommendation by Linear Regression,
+        M. Levy and K. Jack, LSRS workshop at RecSys 2013.
+
+        SLIM: Sparse linear methods for top-n recommender systems,
+        X. Ning and G. Karypis, ICDM 2011.
+        http://glaros.dtc.umn.edu/gkhome/fetch/papers/SLIM2011icdm.pdf
+
+        BPR: Bayesian Personalized Ranking from Implicit Feedback,
+        Steffen Rendle, Christoph Freudenthaler, Zeno Gantner and Lars Schmidt-Thieme,
+        Proceedings of the Twenty-Fifth Conference on Uncertainty in Artificial
+        Intelligence, UAI 2009.
+        https://arxiv.org/abs/1205.2618
+
+        MyMediaLite: A Free Recommender System Library,
+        Zeno Gantner, Steffen Rendle, Christoph Freudenthaler and Lars Schmidt-Thieme,
+        Proceedings of the Fifth ACM Conference on Recommender Systems.
+        RecSys '11.
+        http://dl.acm.org/citation.cfm?id=2043989
+
+    Attibutes:
+        * URM_train: dataset which we use to build the model.
+        * lambda_i: regularization term for the positive items.
+        * lambda_j: regularization term for the negative items.
+        * learning_rate: learning rate for the SGD.
+        * topK: top-K most similar items.
+        * W: A matrix specifying the similarity between items in a dense-matrix
+             format.
+        * W_sparse: A matrix specifying the similarity between items in a
+                    sparse-matrix format.
+        * basePath: path where all the files are located.
+        * executablePath: path were the MyMediaLite executable is.
+        * trainFileName: name of the train file.
+        * testFileName: name of the test file.
+        * outputModelName: name of the model file.
+
+    Warning:
+        This class needs to save files on disk to call another executable.
+        Neither this class nor the executable are thread safe.
+
+    """
     def __init__(self, lambda_i = 0.0025, lambda_j = 0.00025, learning_rate = 0.05, topK = None):
-        """
-        WARNING: This class needs to save files on disk to call another executable. Neither this class nor the executable
-        are thread safe
+        """Constructor of the SLIM_BPR_Mono class.
 
-        :param URM_train:
-        :param lambda_i:
-        :param lambda_j:
-        :param learning_rate:
-        :param topK:
+           Args:
+                * URM_train: dataset which we use to build the model.
+                * lambda_i: regularization term for the positive items.
+                * lambda_j: regularization term for the negative items.
+                * learning_rate: learning rate for the SGD.
+                * topK: top-K most similar items.
+
+           Args type:
+                * URM_train: Scipy.Sparse matrix.
+                * lambda_i: float
+                * lambda_j: float
+                * learning_rate: float
+                * topK: int
+
         """
         super(SLIM_BPR_Mono, self).__init__()
 
-        # self.URM_train = URM_train
-        # self.n_users = URM_train.shape[0]
-        # self.n_items = URM_train.shape[1]
         self.lambda_i = lambda_i
         self.lambda_j = lambda_j
         self.learning_rate = learning_rate
@@ -48,26 +102,38 @@ class SLIM_BPR_Mono(Recommender):
         self.testFileName = "SLIM_BPR_Mono_URM_test.csv"
         self.outputModelName = "SLIM_BPR_Mono_Model.txt"
 
-        # self.basePath = "data/"
-        # self.executablePath = "MyMediaLite/bin/item_recommendation"
-
         # Set permission to execute, code 0775, the o is needed in python to encode octal numbers
         os.chmod(self.executablePath, 0o775)
 
     def __str__(self):
+        """ String representation of the class. """
         return "SLIM_BPR_Mono(lambda_i={},lambda_j={},learning_rate={},topK={})".format(self.lambda_i, self.lambda_j, self.learning_rate, self.topK)
 
     def short_str(self):
+        """ Short string used for dictionaries. """
         return "SLIM_BPR_Mono"
 
     def _get_user_ratings(self, user_id):
         return self.URM_train[user_id]
 
     def writeTestToFile(self, URM_test):
+        """Writes a test set to a file.
+
+            Args:
+                * URM_test: Matrix that holds the test set.
+
+            Args type:
+                * URM_test: Scipy.Sparse matrix.
+        """
         if URM_test is not None:
             self.writeSparseToFile(URM_test, open(self.basePath + self.testFileName, "w"))
 
     def removeTemporaryFiles(self):
+        """Remove old and temporary files made by older trainings of the algorithm.
+
+            This method removes old Training, Training with only positive feedback,
+            and model files.
+        """
 
         # Remove saved Model and URM
 
@@ -81,6 +147,17 @@ class SLIM_BPR_Mono(Recommender):
         os.remove(self.basePath + self.outputModelName)
 
     def writeSparseToFile(self, sparseMatrix, file):
+        """Writes into disk a sparse matrix as a file.
+
+            Args:
+                * sparseMatrix: the sparse matrix to be saved.
+                * file: an opened file where the matrix is going to be saved.
+
+            Args type:
+                * sparseMatrix: Scipy.Sparse matrix.
+                * file: File instance.
+
+        """
         sparseMatrix = sparseMatrix.tocoo()
 
         data = sparseMatrix.data
@@ -96,6 +173,21 @@ class SLIM_BPR_Mono(Recommender):
         file.close()
 
     def loadModelIntoDenseMatrix(self, filePath):
+        """Loads into memory a dense matrix from a file.
+
+            This method loads the model saved by MyMediaLite into disk, as a
+            dense matrix. However, if only the top-K similar items are considered
+            then a sparse matrix is created instead of a dense. The matrix is
+            stored in `self.W` or `self.W_sparse`
+
+            Args:
+                * filePath: represents the name of the file that we will read the
+                        matrix
+
+            Args type:
+                * filePath: str
+
+        """
         SLIMsimilarity = open(filePath, "r")
         SLIMsimilarity.readline()  # program name
         SLIMsimilarity.readline()  # 2.99
@@ -143,8 +235,20 @@ class SLIM_BPR_Mono(Recommender):
             self.sparse_weights = False
             print("No sparse_weights")
 
-
     def loadModelIntoSparseMatrix(self, filePath):
+        """Loads into memory a sparse matrix from a file.
+
+            This method loads the model saved by MyMediaLite into disk, as a
+            sparse matrix. The matrix is stored in `self.W_sparse`.
+
+            Args:
+                * filePath: represents the name of the file that we will read the
+                        matrix
+
+            Args type:
+                * filePath: str
+
+        """
 
         values, rows, cols = [], [], []
 
@@ -186,13 +290,29 @@ class SLIM_BPR_Mono(Recommender):
         if self.topK != False:
             self.W_sparse = similarityMatrixTopK(self.W_sparse, k=self.topK)
 
-
     def fit(self, URM_train, epochs=30, deleteFiles=False):
-        """
-        Train SLIM wit BPR. If the model was already trained, overwrites matrix S
-        Training is performed via batch gradient descent
-        :param epochs:
-        :return: -
+        """Trains and builds the model given a dataset.
+
+            The fit function inside the SLIM_BPR_Mono class builds a similarity matrix
+            between all the items, this similarity is calculated in a way that
+            the ranking is optimized.
+
+            This function executes a command-line method passing the necessary
+            parameters in order to run the SLIMBPR recommender that comes into
+            the MyMediaLite library. After MyMediaLite finishes the building
+            of the model, this one is loaded into a dense matrix.
+
+            It makes use of FileIO and remove old training and model files.
+
+            Args:
+                * URM_train: User-Rating Matrix for which we will train the model.
+                * epochs: number of epochs to perform SGD.
+                * deleteFiles: delete older files or not.
+
+            Args type:
+                * URM_train: Scipy.Sparse matrix.
+                * epochs: int
+                * deleteFiles: bool
         """
         #
         self.URM_train = check_matrix(URM_train, format='csr')
@@ -259,16 +379,48 @@ class SLIM_BPR_Mono(Recommender):
         if deleteFiles:
             self.removeTemporaryFiles()
 
-    def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
-        # Calculate the scores only one time.
-        # users = []
-        # items = []
-        # for user_idx, item_idx in unlabeled_list:
-        #     users.append(user_idx)
-        #     items.append(item_idx)
-        #
-        # users = np.array(users,dtype=np.int32)
-        # items = np.array(items,dtype=np.int32)
+    def label(self, unlabeled_list, binary_ratings=False, exclude_seen=True, p_most=1, n_most=3, score_mode='user'):
+        """Rates new user-item pairs.
+
+           This function is part of the Co-Training process in which we rate
+           all user-item pairs inside an unlabeled pool of samples, afterwards,
+           we separate them into positive and negative items based on their score.
+           Lastly, we take the p-most positive and n-most negative items from all
+           the rated items.
+
+           Inside the function we also measure some statistics that help us to
+           analyze the effects of the Co-Training process, such as, number of
+           positive, negative and neutral items rated and sets of positive, negative
+           and neutral user-item pairs to see the agreement of the recommenders.
+           We put all these inside a dictionary.
+
+           Args:
+               * unlabeled_list: a matrix that holds the user-item that we must
+                                 predict their rating.
+               * binary_ratings: tells us if we must predict based on an implicit
+                                 (0,1) dataset or an explicit.
+               * exclude_seen: tells us if we need to exclude already-seen items.
+               * p_most: tells the number of p-most positive items that we
+                         should choose.
+               * n_most: tells the number of n-most negative items that we
+                         should choose.
+               * score_mode: the type of score prediction, 'user' represents by
+                             sequentially user-by-user, 'batch' represents by
+                             taking batches of users, 'matrix' represents to
+                             make the preditions by a matrix multiplication.
+
+           Args type:
+               * unlabeled_list: Scipy.Sparse matrix.
+               * binary_ratings: bool
+               * exclude_seen: bool
+               * p_most: int
+               * n_most: int
+               * score_mode: str
+
+           Returns:
+               A list containing the user-item-rating triplets and the meta
+               dictionary for statistics.
+        """
         unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
         users,items = unlabeled_list.nonzero()
         n_scores = len(users)
@@ -287,10 +439,6 @@ class SLIM_BPR_Mono(Recommender):
 
         elif (score_mode == 'batch'):
             pass
-            # filtered_scores = []
-            # uniq_users, user_to_idx = np.unique(users,return_inverse=True)
-            # self.calculate_scores_batch(uniq_users)
-            # filtered_scores = self.scores[users,items]
 
         elif (score_mode == 'matrix'):
             pass
@@ -325,6 +473,22 @@ class SLIM_BPR_Mono(Recommender):
         return sorted(scores, key=lambda triplet: (triplet[0],triplet[1])), meta
 
     def calculate_scores_user(self,user_id):
+        """Calculates the score for all the items for a batch of users.
+
+           This function makes the matrix multiplication between the profile
+           of the user and the item similarities. This matrix multiplication
+           returns the predicted score for all the items based on the users
+           preferences.
+
+           All the scores are stored inside `self.scores`, and can be either
+           normalized or not.
+
+           Args:
+                * user_id: the user index inside the system.
+
+            Args type:
+                * users: int.
+        """
         user_profile = self._get_user_ratings(user_id)
 
         if self.sparse_weights:
@@ -346,6 +510,22 @@ class SLIM_BPR_Mono(Recommender):
             self.scores /= den
 
     def predict(self, user_id, rated_indices, score_mode='user'):
+        """Calculates the predicted preference of a user for a list of items.
+
+            Args:
+                * user_id: user index to which we will build the top-N list.
+                * rated_indices: list that holds the items for which we will
+                                 predict the user preference.
+                * score_mode: the score is created only for one user or it is
+                              created for all the users.
+
+            Args type:
+                * user_id: int
+                * rated_indices: list of int.
+
+            Returns:
+                A list of predicted preferences for each item in the list given.
+        """
         # return the scores for the rated items.
         if (score_mode == 'user'):
             self.calculate_scores_user(user_id)
