@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
 Politecnico di Milano.
-k-fold-cotraining.py
+holdout.py
 
-Description: This file contains the fitting and evaluation of two
-            It makes an evaluation using Co-Training and without it, the
-            evaluation metrics are RMSE, roc_auc, precision, recall, map, ndcg, rr.
+Description: This is the main file to run a Holdout evaluation using Co-Training
+             between two recommenders.
 
 Modified by Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 '''
 
 # Import Python utils.
@@ -17,7 +16,6 @@ import argparse
 import logging
 from collections import OrderedDict
 from datetime import datetime as dt
-import pdb
 import sys
 import traceback
 
@@ -122,7 +120,9 @@ if args.columns is not None:
     args.columns = args.columns.split(',')
 
 # read the dataset
-logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(args.number_positives, args.number_negatives, args.number_unlabeled))
+logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(
+    args.number_positives, args.number_negatives, args.number_unlabeled)
+)
 logger.info('Reading {}'.format(args.dataset))
 dataset, item_to_idx, user_to_idx = read_dataset(
     args.dataset,
@@ -138,7 +138,7 @@ dataset, item_to_idx, user_to_idx = read_dataset(
 nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
 logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 
-# compute the k-fold split
+# compute the holdout split.
 logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
 
 train_df, test_df = holdout(dataset,
@@ -174,10 +174,6 @@ global_effects_2 = GlobalEffects()
 top_pop_1 = TopPop()
 top_pop_2 = TopPop()
 random = Random(seed=1234,binary_ratings=args.is_binary)
-# baselines = dict()
-# baselines['global_effects'] = global_effects
-# baselines['top_pop'] = top_pop
-# baselines['random'] = random
 
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
@@ -194,34 +190,49 @@ recommenders["GlobalEffects2"] = global_effects_2
 recommenders[random.short_str()] = random
 
 # Evaluations cotrained.
-eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = 10,co_training=True)
+eval_ctr = Evaluation(results_path=args.results_path,
+                      results_file=args.results_file,
+                      test_set=test,
+                      val_set = None,
+                      at = 10,
+                      co_training=True
+                     )
+
+# Read the previous results if recovering.
 if (args.recover_cotraining):
     filepath = args.results_path + args.results_file
     results = results_to_df(filepath)
-    eval_ctr.df_to_eval(results, h1_ctr, h2_ctr, recommenders=recommenders, read_iter=args.recover_iter)
+    eval_ctr.df_to_eval(results,
+                        h1_ctr,
+                        h2_ctr,
+                        recommenders=recommenders,
+                        read_iter=args.recover_iter
+                       )
 
-# eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
-cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj=eval_ctr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+cotraining = CoTraining(rec_1=h1_ctr,
+                        rec_2=h2_ctr,
+                        eval_obj=eval_ctr,
+                        n_iters = args.number_iterations,
+                        n_labels = args.number_unlabeled,
+                        p_most = args.number_positives,
+                        n_most = args.number_negatives
+                       )
 
-# Recommender evaluation.
-results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
+# Write the header of the file.
+results_to_file(args.results_path + args.results_file, header=True)
 
 # Cotraining fitting and evaluation.
 logger.info('Beggining the Co-Training process.')
 tic = dt.now()
-cotraining.fit(train, eval_iter=True,binary_ratings=args.is_binary,recommenders=recommenders, baselines=True,recover_cotraining=args.recover_cotraining, recover_iter=args.recover_iter)
+cotraining.fit(train,
+               eval_iter=True,
+               binary_ratings=args.is_binary,
+               recommenders=recommenders,
+               baselines=True,
+               recover_cotraining=args.recover_cotraining,
+               recover_iter=args.recover_iter
+              )
 logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
-
-# Baseline fitting.
-# global_effects.fit(train)
-# top_pop.fit(train)
-# random.fit(train)
-
-# Evaluate the baselines.
-# eval_ctr.eval_baselines(random=random,global_effects=global_effects,top_pop=top_pop)
 
 # Plotting.
 try:
@@ -230,13 +241,38 @@ try:
     del(only_h1[h2_ctr.short_str()])
     del(only_h2[h1_ctr.short_str()])
     if (args.recover_cotraining):
-        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr, h2_ctr.short_str(): h2_ctr}, n_iters=args.number_iterations,file_prefix="Together_") # First 7 figures.
-        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr}, n_iters=args.number_iterations,file_prefix=h1_ctr.short_str()+"_") # First 7 figures.
-        eval_ctr.plot_all_recommenders(recommenders={h2_ctr.short_str(): h2_ctr}, n_iters=args.number_iterations,file_prefix=h2_ctr.short_str()+"_") # First 7 figures.
+        # All the recommenders in the same plot.
+        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr,
+                                                     h2_ctr.short_str(): h2_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix="Together_"
+                                      )
+        # Only the first recommender.
+        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h1_ctr.short_str()+"_"
+                                      )
+        # Only the second recommender.
+        eval_ctr.plot_all_recommenders(recommenders={h2_ctr.short_str(): h2_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h2_ctr.short_str()+"_"
+                                      )
     else:
-        eval_ctr.plot_all_recommenders(recommenders=recommenders, n_iters=args.number_iterations,file_prefix="Together_") # First 7 figures.
-        eval_ctr.plot_all_recommenders(recommenders=only_h1, n_iters=args.number_iterations,file_prefix=h1_ctr.short_str()+"_") # First 7 figures.
-        eval_ctr.plot_all_recommenders(recommenders=only_h2, n_iters=args.number_iterations,file_prefix=h2_ctr.short_str()+"_") # First 7 figures.
+        # All the recommenders in the same plot, including baselines.
+        eval_ctr.plot_all_recommenders(recommenders=recommenders,
+                                       n_iters=args.number_iterations,
+                                       file_prefix="Together_"
+                                      )
+        # All the recommenders without the second recommender.
+        eval_ctr.plot_all_recommenders(recommenders=only_h1,
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h1_ctr.short_str()+"_"
+                                      )
+        # All the recommenders without the first recommender.
+        eval_ctr.plot_all_recommenders(recommenders=only_h2,
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h2_ctr.short_str()+"_"
+                                      )
 except:
     error_path = args.results_path + "errors.txt"
     error_file = open(error_path, 'a')
