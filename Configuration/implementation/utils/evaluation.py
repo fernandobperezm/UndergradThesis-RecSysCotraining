@@ -7,23 +7,22 @@ Description: This file contains the definition and implementation of a evaluatio
 
 Modified by Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 '''
 
 import random as random
 
 import logging
+import csv
 import numpy as np
 import scipy.sparse as sps
 import implementation.utils.metrics as metrics
 import implementation.utils.data_utils as data_utils
 from implementation.recommenders.base import check_matrix
 
-import pdb
-import csv
-
 import matplotlib
-matplotlib.use('Agg') # Directive to save the images in PNG without X windows environment.
+# Directive to save the images in PNG without X windows environment.
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
@@ -33,15 +32,61 @@ logging.basicConfig(
 
 
 class Evaluation(object):
-    """ EVALUATION class for RecSys"""
+    """The class represents an evaluation framework for Recommender Systems.
+
+        The class provides different methods to evaluate recommenders and plot
+        those results.
+
+        It can evaluate the recommenders for top-N recommendation and rating
+        prediction using the metrics defined in metrics.py.
+
+        It can calculate the popularity bins for a dataset and count which items
+        fall in which bin.
+
+        It provides methods to transform a Pandas.Dataframe into an evaluation
+        object.
+
+        It also provides methods to log and plot the results.
+
+        Attributes:
+            * results_path: where the results folder is located.
+            * results_file: the name of the results file.
+            * test_set: dataset to be used for testing purposes.
+            * val_set: dataset to be used for validation purposes.
+            * at: size of the top-N recommendation list.
+            * cotraining: used cotraining or not.
+            * bins: to which popularity bin falls each item.
+            * eval_bins: calculate the popularity bins.
+            * rec_evals: holds the evaluation for each metric for each recommender.
+
+    """
 
     def __init__(self, results_path, results_file, test_set, val_set = None, at = 10, co_training=False, eval_bins = False):
-        '''
+        """Constructor of the class.
+
             Args:
-                * recommender: A Recommender Class object that represents the first
-                         recommender.
-                * nusers: The number of users to evaluate. It represents user indices.
-        '''
+                * results_path: where the results folder is located.
+                * results_file: the name of the results file.
+                * test_set: dataset to be used for testing purposes.
+                * val_set: dataset to be used for validation purposes.
+                * at: size of the top-N recommendation list.
+                * cotraining: used cotraining or not.
+                * bins: to which popularity bin falls each item.
+                * eval_bins: calculate the popularity bins.
+                * rec_evals: holds the evaluation for each metric for each
+                             recommender.
+
+            Args type:
+                * results_path: str
+                * results_file: str
+                * test_set: Scipy.Sparse matrix instance.
+                * val_set: Scipy.Sparse matrix instance.
+                * at: int
+                * cotraining: bool
+                * bins: Dictionary<int:int>
+                * eval_bins: bool
+                * rec_evals: Dictionary<str:Dictionary<str:[float]>>
+        """
         super(Evaluation, self).__init__()
         self.results_path = results_path
         self.results_file = results_file
@@ -52,25 +97,25 @@ class Evaluation(object):
         self.bins = dict()
         self.eval_bins = eval_bins
         self.rec_evals = dict()
-        self.rmse = (list(), list())
-        self.roc_auc = (list(), list())
-        self.precision = (list(), list())
-        self.recall = (list(), list())
-        self.map = (list(), list())
-        self.mrr = (list(), list())
-        self.ndcg = (list(), list())
 
-    def __str__(self):
-        return "Evaluation(Rec={}\n)".format(
-            self.recommender.__str__())
+    def check_ranked_in_bins(self,ranked_list,rec_key):
+        """Checks in which bin each recommended item falls.
 
-    def check_ranked_in_bins(self,ranked_list,user_idx,rec_key,n=10):
-        # pdb.set_trace()
+            This methods takes a top-N recommendtion list and for each item in
+            it, it checks in which popularity bin it falls, afterwards, it
+            increments the count of number of recommended items for that popularity
+            bin.
+
+            Args:
+                * ranked_list: a top-N recommendation list.
+                * rec_key: which recommender is giving this ranked list.
+
+            Args type:
+                * ranked_list: list of int.
+                * rec_key: str
+        """
         if (not 'item_pop_bin' in self.rec_evals[rec_key].keys()):
             self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10)
-
-        # if (not rec_key in self.bins['item_pop_bin']):
-        #     self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10)
 
         for item_idx in ranked_list:
             # in self.bins['item_pop_bin'][item_idx] we will have to which bin
@@ -78,7 +123,21 @@ class Evaluation(object):
             bin_idx = self.bins['item_pop_bin'][item_idx]
             self.rec_evals[rec_key]['item_pop_bin'][bin_idx] += 1
 
-    def matrix_to_eval(self,URM, type_res):
+    def make_pop_bins(self,URM, type_res):
+        """Takes a URM and calculates the popularity bins.
+
+            This methods takes a sparse matrix and creates a user or popularity
+            bin. The method by default makes 10 popularity bins.
+
+            Args:
+                * URM: the dataset for which we will create the popularity bins.
+                * type_res: type of popularity bins to be created, can be
+                            `item_pop_bin` and `user_pop_bin`.
+
+            Args type:
+                * URM: Scipy.Sparse matrix.
+                * type_res: str
+        """
         nbins = 10
         if (type_res == "item_pop_bin"):
             # Supposing a CSC matrix, dataset.
@@ -122,9 +181,29 @@ class Evaluation(object):
                 self.bins = dict()
             self.bins['user_pop_bin'] = dict(bins_list)
 
-    def df_to_eval(self, df, rec_1, rec_2, recommenders = None, read_iter=None, type_res=None ):
+    def df_to_eval(self, df, recommenders = None, read_iter=None, type_res=None ):
+        """Takes the dataframe information into the evaluation instance.
+
+            Args:
+                * df: the information we are going to read
+                * recommenders: the recommenders we are going to store the
+                                information
+                * read_iter: the final iteration to read.
+                * type_res: type of results in df, it can be None, `numberlabeled`
+                            or `label_comparison`. The first reads the results
+                            as the evaluation of the recommenders, the second
+                            reads the results as the number of labeled items
+                            at each iteration and the last reads the results
+                            as the comparison between the type of rating.
+
+            Args type:
+                * df: Pandas.Dataframe
+                * recommenders: Dictionary<str:Recommender>
+                * read_iter: int
+                * type_res: str
+
+        """
         # Getting rec1 and rows.
-        # pdb.set_trace()
         for rec_key in recommenders.keys():
             recommender,pos = recommenders[rec_key]
 
@@ -186,29 +265,34 @@ class Evaluation(object):
                 self.rec_evals[rec_key]['negative'] = neg_col
                 self.rec_evals[rec_key]['neutral'] = neutral_col
 
-            elif (type_res == "dataset_item_pop"):
-                pdb.set_trace()
-                # This creates an array where item_pop[item_idx] = popularity
-                items_pop = df.item_idx.value_counts()
-                nitems, = items_pop.shape
-                partition_size = nitems / 10
-                # for item_idx in range(nitems):
-                #
-                #
-                # print(df)
-                # pass
-
-            elif (type_res == "dataset_user_pop"):
-                pdb.set_trace()
-                users = df.user_idx.unique()
-                # print(df)
-                # pass
-
     def eval(self, recommenders=None, minRatingsPerUser=1):
-        '''
-            recommenders: dict that contains as key the recommender name
-                          and as value the reference of the recommender.
-        '''
+        """Performs the evaluation of the recommenders.
+
+            This method evaluates all the recommenders inside `recommenders`
+            by two methods, rating prediction and top-N recommendation list.
+            The metric used for the first is `RMSE`, for the second, the metrics
+            are: `MAP`, `ROC-AUC`, `NDCG`, `Precision`, `Recall`, and `MRR`.
+
+            It also checks for a given top-N recommendation list, the popularity
+            of each item.
+
+            This method performs the evaluation only to the users in the test
+            set that has more or equal ratings than `minRatingsPerUser`.
+
+            After the evaluation is finished for all those users, the average
+            of each metric is taken.
+
+            Args:
+                * recommenders: the recommenders we are going to evaluate.
+                * minRatingsPerUser: number of minimum ratings that each user
+                                     needs to have in the test set in order
+                                     to be evaluated.
+
+            Args type:
+                * recommenders: Dictionary<str:Recommenders>
+                * minRatingsPerUser: int
+
+        """
         self.test_set = check_matrix(self.test_set, 'csr', dtype=np.float32)
 
         nusers, nitems = self.test_set.shape
@@ -223,7 +307,15 @@ class Evaluation(object):
 
         recommenders_to_evaluate = list(recommenders.keys())
         n_recs = len(recommenders_to_evaluate)
-        rmse_, roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,)), np.zeros(shape=(n_recs,))
+
+        rmse_ = np.zeros(shape=(n_recs,))
+        roc_auc_ = np.zeros(shape=(n_recs,))
+        precision_ = np.zeros(shape=(n_recs,))
+        recall_ = np.zeros(shape=(n_recs,))
+        map_ = np.zeros(shape=(n_recs,))
+        mrr_ = np.zeros(shape=(n_recs,))
+        ndcg_ = np.zeros(shape=(n_recs,))
+
         for rec_key in recommenders_to_evaluate:
             if (not rec_key in self.rec_evals):
                 self.rec_evals[rec_key] = dict()
@@ -235,9 +327,6 @@ class Evaluation(object):
                 self.rec_evals[rec_key]['MRR'] = list()
                 self.rec_evals[rec_key]['NDCG'] = list()
 
-        # row_indices, _ = self.test_set.nonzero() # users with ratings in the test set. nonzero returns a tuple, the first element are the rows.
-        # relevant_users = np.unique(row_indices) # In this way we only consider users with ratings in the test set and not ALL the users.
-        # for test_user in relevant_users:
         for test_user in usersToEvaluate:
             if (test_user % 10000 == 0):
                 logger.info("Evaluating user {}".format(test_user))
@@ -250,11 +339,19 @@ class Evaluation(object):
             for rec_key in recommenders_to_evaluate:
                 rec_to_eval = recommenders[rec_key]
 
-                ranked_items = rec_to_eval.recommend(user_id=test_user, n=at, exclude_seen=True)
-                predicted_relevant_items = rec_to_eval.predict(user_id=test_user, rated_indices=relevant_items)
+                ranked_items = rec_to_eval.recommend(user_id=test_user,
+                                                     n=at,
+                                                     exclude_seen=True
+                                                    )
+                predicted_relevant_items = rec_to_eval.predict(user_id=test_user,
+                                                               rated_indices=relevant_items
+                                                              )
 
                 # evaluate the recommendation list with RMSE and ranking metrics.
-                is_relevant = np.in1d(ranked_items, relevant_items, assume_unique=True)
+                is_relevant = np.in1d(ranked_items,
+                                      relevant_items,
+                                      assume_unique=True
+                                     )
                 # TopPop only works for ranking metrics.
                 if (rec_key == "TopPop1" or rec_key == "TopPop2"):
                     rmse_[i] += 0.0
@@ -272,7 +369,7 @@ class Evaluation(object):
                     rec_key != "GlobalEffects1" and rec_key != "GlobalEffects2" and
                     rec_key != "Random"):
 
-                    self.check_ranked_in_bins(ranked_list=ranked_items,user_idx=test_user,rec_key=rec_key,n=at)
+                    self.check_ranked_in_bins(ranked_list=ranked_items,rec_key=rec_key)
 
                 i += 1
 
@@ -292,29 +389,52 @@ class Evaluation(object):
 
             i += 1
 
-    def log_all(self):
-        for index in range(len(self.rmse)):
-            self.log_by_index(index)
-
     def log_to_file(self,log_type,recommenders,args):
-        '''
-            recommenders: dictionary of recommenders to eval.
-            type:
-                * 'evaluation'
-                * 'labeling'
-                * 'tuning'
-            args: dictionary of arguments.
-                * 'index'
+        """Writes a log into a file of the results.
+
+            The type of log is determined by `log_type`. If it is `evaluation`
+            then the evaluation for the current iteration is logged. If it is
+            `labeling` then the number of positive, negative and total labeled
+            items is saved in one file, in the other the comparison between the
+            agreement between the recommender is saved. If it is `tuning` then
+            the hyper-parameters evaluation  for the recommender are logged.
+
+            Args:
+                * log_type: the type of logging we are performing. Possible values
+                            are `evaluation`, `labeling` and `tuning`.
+                * recommenders: The recommenders we will log.
+                * args: represents keyword arguments for the function.
+
+            Args type:
+                * log_type: str
+                * recommenders: Dictionary<str:Recommender>
+                * args: Dictionary<str:AnyType>
+
+
+            Keywords arguments:
+                * 'index': current iteration.
                 * 'rec_key': dictionary of recommenders containing:
-                    * pos_lab_rec, neg_lab_rec, total_lab_rec as a triplet
-                * 'pos_1'
-                * 'pos_2'
-                * 'neg_1'
-                * 'neg_2'
-                * 'both_pos'
-                * 'both_neg'
-                * 'both_neutral'
-        '''
+                    ** pos_lab_rec: number of items the recommender labeled as
+                                    positive.
+                    ** neg_lab_rec: number of items the recommender labeled as
+                                    negative.
+                    ** total_lab_rec: total number of items the recommender
+                                      labeled.
+                * 'pos_1': How many items only the recommender 1 labeled as
+                           positive.
+                * 'pos_2': How many items only the recommender 2 labeled as
+                           positive.
+                * 'neg_1': How many items only the recommender 1 labeled as
+                           negative.
+                * 'neg_2': How many items only the recommender 2 labeled as
+                           negative.
+                * 'both_pos': How many items both recommenders labeled as
+                              positive.
+                * 'both_neg': How many items both recommenders labeled as
+                              negative.
+                * 'both_neutral': How many items both recommenders labeled as
+                                  neutral.
+        """
         filepath = self.results_path
         columns = []
         index = args['index']
@@ -332,7 +452,6 @@ class Evaluation(object):
                 with open(filepath, 'w', newline='') as csvfile:
                     csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
                     csvwriter.writerow(columns)
-
 
             with open(filepath, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -459,59 +578,25 @@ class Evaluation(object):
                         row = [str(recommender)] + rec_evaluation
                         csvwriter.writerow(row)
 
-    def log_by_index(self,index,rec_1, rec_2):
-        filepath = self.results_path + self.results_file
-        data_utils.results_to_file(filepath=filepath,
-                        cotraining=self.cotraining,
-                        iterations=index,
-                        recommender1=rec_1,
-                        evaluation1=[self.rec_evals[rec_1.short_str()]['RMSE'][index],
-                                     self.rec_evals[rec_1.short_str()]['ROC_AUC'][index],
-                                     self.rec_evals[rec_1.short_str()]['Precision'][index],
-                                     self.rec_evals[rec_1.short_str()]['Recall'][index],
-                                     self.rec_evals[rec_1.short_str()]['MAP'][index],
-                                     self.rec_evals[rec_1.short_str()]['MRR'][index],
-                                     self.rec_evals[rec_1.short_str()]['NDCG'][index]
-                                    ],
-                        at=self.at
-                        )
-
-        data_utils.results_to_file(filepath=filepath,
-                        cotraining=self.cotraining,
-                        iterations=index,
-                        recommender1=rec_2,
-                        evaluation1=[self.rec_evals[rec_2.short_str()]['RMSE'][index],
-                                     self.rec_evals[rec_2.short_str()]['ROC_AUC'][index],
-                                     self.rec_evals[rec_2.short_str()]['Precision'][index],
-                                     self.rec_evals[rec_2.short_str()]['Recall'][index],
-                                     self.rec_evals[rec_2.short_str()]['MAP'][index],
-                                     self.rec_evals[rec_2.short_str()]['MRR'][index],
-                                     self.rec_evals[rec_2.short_str()]['NDCG'][index]
-                                    ],
-                        at=self.at
-                        )
-
-    def log_number_labeled(self,index, rec_1, rec_2, nlabeled1, nlabeled2):
-        filepath = self.results_path + "numberlabeled.csv"
-        data_utils.results_to_file(filepath=filepath,
-                        cotraining=self.cotraining,
-                        iterations=index,
-                        recommender1=rec_1,
-                        evaluation1=[nlabeled1],
-                        at=self.at
-                        )
-
-        data_utils.results_to_file(filepath=filepath,
-                        cotraining=self.cotraining,
-                        iterations=index,
-                        recommender1=rec_2,
-                        evaluation1=[nlabeled2],
-                        at=self.at
-                        )
-
     def plot_popularity_bins(self, recommenders, niter, file_prefix, bin_type):
-        # pdb.set_trace()
-        # X data.
+        """Plots the number of items recommended for each popularity bin.
+
+            This method creates a bar plot in which each bar color is a different
+            recommender. For each recommender the number of items recommended by
+            its popularity is plotted. The plot is saved into a file.
+
+            Args:
+                * recommenders: The recommenders we will plot.
+                * niter: number of Co-Training iterations performed.
+                * file_prefix: prefix of the file logged.
+                * bin_type: plot popularity bins of users or items.
+
+            Args type:
+                * recommenders: Dictionary<str:Recommender>
+                * niter: int
+                * file_prefix: str
+                * bin_type: str
+        """
         nbins = 10
         xdata_rangebins = np.arange(nbins)
 
@@ -552,6 +637,30 @@ class Evaluation(object):
         plt.clf()
 
     def plot_statistics(self, recommenders=None, n_iters=30, file_prefix="", statistic_type=None):
+        """Plots the different evaluated statistics for all the recommenders.
+
+            This method creates a line plot in which line color represents
+            a recommender and each marker represents an statistic.
+
+            If the statistic_type is None, then the evaluation of each metric
+            is plotted. If the statistic_type is `numberlabeled` then
+            it is plotted how many positive, negative and total items both
+            recommender could label while doing Co-Training. If the statistic_type
+            is `label_comparison` then agreement between the recommenders is
+            plotted.
+
+            Args:
+                * recommenders: The recommenders we will plot.
+                * n_iters: number of Co-Training iterations performed.
+                * file_prefix: prefix of the file logged.
+                * statistic_type: plot evaluation, `numberlabeled` or `label_comparison`.
+
+            Args type:
+                * recommenders: Dictionary<str:Recommender>
+                * niter: int
+                * file_prefix: str
+                * statistic_type: str
+        """
         if (statistic_type is None):
             self.plot_all_recommenders(recommenders=recommenders, n_iters=n_iters, file_prefix=file_prefix)
 
@@ -693,7 +802,22 @@ class Evaluation(object):
                         plt.clf()
 
     def plot_all_recommenders(self, recommenders=None, n_iters=30, file_prefix=""):
-        # pdb.set_trace()
+        """Plots the evaluation for rating prediction and top-N recommendation.
+
+            This method creates a plot where all the recommenders inside
+            `recommenders` are plotted in the same box. Each recommender has
+            its own color. There is one plot for each metric.
+
+            Args:
+                * recommenders: The recommenders we will plot.
+                * n_iters: number of Co-Training iterations performed.
+                * file_prefix: prefix of the file logged.
+
+            Args type:
+                * recommenders: Dictionary<str:Recommender>
+                * niter: int
+                * file_prefix: str
+        """
         recommenders_to_evaluate = list(recommenders.keys())
         n_recs = len(recommenders_to_evaluate)
         iterations = np.arange(n_iters+1)
@@ -754,123 +878,3 @@ class Evaluation(object):
                       )
             plt.savefig(savepath, bbox_inches="tight")
             plt.clf()
-
-        # # Plot each metric in a different file.
-        # # RMSE.
-        # fig = plt.figure(1)
-        # plt.title('RMSE between the recommenders.')
-        # # self_plot, = plt.plot(iterations, self.rmse,  'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.rmse[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.rmse[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[0]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[0]]*n_iters, 'r-', label='Global Effects')
-        # # tp_plot, = plt.plot(iterations, [tp_eval[0]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('RMSE')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_RMSE_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # ROC-AUC.
-        # fig = plt.figure(2)
-        # plt.title('ROC-AUC@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.roc_auc,  'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.roc_auc[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.roc_auc[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[1]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[1]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[1]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('ROC-AUC')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_ROC-AUC_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # Precision
-        # fig = plt.figure(3)
-        # plt.title('Precision@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.precision,  'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.precision[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.precision[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[2]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[2]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[2]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('Precision')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_Precision_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # Recall
-        # fig = plt.figure(4)
-        # plt.title('Recall@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.recall,  'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.recall[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.recall[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[3]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[3]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[3]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('Recall')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_Recall_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # MAP
-        # fig = plt.figure(5)
-        # plt.title('MAP@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.map,  'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.map[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.map[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[4]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[4]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[4]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('MAP')
-        # plt.xlabel('Iterations')
-        # plt.grid(True)
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # savepath = self.results_path + "Together_MAP_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # MRR
-        # fig = plt.figure(6)
-        # plt.title('MRR@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.mrr, 'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.mrr[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.mrr[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[5]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[5]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[5]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('MRR')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_MRR_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
-        #
-        # # NDCG
-        # fig = plt.figure(7)
-        # plt.title('NDCG@{} between the recommenders.'.format(self.at))
-        # # self_plot, = plt.plot(iterations, self.ndcg, 'r-', label=self.recommender.short_str())
-        # eval1_plot, = plt.plot(iterations, self.ndcg[0], 'b-', label=rec_1.short_str())
-        # eval2_plot, = plt.plot(iterations, self.ndcg[1], 'g-', label=rec_2.short_str())
-        # random_plot, = plt.plot(iterations, [random_eval[6]]*n_iters, 'k-', label='Random')
-        # ge_plot, = plt.plot(iterations, [ge_eval[6]]*n_iters, 'r-', label='Global Effects')
-        # tp_plot, = plt.plot(iterations, [tp_eval[6]]*n_iters, 'y-', label='Top Popular')
-        # plt.ylabel('NDCG')
-        # plt.xlabel('Iterations')
-        # plt.legend(handles=[eval1_plot,eval2_plot,random_plot,ge_plot,tp_plot])
-        # plt.grid(True)
-        # savepath = self.results_path + "Together_NDCG_{}iter.png".format(n_iters)
-        # plt.savefig(savepath)
-        # plt.clf()
