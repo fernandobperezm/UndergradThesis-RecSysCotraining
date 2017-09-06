@@ -7,7 +7,7 @@ Description: This file contains the definition and implementation of a evaluatio
 
 Modified by Fernando Pérez.
 
-Last modified on 05/09/2017.
+Last modified on 06/09/2017.
 '''
 
 import random as random

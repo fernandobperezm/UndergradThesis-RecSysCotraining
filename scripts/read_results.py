@@ -191,8 +191,8 @@ if (args.make_pop_bins):
     # Creation of the bins.
     n_iter = 0
     dataset = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
-    evaluation.matrix_to_eval(URM=dataset.tocsc(), type_res="item_pop_bin")
-    evaluation.matrix_to_eval(URM=dataset.tocsr(), type_res="user_pop_bin")
+    evaluation.make_pop_bins(URM=dataset.tocsc(), type_res="item_pop_bin")
+    evaluation.make_pop_bins(URM=dataset.tocsr(), type_res="user_pop_bin")
 
     # For each saved dataset, load the dataset, fit the two recommenders, evaluate them (cheking the bins)
     # and plot it
@@ -246,8 +246,6 @@ if args.to_read is not None:
         filename = args.results_path + option_to_read + ".csv"
         results = results_to_df(filename,type_res=option_to_read)
         evaluation.df_to_eval(df=results,
-                              rec_1=h1_ctr,
-                              rec_2=h2_ctr,
                               recommenders = {h1_ctr.short_str(): (h1_ctr,1),
                                               h2_ctr.short_str(): (h2_ctr,2)
                                              },

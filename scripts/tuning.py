@@ -172,7 +172,6 @@ for neighbor in neighbors:
         tic = dt.now()
         eval_ctr.eval(recommenders={h1_ctr.short_str(): h1_ctr}, minRatingsPerUser=1)
         eval_ctr.log_to_file(log_type="tuning",recommenders={h1_ctr.short_str(): h1_ctr},args={'index':i})
-        # eval_ctr.log_by_index(i, h1_ctr, h1_ctr)
         logger.info('Finished the Evaluation process in time: {}'.format(dt.now() - tic))
 
         i += 1
