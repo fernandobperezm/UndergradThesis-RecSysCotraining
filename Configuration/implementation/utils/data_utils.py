@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 '''
 Politecnico di Milano.
-item_knn.py
+data_utils.py
 
 Description: This file contains the definition and implementation of a file-reading
              function for datasets and a dataframe-to-csr matrix function.
 
 Created by: Massimo Quadrana.
-Modified by Fernando Pérez.
+Modified by: Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 '''
 
 import numpy as np
@@ -18,8 +18,6 @@ import pandas as pd
 
 import logging
 import csv
-
-import pdb
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -40,18 +38,19 @@ def read_dataset(path,
                  item_to_idx=None):
     """
 
-    :param path:
-    :param header:
-    :param columns:
-    :param make_binary:
-    :param binary_th:
-    :param user_key:
-    :param item_key:
-    :param rating_key:
-    :param sep:
-    :param user_to_idx:
-    :param item_to_idx:
-    :return:
+    :param path: where the file is located
+    :param header: number of the row that is the header.
+    :param columns: name of the columns.
+    :param make_binary: convert the explicit dataset into an implicit dataset.
+    :param binary_th: which value would be considered as 1.
+    :param user_key: the key to locate the user indices.
+    :param item_key: the key to locate the item indices.
+    :param rating_key: the key to locate the rating indices.
+    :param sep: the separator in the csv file.
+    :param user_to_idx: list that represents the which user has which index.
+    :param item_to_idx: list that represents the which item has which index.
+    :return: a Pandas.Dataframe with the dataset read, the indices of items, and
+             the indices of users.
     """
     data = pd.read_csv(path, header=header, names=columns, sep=sep)
     logger.info('Columns: {}'.format(data.columns.values))
@@ -100,8 +99,30 @@ def read_dataset(path,
 
 
 def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='item_idx', rating_key='rating'):
-    """
-    Convert a pandas DataFrame to a scipy.sparse.csr_matrix
+    """Reads the dataset and converts it into an Compressed Row Sparse format matrix.
+
+        Args:
+            * df: represents the dataset.
+            * nrows: number of users.
+            * ncols: number of items.
+            * is_binary: implicit or explicit dataset
+            * user_key: key for locating user indices.
+            * item_key: key for locating item indices.
+            * rating_key: key for locating the ratings.
+
+        Args type:
+            * df: Pandas.Dataframe instance.
+            * nrows: int
+            * ncols: int
+            * is_binary: bool
+            * user_key: str
+            * item_key: str
+            * rating_key: str
+
+        Returns:
+            An instance of Scipy.Sparse.CsrMatrix that holds in the rows the
+            user indices, in the columns the item indices, and the ratings
+            as values.
     """
 
     rows = df[user_key].values
@@ -116,10 +137,30 @@ def df_to_csr(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
 
 
 def df_to_lil(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='item_idx', rating_key='rating'):
-    """
-    Convert a pandas DataFrame to a scipy.sparse.lil_matrix.
-    This matrix is useful for constructing a sparse matrix but not for operations
-    on it.
+    """Reads the dataset and converts it into a List of List sparse format matrix.
+
+        Args:
+            * df: represents the dataset.
+            * nrows: number of users.
+            * ncols: number of items.
+            * is_binary: implicit or explicit dataset
+            * user_key: key for locating user indices.
+            * item_key: key for locating item indices.
+            * rating_key: key for locating the ratings.
+
+        Args type:
+            * df: Pandas.Dataframe instance.
+            * nrows: int
+            * ncols: int
+            * is_binary: bool
+            * user_key: str
+            * item_key: str
+            * rating_key: str
+
+        Returns:
+            An instance of Scipy.Sparse.CsrMatrix that holds in the rows the
+            user indices, in the columns the item indices, and the ratings
+            as values.
     """
 
     rows = df[user_key].values
@@ -134,17 +175,35 @@ def df_to_lil(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
     # reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.lil_matrix.html#scipy.sparse.lil_matrix
     data = sps.lil_matrix(shape)
     for i in range(len(ratings)):
-        data[ rows[i], cols[i] ] = ratings[i]
+        data[ rows[i], columns[i] ] = ratings[i]
 
     return data
 
 def df_to_dok(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='item_idx', rating_key='rating'):
-    """
-    Convert a pandas DataFrame to a scipy.sparse.dok_matrix.
-    This matrix is useful for constructing a sparse matrix but not for operations
-    on it. It adds a little overhead of about 10s (w.r.t. to CSR  with MovieLens10M)
-    on creation, however, the update of it's elements (useful for Co-Training) is
-    fast.
+    """Reads the dataset and converts it into a Dictionary of Keys format matrix.
+
+        Args:
+            * df: represents the dataset.
+            * nrows: number of users.
+            * ncols: number of items.
+            * is_binary: implicit or explicit dataset
+            * user_key: key for locating user indices.
+            * item_key: key for locating item indices.
+            * rating_key: key for locating the ratings.
+
+        Args type:
+            * df: Pandas.Dataframe instance.
+            * nrows: int
+            * ncols: int
+            * is_binary: bool
+            * user_key: str
+            * item_key: str
+            * rating_key: str
+
+        Returns:
+            An instance of Scipy.Sparse.CsrMatrix that holds in the rows the
+            user indices, in the columns the item indices, and the ratings
+            as values.
     """
 
     rows = df[user_key].values
@@ -163,16 +222,44 @@ def df_to_dok(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
 
     return data
 
-def results_to_df(filepath):
-    available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
-    columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
-    sep = ' '
+def results_to_df(filepath, type_res="evaluation"):
+    """Reads the results file and transforms it into a dataframe.
+
+        Args:
+            * filepath: where the results are located as a .csv file.
+            * type_res: the type of results file, it can be `numberlabeled` ,
+                        `label_comparison` or None to indicate evaluation.
+
+        Args type:
+            * filepath: str
+            * type_res: str
+
+        Returns:
+            An instance of Pandas.Dataframe that holds the results
+    """
     header = 0
+    sep = ' '
+    if (type_res == "evaluation"):
+        available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+        columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
+
+    elif (type_res == "numberlabeled"):
+        columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled','total_labeled']
+
+    elif (type_res == "label_comparison"):
+        columns = ['iteration',
+                   'both_positive', 'both_negative', 'both_neutral',
+                   'pos_only_first', 'neg_only_first', 'neutral_only_first',
+                   'pos_only_second', 'neg_only_second', 'neutral_only_second']
+
+    elif (type_res == "item_pop_bin"):
+        columns = ['iteration', 'pop_bin_type', 'recommender', 'bin_0', 'bin_1',
+                    'bin_2', 'bin_3', 'bin_4', 'bin_5', 'bin_6', 'bin_7',
+                    'bin_8', 'bin_9']
+    else:
+        return None
 
     results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
-    # TODO: make indeces and everything to make it easy to transform this DF
-    #       into Evaluation instances.
-
     return results
 
 def results_to_file(filepath,
@@ -180,12 +267,29 @@ def results_to_file(filepath,
                     cotraining=False,
                     iterations=0,
                     recommender1=None,
-                    recommender2=None,
                     evaluation1=None,
-                    evaluation2=None,
                     at=5
                 ):
+    """Writes into a csv file the results of a cotraining iteration.
 
+        Args:
+            * filepath: where the results will be located as a .csv file.
+            * header: write the header or not.
+            * cotraining: if cotraining was applied or not.
+            * iterations: number of cotraining iteration.
+            * recommender1: first recommender that was evaluated.
+            * evaluation1: the evaluation of the first recommender for each metric.
+            # at: the size of the top-N recommendation list.
+
+        Args type:
+            * filepath: str
+            * header: bool
+            * cotraining: bool
+            * iterations: int
+            * recommender1: Recommender instance.
+            * evaluation1: list of float
+            # at: int
+    """
     with open(filepath, 'a', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         if header:
@@ -200,32 +304,4 @@ def results_to_file(filepath,
                              ] +
                              evaluation1)
 
-
-
-        # if cotraining:
-        #     f.write("# of Co-Training Iterations: {}\n".format(iterations))
-        #
-        # # Recommender 1.
-        # f.write("Recommender 1: \n")
-        # f.write("\tName: {}\n\n".format(recommender1.__str__()))
-        # f.write("\tEvaluation:\n")
-        # f.write('\t\tROC-AUC: {:.4f}\n'.format(evaluation1[0]))
-        # f.write('\t\tPrecision@{}: {:.4f}\n'.format(at, evaluation1[1]))
-        # f.write('\t\tRecall@{}: {:.4f}\n'.format(at, evaluation1[2]))
-        # f.write('\t\tMAP@{}: {:.4f}\n'.format(at, evaluation1[3]))
-        # f.write('\t\tMRR@{}: {:.4f}\n'.format(at, evaluation1[4]))
-        # f.write('\t\tNDCG@{}: {:.4f}\n'.format(at, evaluation1[5]))
-        #
-        # # Recommender 2.
-        # f.write("Recommender 2: \n")
-        # f.write("\tName: {}\n\n".format(recommender2.__str__()))
-        # f.write("\tEvaluation:\n")
-        # f.write('\t\tROC-AUC: {:.4f}\n'.format(evaluation2[0]))
-        # f.write('\t\tPrecision@{}: {:.4f}\n'.format(at, evaluation2[1]))
-        # f.write('\t\tRecall@{}: {:.4f}\n'.format(at, evaluation2[2]))
-        # f.write('\t\tMAP@{}: {:.4f}\n'.format(at, evaluation2[3]))
-        # f.write('\t\tMRR@{}: {:.4f}\n'.format(at, evaluation2[4]))
-        # f.write('\t\tNDCG@{}: {:.4f}\n'.format(at, evaluation2[5]))
-        #
-        # f.write('---------------------------------------------------\n---------------------------------------------------\n')
         csvfile.close()

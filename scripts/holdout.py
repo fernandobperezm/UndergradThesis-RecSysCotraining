@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 '''
 Politecnico di Milano.
-k-fold-cotraining.py
+holdout.py
 
-Description: This file contains the fitting and evaluation of two
-            It makes an evaluation using Co-Training and without it, the
-            evaluation metrics are RMSE, roc_auc, precision, recall, map, ndcg, rr.
+Description: This is the main file to run a Holdout evaluation using Co-Training
+             between two recommenders.
 
 Modified by Fernando Pérez.
 
-Last modified on 25/03/2017.
+Last modified on 05/09/2017.
 '''
 
 # Import Python utils.
 import argparse
+import csv
 import logging
+import sys
+import traceback
 from collections import OrderedDict
 from datetime import datetime as dt
-import pdb
 
 # Numpy and scipy.
 import numpy as np
 import scipy as sp
 
 # Import utils such as
-from implementation.utils.data_utils import read_dataset, df_to_csr, df_to_dok, df_to_lil, results_to_file
+from implementation.utils.data_utils import read_dataset, df_to_csr, df_to_dok, df_to_lil, results_to_file, results_to_df
 from implementation.utils.split import holdout
 from implementation.utils.metrics import roc_auc, precision, recall, map, ndcg, rr
 from implementation.utils.evaluation import Evaluation
@@ -34,9 +35,11 @@ from implementation.recommenders.item_knn import ItemKNNRecommender
 from implementation.recommenders.user_knn import UserKNNRecommender
 from implementation.recommenders.slim import SLIM, MultiThreadSLIM
 from implementation.recommenders.mf import FunkSVD, IALS_numpy, AsySVD, BPRMF
-from implementation.recommenders.non_personalized import TopPop, GlobalEffects
+from implementation.recommenders.non_personalized import Random, TopPop, GlobalEffects
 from implementation.recommenders.content import ContentBasedRecommender
 from implementation.recommenders.cotraining import CoTraining
+from implementation.recommenders.bpr import BPRMF_THEANO
+from implementation.recommenders.SLIM_BPR_Mono import SLIM_BPR_Mono
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -55,6 +58,8 @@ available_recommenders = OrderedDict([
     ('AsySVD', AsySVD),
     ('IALS_np', IALS_numpy),
     ('BPRMF', BPRMF),
+    ('BPRMF_THEANO', BPRMF_THEANO),
+    ('SLIM_BPR', SLIM_BPR_Mono)
 ])
 
 # let's use an ArgumentParser to read input arguments
@@ -78,11 +83,13 @@ parser.add_argument('--params_1', type=str, default=None)
 parser.add_argument('--recommender_2', type=str, default='top_pop')
 parser.add_argument('--params_2', type=str, default=None)
 parser.add_argument('--rec_length', type=int, default=10)
-parser.add_argument('--k_fold', type=int, default=5)
 parser.add_argument('--number_iterations', type=int, default=30)
 parser.add_argument('--number_positives', type=int, default=1)
 parser.add_argument('--number_negatives', type=int, default=3)
 parser.add_argument('--number_unlabeled', type=int, default=75)
+parser.add_argument('--recover_cotraining', action='store_true', default=False)
+parser.add_argument('--recover_iter', type=int, default=None)
+parser.add_argument('--make_pop_bins', action="store_true", default=False)
 args = parser.parse_args()
 
 # get the recommender class
@@ -115,6 +122,9 @@ if args.columns is not None:
     args.columns = args.columns.split(',')
 
 # read the dataset
+logger.info('Co-Training env. #Positives: {}, #Negatives: {}, #Unlabeled: {}'.format(
+    args.number_positives, args.number_negatives, args.number_unlabeled)
+)
 logger.info('Reading {}'.format(args.dataset))
 dataset, item_to_idx, user_to_idx = read_dataset(
     args.dataset,
@@ -130,10 +140,8 @@ dataset, item_to_idx, user_to_idx = read_dataset(
 nusers, nitems = dataset.user_idx.max() + 1, dataset.item_idx.max() + 1
 logger.info('The dataset has {} users and {} items'.format(nusers, nitems))
 
-# compute the k-fold split
+# compute the holdout split.
 logger.info('Computing the holdout split at: {:.0f}%'.format(args.holdout_perc * 100))
-roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-roc_auc_2, precision_2, recall_2, map_2, mrr_2, ndcg_2 = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 train_df, test_df = holdout(dataset,
                             user_key=args.user_key,
@@ -145,7 +153,7 @@ train_df, test_df = holdout(dataset,
 # Create our label and unlabeled samples set.
 # As the train set will be modifed in the co-training approach, it's more
 # efficient to modify a dok_matrix than a csr_matrix.
-train = df_to_dok(train_df,
+train = df_to_lil(train_df,
                   is_binary=args.is_binary,
                   nrows=nusers,
                   ncols=nitems,
@@ -162,28 +170,235 @@ test = df_to_csr(test_df,
                  user_key='user_idx',
                  rating_key=args.rating_key)
 
+# Baseline recommenders.
+global_effects_1 = GlobalEffects()
+global_effects_2 = GlobalEffects()
+top_pop_1 = TopPop()
+top_pop_2 = TopPop()
+random = Random(seed=1234,binary_ratings=args.is_binary)
+
 # Co-Trained recommenders.
 h1_ctr = RecommenderClass_1(**init_args_recomm_1)
 h2_ctr = RecommenderClass_2(**init_args_recomm_2)
 
-# Evaluations cotrained.
-eval_ctr = Evaluation(results_path=args.results_path, results_file=args.results_file, test_set=test, val_set = None, at = 10,co_training=True)
-# eval1_ctr = Evaluation(recommender=h1_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# eval2_ctr = Evaluation(recommender=h2_ctr, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# eval_ctr_aggr = Evaluation(recommender=None, results_path=args.results_path, results_file=args.results_file, nusers=nusers, test_set=test, val_set = None, at = 10,co_training=True)
-# cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj1=eval1_ctr, eval_obj2=eval2_ctr, eval_obj_aggr = eval_ctr_aggr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
-cotraining = CoTraining(rec_1=h1_ctr, rec_2=h2_ctr, eval_obj=eval_ctr, n_iters = args.number_iterations, n_labels = args.number_unlabeled, p_most = args.number_positives, n_most = args.number_negatives)
+# Recommenders dictionary.
+recommenders = dict()
+recommenders[h1_ctr.short_str()] = h1_ctr
+recommenders[h2_ctr.short_str()] = h2_ctr
+recommenders["TopPop1"] = top_pop_1
+recommenders["TopPop2"] = top_pop_2
+recommenders["GlobalEffects1"] = global_effects_1
+recommenders["GlobalEffects2"] = global_effects_2
+recommenders[random.short_str()] = random
 
-# Recommender evaluation.
-results_to_file(args.results_path + args.results_file, header=True) # Write the header of the file.
+# Evaluations cotrained.
+eval_ctr = Evaluation(results_path=args.results_path,
+                      results_file=args.results_file,
+                      test_set=test,
+                      val_set = None,
+                      at = 10,
+                      co_training=True,
+                      eval_bins = args.make_pop_bins
+                     )
+
+# If making popularity bins, then create them.
+if (args.make_pop_bins):
+    logger.info("Creating the user and item popularity bins.")
+    eval_ctr.make_pop_bins(URM=train, type_res="item_pop_bin")
+    eval_ctr.make_pop_bins(URM=train, type_res="user_pop_bin")
+
+# Read the previous results if recovering.
+if (args.recover_cotraining):
+    logger.info("Reading previous results.")
+    # Recovering the evaluation.
+    filepath = args.results_path + args.results_file
+    results = results_to_df(filepath=filepath, type_res="evaluation")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                      "TopPop1": (top_pop_1,1),
+                                      "TopPop2": (top_pop_2,2),
+                                      "GlobalEffects1": (global_effects_1,1),
+                                      "GlobalEffects2": (global_effects_2,2),
+                                      random.short_str(): (random,1),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="evaluation",
+                       )
+
+    # Recovering the number of labeled items.
+    filepath = args.results_path + "numberlabeled.csv"
+    results = results_to_df(filepath=filepath, type_res="numberlabeled")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="numberlabeled",
+                       )
+
+    # Recovering the agreement.
+    filepath = args.results_path + "label_comparison.csv"
+    results = results_to_df(filepath=filepath, type_res="label_comparison")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="label_comparison",
+                       )
+
+    # Recovering the popularity bins.
+    filepath = args.results_path + "item_pop_bin.csv"
+    results = results_to_df(filepath=filepath, type_res="item_pop_bin")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                      "TopPop1": (top_pop_1,1),
+                                      "TopPop2": (top_pop_2,2),
+                                      "GlobalEffects1": (global_effects_1,1),
+                                      "GlobalEffects2": (global_effects_2,2),
+                                      random.short_str(): (random,1),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="item_pop_bin",
+                       )
+
+cotraining = CoTraining(rec_1=h1_ctr,
+                        rec_2=h2_ctr,
+                        eval_obj=eval_ctr,
+                        n_iters = args.number_iterations,
+                        n_labels = args.number_unlabeled,
+                        p_most = args.number_positives,
+                        n_most = args.number_negatives
+                       )
+
+# Write the header of the evaluation results file.
+try:
+    results = open(args.results_path + args.results_file, mode='r')
+    results.close()
+except:
+    filepath = args.results_path + args.results_file
+    logger.info("Creating header for file: {}".format(filepath))
+    available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+    columns = ['cotraining','iteration', '@k', 'recommender'] + available_metrics
+    with open(filepath, 'w', newline='') as resultsfile:
+        csvwriter = csv.writer(resultsfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerow(columns)
 
 # Cotraining fitting and evaluation.
 logger.info('Beggining the Co-Training process.')
 tic = dt.now()
-cotraining.fit(train, eval_iter = True)
+cotraining.fit(train,
+               eval_iter=True,
+               binary_ratings=args.is_binary,
+               recommenders=recommenders,
+               baselines=True,
+               recover_cotraining=args.recover_cotraining,
+               recover_iter=args.recover_iter
+              )
 logger.info('Finished the Co-Training process in time: {}'.format(dt.now() - tic))
 
 # Plotting.
-eval_ctr.plot_all_recommenders(rec_1=h1_ctr, rec_2=h2_ctr) # First 7 figures.
-eval_ctr.plot_all(rec_index=0,rec=h1_ctr) # First 7 figures. Rec_index
-eval_ctr.plot_all(rec_index=1,rec=h2_ctr) # Third 7 figures.
+try:
+    only_h1 = recommenders.copy()
+    only_h2 = recommenders.copy()
+    del(only_h1[h2_ctr.short_str()])
+    del(only_h2[h1_ctr.short_str()])
+    if (args.recover_cotraining):
+        # All the recommenders in the same plot.
+        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr,
+                                                     h2_ctr.short_str(): h2_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix="Together_"
+                                      )
+        # Only the first recommender.
+        eval_ctr.plot_all_recommenders(recommenders={h1_ctr.short_str(): h1_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h1_ctr.short_str()+"_"
+                                      )
+        # Only the second recommender.
+        eval_ctr.plot_all_recommenders(recommenders={h2_ctr.short_str(): h2_ctr},
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h2_ctr.short_str()+"_"
+                                      )
+    else:
+        # All the recommenders in the same plot, including baselines.
+        eval_ctr.plot_all_recommenders(recommenders=recommenders,
+                                       n_iters=args.number_iterations,
+                                       file_prefix="Together_"
+                                      )
+        # All the recommenders without the second recommender.
+        eval_ctr.plot_all_recommenders(recommenders=only_h1,
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h1_ctr.short_str()+"_"
+                                      )
+        # All the recommenders without the first recommender.
+        eval_ctr.plot_all_recommenders(recommenders=only_h2,
+                                       n_iters=args.number_iterations,
+                                       file_prefix=h2_ctr.short_str()+"_"
+                                      )
+
+    for n_iter in range(0,args.number_iterations+1,10):
+        eval_ctr.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                      h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix="Together_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        eval_ctr.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h1_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        eval_ctr.plot_popularity_bins(recommenders={h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h2_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+    for statistic in ['label_comparison','numberlabeled']:
+        eval_ctr.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                               h2_ctr.short_str(): (h2_ctr,2),
+                                               'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix="Together_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h1_ctr.short_str() + "_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={h2_ctr.short_str(): (h2_ctr,2)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h2_ctr.short_str() + "_",
+                                   statistic_type=statistic
+                                  )
+
+        eval_ctr.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=statistic
+                                  )
+except:
+    error_path = args.results_path + "errors.txt"
+    error_file = open(error_path, 'a')
+    logger.info('Could not save the figures: {}'.format(sys.exc_info()))
+    traceback.print_exc(file=error_file)
+    error_file.close()
