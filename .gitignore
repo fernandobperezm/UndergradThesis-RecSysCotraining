@@ -4,6 +4,7 @@ Results/
 Processing/
 run-examples/commands.txt
 run-tuning/
+tune-knn.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
