@@ -1,8 +1,15 @@
-#!/bin/bash
+#!/bin/sh
+# Poltecnico di Milano.
+# knn-slim.sh
+# Description: This file runs Co-Training with a combination of SLIM and
+#               ItemKNN recommender to read results.
+# Created by: Fernando Benjamín Pérez Maurera.
+# Last Modified: 09/09/2017.
 
-# The options are: -p <number> -n <number>
+# The options are: -p <number> -n <number> -u <number>
 # -p represents the number of positive examples to label.
 # -n represents the number of negative examples to label.
+# -u represents the size of the pool of unlabeled samples.
 while getopts p:n:u: option
 do
     case "${option}"
