@@ -187,34 +187,79 @@ evaluation = Evaluation(results_path=args.results_path,
                         co_training=True,
                         eval_bins = args.make_pop_bins)
 
+# If no bin file exists, then create the bins.
 if (args.make_pop_bins):
-    # Creation of the bins.
-    n_iter = 0
-    dataset = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
+    filename = args.results_path + "item_pop_bin" + ".csv"
+    iter_step = 1
+    logger.info("Generating popularity bins.")
+    dataset = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(0))
     evaluation.make_pop_bins(URM=dataset.tocsc(), type_res="item_pop_bin")
     evaluation.make_pop_bins(URM=dataset.tocsr(), type_res="user_pop_bin")
+    try:
+        csvfile = open(filename, mode='r')
+        csvfile.close()
+    except:
+        logger.info("No file with older popularity bins has been found.")
+        logger.info("Proceeding to generate new popularity bins. This may take a while")
 
-    # For each saved dataset, load the dataset, fit the two recommenders, evaluate them (cheking the bins)
-    # and plot it
-    for n_iter in range(0,args.number_iterations+1,10):
-        # pdb.set_trace()
-        URM_1 = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
-        URM_2 = sparse.load_npz(file=evaluation.results_path + 'training_set_2_iter{}.npz'.format(n_iter))
-        h1_ctr.fit(URM_1)
-        h2_ctr.fit(URM_2)
-        if (h1_ctr.short_str() == "SLIM_BPR_Mono"):
-            h1_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set, at=evaluation.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = False,fastValidation=True)
+        # For each saved dataset, load the dataset, fit the two recommenders, evaluate them (cheking the bins)
+        # and plot it
+        count = 0
+        for n_iter in range(0,args.number_iterations+1,10):
+            URM_1 = sparse.load_npz(file=evaluation.results_path + 'training_set_1_iter{}.npz'.format(n_iter))
+            URM_2 = sparse.load_npz(file=evaluation.results_path + 'training_set_2_iter{}.npz'.format(n_iter))
+            logger.info("Iteration: {}".format(n_iter))
+            logger.info("Now training recommender: {}".format(h1_ctr))
+            h1_ctr.fit(URM_1)
+            logger.info("Now training recommender: {}".format(h2_ctr))
+            h2_ctr.fit(URM_2)
+            if (h1_ctr.short_str() == "SLIM_BPR_Mono"):
+                h1_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set,
+                                                at=evaluation.at,
+                                                minRatingsPerUser=1,
+                                                exclude_seen=True,
+                                                mode='sequential',
+                                                filterTopPop = False,
+                                                fastValidation=True)
 
 
-        if (h2_ctr.short_str() == "SLIM_BPR_Mono"):
-            h2_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set, at=evaluation.at, minRatingsPerUser=1, exclude_seen=True,mode='sequential', filterTopPop = False,fastValidation=True)
+            if (h2_ctr.short_str() == "SLIM_BPR_Mono"):
+                h2_ctr.evaluateRecommendations(URM_test_new=evaluation.test_set,
+                                                at=evaluation.at,
+                                                minRatingsPerUser=1,
+                                                exclude_seen=True,
+                                                mode='sequential',
+                                                filterTopPop = False,
+                                                fastValidation=True)
 
-        evaluation.eval(recommenders={h1_ctr.short_str():h1_ctr,
-                                      h2_ctr.short_str():h2_ctr,
+            evaluation.eval(recommenders={h1_ctr.short_str():h1_ctr,
+                                          h2_ctr.short_str():h2_ctr,
+                                        },
+                            minRatingsPerUser=1
+                           )
+            evaluation.log_to_file(
+                                  log_type="item_pop_bin",
+                                  recommenders=
+                                    {h1_ctr.short_str():h1_ctr,
+                                     h2_ctr.short_str():h2_ctr,
                                     },
-                        minRatingsPerUser=1
-                       )
+                                  args={'index':int(n_iter / 10)}
+                                  )
+            count += 1
+    else:
+        results = results_to_df(filename,type_res="item_pop_bin")
+        evaluation.df_to_eval(df=results,
+                              recommenders = {h1_ctr.short_str(): (h1_ctr,1),
+                                              h2_ctr.short_str(): (h2_ctr,2)
+                                             },
+                              read_iter=args.number_iterations+1,
+                              type_res="item_pop_bin"
+                             )
+        count = args.number_iterations+1
+        iter_step=10
 
+    stop = count
+    for n_iter in range(0,stop,iter_step):
         evaluation.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
                                                       h2_ctr.short_str():(h2_ctr,2),
                                                      },
@@ -236,9 +281,6 @@ if (args.make_pop_bins):
                                         file_prefix=h2_ctr.short_str() + "_",
                                         bin_type="item_pop_bin"
                                        )
-
-        evaluation.rec_evals[h1_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
-        evaluation.rec_evals[h2_ctr.short_str()]['item_pop_bin'] = np.zeros(10)
 
 if args.to_read is not None:
     list_to_read = args.to_read.split(",")
