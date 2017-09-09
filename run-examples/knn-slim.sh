@@ -1,7 +1,15 @@
-#!/bin/bash
-# The options are: -p <number> -n <number>
+#!/bin/sh
+# Poltecnico di Milano.
+# knn-slim.sh
+# Description: This file runs Co-Training with a combination of SLIM and
+#               ItemKNN recommender.
+# Created by: Fernando Benjamín Pérez Maurera.
+# Last Modified: 09/09/2017.
+
+# The options are: -p <number> -n <number> -u <number>
 # -p represents the number of positive examples to label.
 # -n represents the number of negative examples to label.
+# -u represents the size of the pool of unlabeled samples.
 while getopts p:n:u: option
 do
     case "${option}"
@@ -17,7 +25,7 @@ done
 #  Rec1 -> item_knn with adj-cosine, k=350, shrinkage = 0 and normalization
 #  Rec2 -> SLIM_mt with l2_penalty=0.1,l1_penalty=0.001
 python3 ../scripts/holdout.py \
-    ../Datasets/ml100k/ratings.csv \
+    ../Datasets/ml10m/ratings.csv \
     --results_path ../Results/knn-slimmt-3/ \
     --results_file holdout-knn-slim-50.csv \
     --holdout_perc 0.8 \
