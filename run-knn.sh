@@ -79,24 +79,11 @@ echo "Performing the Cython Installation"
 cd Configuration/ ; sh install.sh ; cd ..
 
 mkdir Results;
+mkdir Results/knn-funksvd-3; mkdir Results/knn-slimmt-3; mkdir Results/knn-slimbpr-3; mkdir Results/knn-bprmf-3;
 
-# mkdir Results/knn-funksvd-1; mkdir Results/knn-funksvd-2;
-mkdir Results/knn-funksvd-3; mkdir Results/knn-slim-3; mkdir Results/knn-bprmf-3;
-# mkdir Results/knn-knn-1; mkdir Results/knn-knn-2; mkdir Results/knn-knn-3; mkdir Results/knn-knn-4; mkdir Results/knn-knn-5; mkdir Results/knn-knn-6; mkdir Results/knn-knn-7;
-# mkdir Results/knn-slim-1; mkdir Results/knn-slim-2;
-# mkdir Results/knn-bprmf-1; mkdir Results/knn-bprmf-2;
-
-# mkdir Results/slim-funksvd-1;
-# mkdir Results/slim-bprmf-1
-# mkdir Results/slim-slim-1;
-#
-# mkdir Results/funksvd-bprmf-1;
-# mkdir Results/mf-mf-1; mkdir Results/mf-mf-2;
-
-#
-# # Running each recommender in sequence, it may take more time but won't make
-# # going out of space while using MovieLens10M, MovieLens20M or Netflix100M.
-cd run-examples/ ; sh holdout-cotraining-knn-funksvd.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
-cd run-examples/ ; sh holdout-cotraining-knn-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
-cd run-examples/ ; sh holdout-cotraining-knn-slim.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
-cd run-examples/MyMediaLite/bin/ ; sh holdout-cotraining-knn-slimbpr.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+# Running each recommender in sequence, it may take more time but won't make
+# going out of space while using MovieLens10M, MovieLens20M or Netflix100M.
+cd run-examples/ ; sh knn-funksvd.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd run-examples/ ; sh knn-bprmf.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd run-examples/ ; sh knn-slim.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
+cd run-examples/MyMediaLite/bin/ ; sh knn-slimbpr.sh -p $PPOSITIVES -n $NNEGATIVES -u $UNLABELED; cd ..
