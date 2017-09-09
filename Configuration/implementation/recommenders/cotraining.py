@@ -161,7 +161,7 @@ class CoTraining(object):
         nusers, nitems = URM_1.shape
         random_state = np.random.RandomState(self.seed)
         error_path = self.eval.results_path + "errors.txt"
-        error_file = open(error_path, 'w')
+        error_file = open(error_path, 'a')
 
         # Get the baselines instances in order to eval them.
         if (recommenders is not None and baselines == True):
@@ -293,7 +293,35 @@ class CoTraining(object):
             logger.info('\tLabeling new items.')
             labeled1, labeled2, meta_1, meta_2, meta_both = self.label(unlabeled_set=u_prime, binary_ratings=binary_ratings, exclude_seen=True, p_most=self.p_most, n_most=self.n_most, error_file=error_file)
 
+            # Adding the new information to the Evaluation instance and logging it.
             try:
+                self.eval.add_statistics(recommenders=
+                                            {self.rec_1.short_str():
+                                                {'recommender': self.rec_1,
+                                                 'positive': meta_both['pos_only_first'],
+                                                 'negative': meta_both['neg_only_first'],
+                                                 'neutral': meta_both['neutral_only_first'],
+                                                 'pos_labeled': meta_1['pos_labels'],
+                                                 'neg_labeled': meta_1['neg_labels'],
+                                                 'total_labeled': meta_1['total_labels'],
+                                                },
+                                             self.rec_2.short_str():
+                                                {'recommender': self.rec_2,
+                                                 'positive': meta_both['pos_only_second'],
+                                                 'negative': meta_both['neg_only_second'],
+                                                 'neutral': meta_both['neutral_only_second'],
+                                                 'pos_labeled': meta_2['pos_labels'],
+                                                 'neg_labeled': meta_2['neg_labels'],
+                                                 'total_labeled': meta_2['total_labels'],
+                                                },
+                                            },
+                                         both=
+                                           {
+                                            'both_pos': meta_both['both_pos'],
+                                            'both_neg': meta_both['both_neg'],
+                                            'both_neutral': meta_both['both_neutral'],
+                                           }
+                                        )
                 self.eval.log_to_file(
                                       log_type="labeling",
                                       recommenders=

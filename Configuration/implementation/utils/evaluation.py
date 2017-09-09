@@ -30,6 +30,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
+import pdb
 
 class Evaluation(object):
     """The class represents an evaluation framework for Recommender Systems.
@@ -58,6 +59,7 @@ class Evaluation(object):
             * bins: to which popularity bin falls each item.
             * eval_bins: calculate the popularity bins.
             * rec_evals: holds the evaluation for each metric for each recommender.
+            * nbins: the number of popularity bins.
 
     """
 
@@ -98,7 +100,82 @@ class Evaluation(object):
         self.eval_bins = eval_bins
         self.rec_evals = dict()
 
-    def check_ranked_in_bins(self,ranked_list,rec_key):
+    def add_statistics(self,recommenders,both):
+        """Add statistics info into the Evaluation instance.
+
+            The statistics that are added inside the instance are the agreement
+            between the recommenders and the number of labeled items at each
+            iteration.
+
+            Args:
+                * recommenders: The recommenders we will log alongisde their
+                                 individual statistics.
+                * both: represents the statistics of the agreement between
+                        the recommenders.
+
+            Args type:
+                * recommenders: Dictionary<str:Dictionary<str:AnyType>>
+                * both: Dictionary<str:int>
+
+            recommenders arguments:
+                * 'recommender': recommender instance.
+                * 'positive': positive elements only by the recommender
+                * 'negative': negative elements only by the recommender
+                * 'neutral': neutral elements only by the recommender
+                * 'pos_labeled': number of p-most positive elements labeled.
+                * 'neg_labeled': number of n-most negative elements labeled.
+                * 'total_labeled': number of p-most + n-most elements labeled.
+
+            both arguments:
+                * 'both_pos': agreement in positive items,
+                * 'both_neg': agreement in negative items
+                * 'both_neutral': agreement in neutral items
+
+        """
+        # The agreement first.
+        # Checking if the agreement for both recommenders is already there.
+        if (not 'both' in self.rec_evals.keys()):
+            self.rec_evals['both'] = dict()
+            self.rec_evals['both']['positive'] = list()
+            self.rec_evals['both']['negative'] = list()
+            self.rec_evals['both']['neutral'] = list()
+
+        # Adding the agreement between recommenders.
+        self.rec_evals['both']['positive'].append(both['both_pos'])
+        self.rec_evals['both']['negative'].append(both['both_neg'])
+        self.rec_evals['both']['neutral'].append(both['both_neutral'])
+
+        # Adding the disagreement between recommenders.
+        for rec_key in recommenders.keys():
+            if (not 'positive' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['positive'] = list()
+
+            if (not 'negative' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['negative'] = list()
+
+            if (not 'neutral' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['neutral'] = list()
+
+            self.rec_evals[rec_key]['positive'].append(recommenders[rec_key]['positive'])
+            self.rec_evals[rec_key]['negative'].append(recommenders[rec_key]['negative'])
+            self.rec_evals[rec_key]['neutral'].append(recommenders[rec_key]['neutral'])
+
+        # Now the number of p-most and n-most labeled.
+        for rec_key in recommenders.keys():
+            if (not 'pos_labeled' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['pos_labeled'] = list()
+
+            if (not 'neg_labeled' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['neg_labeled'] = list()
+
+            if (not 'total_labeled' in self.rec_evals[rec_key]):
+                self.rec_evals[rec_key]['total_labeled'] = list()
+
+            self.rec_evals[rec_key]['pos_labeled'].append(recommenders[rec_key]['pos_labeled'])
+            self.rec_evals[rec_key]['neg_labeled'].append(recommenders[rec_key]['neg_labeled'])
+            self.rec_evals[rec_key]['total_labeled'].append(recommenders[rec_key]['total_labeled'])
+
+    def check_ranked_in_bins(self, ranked_list, rec_key):
         """Checks in which bin each recommended item falls.
 
             This methods takes a top-N recommendtion list and for each item in
@@ -113,17 +190,27 @@ class Evaluation(object):
             Args type:
                 * ranked_list: list of int.
                 * rec_key: str
-        """
-        if (not 'item_pop_bin' in self.rec_evals[rec_key].keys()):
-            self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10)
 
+            Returns
+                A list containing how many items fell in each bin.
+        """
+        # if (not 'item_pop_bin' in self.rec_evals[rec_key].keys()):
+        #     self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10, dtype=np.int32)
+        #
+        # for item_idx in ranked_list:
+        #     # in self.bins['item_pop_bin'][item_idx] we will have to which bin
+        #     # the item belongs.
+        #     bin_idx = self.bins['item_pop_bin'][item_idx]
+        #     self.rec_evals[rec_key]['item_pop_bin'][bin_idx] += 1
+        pop_bins = np.zeros(10, dtype=np.int32)
         for item_idx in ranked_list:
             # in self.bins['item_pop_bin'][item_idx] we will have to which bin
             # the item belongs.
             bin_idx = self.bins['item_pop_bin'][item_idx]
-            self.rec_evals[rec_key]['item_pop_bin'][bin_idx] += 1
+            pop_bins[bin_idx] += 1
+        return pop_bins
 
-    def make_pop_bins(self,URM, type_res):
+    def make_pop_bins(self, URM, type_res):
         """Takes a URM and calculates the popularity bins.
 
             This methods takes a sparse matrix and creates a user or popularity
@@ -138,22 +225,23 @@ class Evaluation(object):
                 * URM: Scipy.Sparse matrix.
                 * type_res: str
         """
-        nbins = 10
+        self.nbins = 10
         if (type_res == "item_pop_bin"):
             # Supposing a CSC matrix, dataset.
+            URM = check_matrix(URM, 'csc', dtype=np.float32)
             item_pop = np.asarray(np.sum(URM > 0, axis=0)).squeeze().astype(np.int32)
             nitems, = item_pop.shape
 
             # ascending order popularity, item[0] is the least item idx , item[size-1] is the most popular
             item_idx_pop = item_pop.argsort()
 
-            partition_size = int(nitems / nbins)
+            partition_size = int(nitems / self.nbins)
             pop_bin = 0 # Least popular bin.
             bins_list = []
             for low in range(0, nitems, partition_size):
                 high = low + partition_size
                 bins_list += list(zip(item_idx_pop[low:high], [pop_bin]*partition_size))
-                if (pop_bin) < nbins - 1:
+                if (pop_bin) < self.nbins - 1:
                     pop_bin += 1
 
             if (self.bins is None):
@@ -162,19 +250,20 @@ class Evaluation(object):
 
         if (type_res == "user_pop_bin"):
             # Supposing a CSR matrix, dataset.
+            URM = check_matrix(URM, 'csr', dtype=np.float32)
             user_pop = np.asarray(np.sum(URM > 0, axis=1)).squeeze().astype(np.int32)
             nusers, = user_pop.shape
 
             # ascending order popularity, user[0] is the least user idx , user[size-1] is the most popular
             user_idx_pop = user_pop.argsort()
 
-            partition_size = int(nusers / nbins)
+            partition_size = int(nusers / self.nbins)
             pop_bin = 0 # Least popular bin.
             bins_list = []
             for low in range(0, nusers, partition_size):
                 high = low + partition_size
                 bins_list += list(zip(user_idx_pop[low:high], [pop_bin]*partition_size))
-                if (pop_bin) < nbins - 1:
+                if (pop_bin) < self.nbins - 1:
                     pop_bin += 1
 
             if (self.bins is None):
@@ -316,6 +405,8 @@ class Evaluation(object):
         mrr_ = np.zeros(shape=(n_recs,))
         ndcg_ = np.zeros(shape=(n_recs,))
 
+        pop_bins_by_recommender = dict()
+
         for rec_key in recommenders_to_evaluate:
             if (not rec_key in self.rec_evals):
                 self.rec_evals[rec_key] = dict()
@@ -326,6 +417,7 @@ class Evaluation(object):
                 self.rec_evals[rec_key]['MAP'] = list()
                 self.rec_evals[rec_key]['MRR'] = list()
                 self.rec_evals[rec_key]['NDCG'] = list()
+                self.rec_evals[rec_key]['item_pop_bin'] = list()
 
         for test_user in usersToEvaluate:
             if (test_user % 10000 == 0):
@@ -364,12 +456,11 @@ class Evaluation(object):
                 mrr_[i] += metrics.rr(is_relevant)
                 ndcg_[i] += metrics.ndcg(ranked_items, relevant_items, relevance=relevant_data, at=at)
 
-                if (self.eval_bins and
-                    rec_key != "TopPop1" and rec_key != "TopPop2" and
-                    rec_key != "GlobalEffects1" and rec_key != "GlobalEffects2" and
-                    rec_key != "Random"):
+                if (self.eval_bins):
+                    if (not rec_key in pop_bins_by_recommender.keys()):
+                        pop_bins_by_recommender[rec_key] = np.zeros(self.nbins, dtype=np.int32)
 
-                    self.check_ranked_in_bins(ranked_list=ranked_items,rec_key=rec_key)
+                    pop_bins_by_recommender[rec_key] += self.check_ranked_in_bins(ranked_list=ranked_items,rec_key=rec_key)
 
                 i += 1
 
@@ -386,6 +477,9 @@ class Evaluation(object):
             self.rec_evals[rec_key]['MAP'].append(map_[i] / n_eval)
             self.rec_evals[rec_key]['MRR'].append(mrr_[i] / n_eval)
             self.rec_evals[rec_key]['NDCG'].append(ndcg_[i] / n_eval)
+
+            if (self.eval_bins):
+                self.rec_evals[rec_key]['item_pop_bin'].append(pop_bins_by_recommender[rec_key])
 
             i += 1
 
@@ -420,14 +514,18 @@ class Evaluation(object):
                                     negative.
                     ** total_lab_rec: total number of items the recommender
                                       labeled.
-                * 'pos_1': How many items only the recommender 1 labeled as
-                           positive.
-                * 'pos_2': How many items only the recommender 2 labeled as
-                           positive.
-                * 'neg_1': How many items only the recommender 1 labeled as
-                           negative.
-                * 'neg_2': How many items only the recommender 2 labeled as
-                           negative.
+                * 'pos_only_first': How many items only the recommender 1
+                                    labeled as positive.
+                * 'pos_only_second': How many items only the recommender 2
+                                     labeled as positive.
+                * 'neg_only_first': How many items only the recommender 1
+                                    labeled as negative.
+                * 'neg_only_second': How many items only the recommender 2
+                                      labeled as negative.
+                * 'neutral_only_first': How many items only the recommender 1
+                                        labeled as neutral.
+                * 'neutral_only_second': How many items only the recommender 2
+                                         labeled as neutral.
                 * 'both_pos': How many items both recommenders labeled as
                               positive.
                 * 'both_neg': How many items both recommenders labeled as
@@ -485,7 +583,10 @@ class Evaluation(object):
                         csvwriter.writerow(row)
 
         elif (log_type == 'labeling'):
-            columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled', 'total_labeled']
+            # File: numberlabeled.csv
+            columns = ['iteration','recommender',
+                       'pos_labeled', 'neg_labeled', 'total_labeled'
+                      ]
             filepath1 = filepath + "numberlabeled.csv"
 
             try:
@@ -494,11 +595,17 @@ class Evaluation(object):
             except:
                 logger.info("Creating header for file: {}".format(filepath1))
                 with open(filepath1, 'w', newline='') as csvfile:
-                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter = csv.writer(csvfile,
+                                           delimiter=' ',
+                                           quotechar='|',
+                                           quoting=csv.QUOTE_MINIMAL)
                     csvwriter.writerow(columns)
 
             with open(filepath1, 'a', newline='') as csvfile:
-                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                csvwriter = csv.writer(csvfile,
+                                       delimiter=' ',
+                                       quotechar='|',
+                                       quoting=csv.QUOTE_MINIMAL)
 
                 for rec_key in recommenders.keys():
                     recommender = recommenders[rec_key]
@@ -506,6 +613,7 @@ class Evaluation(object):
                     row = [index, str(recommender), pos_rec, neg_rec, total_rec]
                     csvwriter.writerow(row)
 
+            # File: label_comparison.csv
             columns = ['iteration',
                        'both_positive', 'both_negative', 'both_neutral',
                        'pos_only_first', 'neg_only_first', 'neutral_only_first',
@@ -519,11 +627,19 @@ class Evaluation(object):
             except:
                 logger.info("Creating header for file: {}".format(filepath2))
                 with open(filepath2, 'w', newline='') as csvfile:
-                    csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    csvwriter = csv.writer(csvfile,
+                                           delimiter=' ',
+                                           quotechar='|',
+                                           quoting=csv.QUOTE_MINIMAL
+                                          )
                     csvwriter.writerow(columns)
 
             with open(filepath2, 'a', newline='') as csvfile:
-                csvwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                csvwriter = csv.writer(csvfile,
+                                       delimiter=' ',
+                                       quotechar='|',
+                                       quoting=csv.QUOTE_MINIMAL
+                                      )
 
                 row = [index,
                        args['both_pos'], args['both_neg'], args['both_neutral'],
@@ -532,6 +648,40 @@ class Evaluation(object):
                        ]
                 csvwriter.writerow(row)
 
+            # File: item_pop_bin.csv
+            if (not self.eval_bins):
+                return
+
+            columns = ['iteration','pop_bin_type','recommender'] +\
+                      ["bin_{}".format(i) for i in range(self.nbins)]
+
+            filepath3 = filepath + "item_pop_bin.csv"
+
+            try:
+                csvfile = open(filepath3, mode='r')
+                csvfile.close()
+            except:
+                logger.info("Creating header for file: {}".format(filepath3))
+                with open(filepath3, 'w', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile,
+                                           delimiter=' ',
+                                           quotechar='|',
+                                           quoting=csv.QUOTE_MINIMAL
+                                          )
+                    csvwriter.writerow(columns)
+
+            with open(filepath3, 'a', newline='') as csvfile:
+                csvwriter = csv.writer(csvfile,
+                                       delimiter=' ',
+                                       quotechar='|',
+                                       quoting=csv.QUOTE_MINIMAL
+                                      )
+
+                for rec_key in recommenders.keys():
+                    recommender = recommenders[rec_key]
+                    row = [index, 'item_pop_bin', str(recommender)] +\
+                          list(self.rec_evals[rec_key]['item_pop_bin'][index])
+                    csvwriter.writerow(row)
 
         elif (log_type == 'tuning'):
             available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
@@ -597,8 +747,7 @@ class Evaluation(object):
                 * file_prefix: str
                 * bin_type: str
         """
-        nbins = 10
-        xdata_rangebins = np.arange(nbins)
+        xdata_rangebins = np.arange(self.nbins)
 
         # Properties.
         width = 0.25
@@ -616,7 +765,7 @@ class Evaluation(object):
         for rec_key in recommenders.keys():
             recommender, pos = recommenders[rec_key]
 
-            ydata_n_elements_by_bin = self.rec_evals[rec_key][bin_type]
+            ydata_n_elements_by_bin = self.rec_evals[rec_key][bin_type][niter]
             rects = plt.bar(xdata_rangebins + i * width,
                              ydata_n_elements_by_bin,
                              width,
@@ -635,6 +784,7 @@ class Evaluation(object):
                   )
         plt.savefig(savepath, bbox_inches="tight")
         plt.clf()
+        plt.close('all')
 
     def plot_statistics(self, recommenders=None, n_iters=30, file_prefix="", statistic_type=None):
         """Plots the different evaluated statistics for all the recommenders.
@@ -737,6 +887,7 @@ class Evaluation(object):
                                   )
                         plt.savefig(savepath, bbox_inches="tight")
                         plt.clf()
+                        plt.close('all')
 
                 elif (statistic_type == 'label_comparison'):
                     recommenders_to_evaluate = list(recommenders.keys())
@@ -800,6 +951,7 @@ class Evaluation(object):
                                   )
                         plt.savefig(savepath, bbox_inches="tight")
                         plt.clf()
+                        plt.close('all')
 
     def plot_all_recommenders(self, recommenders=None, n_iters=30, file_prefix=""):
         """Plots the evaluation for rating prediction and top-N recommendation.
@@ -878,3 +1030,4 @@ class Evaluation(object):
                       )
             plt.savefig(savepath, bbox_inches="tight")
             plt.clf()
+            plt.close('all')

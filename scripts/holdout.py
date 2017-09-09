@@ -13,11 +13,12 @@ Last modified on 05/09/2017.
 
 # Import Python utils.
 import argparse
+import csv
 import logging
-from collections import OrderedDict
-from datetime import datetime as dt
 import sys
 import traceback
+from collections import OrderedDict
+from datetime import datetime as dt
 
 # Numpy and scipy.
 import numpy as np
@@ -88,6 +89,7 @@ parser.add_argument('--number_negatives', type=int, default=3)
 parser.add_argument('--number_unlabeled', type=int, default=75)
 parser.add_argument('--recover_cotraining', action='store_true', default=False)
 parser.add_argument('--recover_iter', type=int, default=None)
+parser.add_argument('--make_pop_bins', action="store_true", default=False)
 args = parser.parse_args()
 
 # get the recommender class
@@ -195,8 +197,15 @@ eval_ctr = Evaluation(results_path=args.results_path,
                       test_set=test,
                       val_set = None,
                       at = 10,
-                      co_training=True
+                      co_training=True,
+                      eval_bins = args.make_pop_bins
                      )
+
+# If making popularity bins, then create them.
+if (args.make_pop_bins):
+    logger.info("Creating the user and item popularity bins.")
+    eval_ctr.make_pop_bins(URM=train, type_res="item_pop_bin")
+    eval_ctr.make_pop_bins(URM=train, type_res="user_pop_bin")
 
 # Read the previous results if recovering.
 if (args.recover_cotraining):
@@ -218,8 +227,18 @@ cotraining = CoTraining(rec_1=h1_ctr,
                         n_most = args.number_negatives
                        )
 
-# Write the header of the file.
-results_to_file(args.results_path + args.results_file, header=True)
+# Write the header of the evaluation results file.
+try:
+    results = open(args.results_path + args.results_file, mode='r')
+    results.close()
+except:
+    filepath = args.results_path + args.results_file
+    logger.info("Creating header for file: {}".format(filepath))
+    available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
+    columns = ['cotraining','iteration', '@k', 'recommender'] + available_metrics
+    with open(filepath, 'w', newline='') as resultsfile:
+        csvwriter = csv.writer(resultsfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        csvwriter.writerow(columns)
 
 # Cotraining fitting and evaluation.
 logger.info('Beggining the Co-Training process.')
@@ -273,6 +292,64 @@ try:
                                        n_iters=args.number_iterations,
                                        file_prefix=h2_ctr.short_str()+"_"
                                       )
+
+    for n_iter in range(0,args.number_iterations+1,10):
+        eval_ctr.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                      h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix="Together_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        eval_ctr.plot_popularity_bins(recommenders={h1_ctr.short_str():(h1_ctr,1),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h1_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+        eval_ctr.plot_popularity_bins(recommenders={h2_ctr.short_str():(h2_ctr,2),
+                                                     },
+                                        niter = n_iter,
+                                        file_prefix=h2_ctr.short_str() + "_",
+                                        bin_type="item_pop_bin"
+                                       )
+
+    for statistic in ['label_comparison','numberlabeled']:
+        eval_ctr.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                               h2_ctr.short_str(): (h2_ctr,2),
+                                               'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix="Together_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={h1_ctr.short_str(): (h1_ctr,1)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h1_ctr.short_str() + "_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={h2_ctr.short_str(): (h2_ctr,2)
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix=h2_ctr.short_str() + "_",
+                                   statistic_type=statistic
+                                  )
+
+        eval_ctr.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=statistic
+                                  )
+        eval_ctr.plot_statistics(recommenders={'both': (None,3),
+                                                },
+                                   n_iters=args.number_iterations,
+                                   file_prefix='Both' + "_",
+                                   statistic_type=statistic
+                                  )
 except:
     error_path = args.results_path + "errors.txt"
     error_file = open(error_path, 'a')
