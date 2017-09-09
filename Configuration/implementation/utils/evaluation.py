@@ -192,14 +192,6 @@ class Evaluation(object):
             Returns
                 A list containing how many items fell in each bin.
         """
-        # if (not 'item_pop_bin' in self.rec_evals[rec_key].keys()):
-        #     self.rec_evals[rec_key]['item_pop_bin'] = np.zeros(10, dtype=np.int32)
-        #
-        # for item_idx in ranked_list:
-        #     # in self.bins['item_pop_bin'][item_idx] we will have to which bin
-        #     # the item belongs.
-        #     bin_idx = self.bins['item_pop_bin'][item_idx]
-        #     self.rec_evals[rec_key]['item_pop_bin'][bin_idx] += 1
         pop_bins = np.zeros(10, dtype=np.int32)
         for item_idx in ranked_list:
             # in self.bins['item_pop_bin'][item_idx] we will have to which bin
@@ -504,7 +496,7 @@ class Evaluation(object):
 
             Args:
                 * log_type: the type of logging we are performing. Possible values
-                            are `evaluation`, `labeling` and `tuning`.
+                            are `evaluation`, `labeling`, `item_pop_bin` and `tuning`.
                 * recommenders: The recommenders we will log.
                 * args: represents keyword arguments for the function.
 
@@ -512,7 +504,6 @@ class Evaluation(object):
                 * log_type: str
                 * recommenders: Dictionary<str:Recommender>
                 * args: Dictionary<str:AnyType>
-
 
             Keywords arguments:
                 * 'index': current iteration.
@@ -657,6 +648,7 @@ class Evaluation(object):
                        ]
                 csvwriter.writerow(row)
 
+        elif (log_type == 'item_pop_bin'):
             # File: item_pop_bin.csv
             if (not self.eval_bins):
                 return

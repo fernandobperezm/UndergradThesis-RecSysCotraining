@@ -343,6 +343,14 @@ class CoTraining(object):
                                          self.rec_2.short_str():(meta_2['pos_labels'], meta_2['neg_labels'], meta_2['total_labels']),
                                         }
                                       )
+                self.eval.log_to_file(
+                                      log_type="item_pop_bin",
+                                      recommenders=
+                                        {self.rec_1.short_str():self.rec_1,
+                                         self.rec_2.short_str():self.rec_2
+                                        },
+                                      args={'index':i_iter}
+                                      )
             except:
                 logger.info('Could not log the new labeled items: {}'.format(sys.exc_info()))
                 traceback.print_exc(file=error_file)
