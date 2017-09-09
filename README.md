@@ -27,7 +27,7 @@ The project is organized as follows:
 
 ### Installation instructions
   1. [On Linux] Install Linux packages: `apt-get install -y libc6-dev build-essentials`.
-  2. Install `Miniconda` for `Python 3.5+` [here](https://conda.io/miniconda.html).
+  2. Install `Miniconda` for `Python 3.6+` [here](https://conda.io/miniconda.html).
   3. Create the virtual environment: `conda create -n cotraining --file requirements.txt`
   4. Activate the virtual environment: `source activate cotraining`.
   5. [Installation and run separately] Install the project: `cd Configuration/ ; sh install.sh ; cd ..`
