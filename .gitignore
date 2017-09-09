@@ -93,3 +93,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Whitelisting folders.
+!run-examples/MyMediaLite/lib/

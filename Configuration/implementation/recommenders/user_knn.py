@@ -15,6 +15,7 @@ Last modified on 25/03/2017.
 from .item_knn import ItemKNNRecommender
 from .base import check_matrix
 import numpy as np
+import scipy.sparse as sps
 import pdb
 
 
@@ -42,27 +43,48 @@ class UserKNNRecommender(ItemKNNRecommender):
         Xt = X.T.tocsr()
         # fit a ItemKNNRecommender on the transposed X matrix
         super().fit(Xt)
-        self.dataset = X
-        # precompute the predicted scores for speed
-        if self.sparse_weights:
-            self.scores = self.W_sparse.dot(X).toarray()
-        else:
-            self.scores = self.W.dot(X)
-        if self.normalize:
-            for i in range(M):
-                rated = Xt[i].copy()
-                rated.data = np.ones_like(rated.data)
-                if self.sparse_weights:
-                    den = rated.dot(self.W_sparse).toarray().ravel()
-                else:
-                    den = rated.dot(self.W).ravel()
-                den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-                self.scores[:, i] /= den
 
-    def user_score(self, user_id):
-        return self.scores[user_id]
+        self.dataset = X
+
+        # # precompute the predicted scores for speed
+        # if self.sparse_weights:
+        #     self.scores = self.W_sparse.dot(X).toarray()
+        # else:
+        #     self.scores = self.W.dot(X)
+        # if self.normalize:
+        #     for i in range(M): # <- Bug here, should be N instead of M.
+        #         pdb.set_trace()
+        #         rated = Xt[i].copy()
+        #         rated.data = np.ones_like(rated.data)
+        #         if self.sparse_weights:
+        #             den = rated.dot(self.W_sparse).toarray().ravel()
+        #         else:
+        #             den = rated.dot(self.W).ravel()
+        #         den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+        #         self.scores[:, i] /= den
+
+    def calculate_scores(self):
+        if self.sparse_weights:
+            self.scores = self.W_sparse.dot(self.dataset).toarray()
+        else:
+            self.scores = self.W.dot(self.dataset)
+
+        if self.normalize:
+            # pdb.set_trace()
+            rated = self.dataset.T.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray()
+            else:
+                den = rated.dot(self.W)
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            self.scores /= den.T
 
     def recommend(self, user_id, n=None, exclude_seen=True):
+        # pdb.set_trace()
+        if (self.scores is None):
+            self.calculate_scores()
+
         ranking = self.scores[user_id].argsort()[::-1]
         if exclude_seen:
             ranking = self._filter_seen(user_id, ranking)
@@ -70,14 +92,16 @@ class UserKNNRecommender(ItemKNNRecommender):
 
     def label(self, unlabeled_list, binary_ratings=False, n=None, exclude_seen=True, p_most=1, n_most=3):
         # Calculate the scores only one time.
-        users = []
-        items = []
-        for user_idx, item_idx in unlabeled_list:
-            users.append(user_idx)
-            items.append(item_idx)
-
-        users = np.array(users,dtype=np.int32)
-        items = np.array(items,dtype=np.int32)
+        # users = []
+        # items = []
+        # for user_idx, item_idx in unlabeled_list:
+        #     users.append(user_idx)
+        #     items.append(item_idx)
+        #
+        # users = np.array(users,dtype=np.int32)
+        # items = np.array(items,dtype=np.int32)
+        unlabeled_list = check_matrix(unlabeled_list, 'lil', dtype=np.float32)
+        users,items = unlabeled_list.nonzero()
 
         # At this point, we have all the predicted scores for the users inside
         # U'. Now we will filter the scores by keeping only the scores of the
@@ -119,8 +143,11 @@ class UserKNNRecommender(ItemKNNRecommender):
 
         # Similar to p_most but with n_most.
         n_sorted_scores = n_sorted_scores[:n_most]
+        scores = [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
 
-        return [(p_users[i], p_items[i], p_filtered_scores[i]) for i in p_sorted_scores ] + [(n_users[i], n_items[i], n_filtered_scores[i]) for i in n_sorted_scores]
+        # We sort the indices by user, then by item in order to make the
+        # assignment to the LIL matrix faster.
+        return sorted(scores, key=lambda triplet: (triplet[0],triplet[1]))
 
     def predict(self, user_id, rated_indices):
         # return the scores for the rated items.

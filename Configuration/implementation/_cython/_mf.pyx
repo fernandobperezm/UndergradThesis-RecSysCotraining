@@ -18,6 +18,8 @@ cimport numpy as np
 import numpy as np
 import scipy.sparse as sps
 
+import sys
+
 @cython.boundscheck(False)
 def FunkSVD_sgd(R, num_factors=50, lrate=0.01, reg=0.015, iters=10, init_mean=0.0, init_std=0.1, lrate_decay=1.0, rnd_seed=42):
     if not isinstance(R, sps.csr_matrix):
@@ -278,6 +280,8 @@ def user_uniform_item_uniform_sampling(R, size, replace=True, seed=1234, verbose
     cdef int i=0, start, end, iid, jid, kid, idx
     cdef np.ndarray[np.int64_t, ndim=1] aux, neg_candidates
     cdef int [:] pos_candidates
+
+    sys.stderr.write("Generating %s random training samples\n" % str(size))
     while i < size:
         # 1) sample a user from a uniform distribution
         iid  = np.random.choice(M)
@@ -314,7 +318,9 @@ def user_uniform_item_uniform_sampling(R, size, replace=True, seed=1234, verbose
         sample[i, :] = [iid, jid, kid]
         i += 1
         if verbose and i % 10000 == 0:
-            print('Sampling... {:.2f}% complete'.format(i/size*100))
+            # print('Sampling... {:.2f}% complete'.format(i/size*100))
+            sys.stderr.write('\rSampling... %.2f complete'% (i/size*100))
+            sys.stderr.flush()
     return sample
 
 
@@ -338,6 +344,8 @@ def user_uniform_item_pop_sampling(R, size, alpha=1., seed=1234, verbose=True):
     cdef np.ndarray[np.int64_t, ndim=1] aux, neg_candidates
     cdef int [:] pos_candidates
     cdef np.ndarray[np.float32_t, ndim=1] p
+
+    sys.stderr.write("Generating %s random training samples\n" % str(size))
     while i < size:
         # 1) sample a user from a uniform distribution
         iid  = np.random.choice(M)
@@ -362,5 +370,7 @@ def user_uniform_item_pop_sampling(R, size, alpha=1., seed=1234, verbose=True):
         sample[i, :] = [iid, jid, kid]
         i += 1
         if verbose and i % 10000 == 0:
-            print('Sampling... {:.2f}% complete'.format(i/size*100))
+            # print('Sampling... {:.2f}% complete'.format(i/size*100))
+            sys.stderr.write('\rSampling... %.2f complete'% (i/size*100))
+            sys.stderr.flush()
     return sample
