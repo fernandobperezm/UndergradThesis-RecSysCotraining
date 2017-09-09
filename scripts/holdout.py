@@ -209,13 +209,59 @@ if (args.make_pop_bins):
 
 # Read the previous results if recovering.
 if (args.recover_cotraining):
+    logger.info("Reading previous results.")
+    # Recovering the evaluation.
     filepath = args.results_path + args.results_file
-    results = results_to_df(filepath)
-    eval_ctr.df_to_eval(results,
-                        h1_ctr,
-                        h2_ctr,
-                        recommenders=recommenders,
-                        read_iter=args.recover_iter
+    results = results_to_df(filepath=filepath, type_res="evaluation")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                      "TopPop1": (top_pop_1,1),
+                                      "TopPop2": (top_pop_2,2),
+                                      "GlobalEffects1": (global_effects_1,1),
+                                      "GlobalEffects2": (global_effects_2,2),
+                                      random.short_str(): (random,1),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="evaluation",
+                       )
+
+    # Recovering the number of labeled items.
+    filepath = args.results_path + "numberlabeled.csv"
+    results = results_to_df(filepath=filepath, type_res="numberlabeled")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="numberlabeled",
+                       )
+
+    # Recovering the agreement.
+    filepath = args.results_path + "label_comparison.csv"
+    results = results_to_df(filepath=filepath, type_res="label_comparison")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="label_comparison",
+                       )
+
+    # Recovering the popularity bins.
+    filepath = args.results_path + "item_pop_bin.csv"
+    results = results_to_df(filepath=filepath, type_res="item_pop_bin")
+    eval_ctr.df_to_eval(df=results,
+                        recommenders={h1_ctr.short_str(): (h1_ctr,1),
+                                      h2_ctr.short_str(): (h2_ctr,2),
+                                      "TopPop1": (top_pop_1,1),
+                                      "TopPop2": (top_pop_2,2),
+                                      "GlobalEffects1": (global_effects_1,1),
+                                      "GlobalEffects2": (global_effects_2,2),
+                                      random.short_str(): (random,1),
+                                     },
+                        read_iter=args.recover_iter,
+                        type_res="item_pop_bin",
                        )
 
 cotraining = CoTraining(rec_1=h1_ctr,

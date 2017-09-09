@@ -222,7 +222,7 @@ def df_to_dok(df, nrows, ncols, is_binary=False, user_key='user_idx', item_key='
 
     return data
 
-def results_to_df(filepath, type_res=None):
+def results_to_df(filepath, type_res="evaluation"):
     """Reads the results file and transforms it into a dataframe.
 
         Args:
@@ -239,11 +239,11 @@ def results_to_df(filepath, type_res=None):
     """
     header = 0
     sep = ' '
-    if (type_res is None):
+    if (type_res == "evaluation"):
         available_metrics = ['rmse','roc_auc','precision', 'recall', 'map', 'mrr', 'ndcg']
         columns = ['cotraining','iterations', '@k', 'recommender'] + available_metrics
 
-    if (type_res == "numberlabeled"):
+    elif (type_res == "numberlabeled"):
         columns = ['iteration','recommender', 'pos_labeled', 'neg_labeled','total_labeled']
 
     elif (type_res == "label_comparison"):
@@ -252,9 +252,12 @@ def results_to_df(filepath, type_res=None):
                    'pos_only_first', 'neg_only_first', 'neutral_only_first',
                    'pos_only_second', 'neg_only_second', 'neutral_only_second']
 
+    elif (type_res == "item_pop_bin"):
+        columns = ['iteration', 'pop_bin_type', 'recommender', 'bin_0', 'bin_1',
+                    'bin_2', 'bin_3', 'bin_4', 'bin_5', 'bin_6', 'bin_7',
+                    'bin_8', 'bin_9']
     else:
         return None
-
 
     results = pd.read_csv(filepath, header=header, names=columns, sep=sep)
     return results

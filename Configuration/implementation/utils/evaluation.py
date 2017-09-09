@@ -30,8 +30,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
-import pdb
-
 class Evaluation(object):
     """The class represents an evaluation framework for Recommender Systems.
 
@@ -270,7 +268,7 @@ class Evaluation(object):
                 self.bins = dict()
             self.bins['user_pop_bin'] = dict(bins_list)
 
-    def df_to_eval(self, df, recommenders = None, read_iter=None, type_res=None ):
+    def df_to_eval(self, df, recommenders = None, read_iter=None, type_res="evaluation"):
         """Takes the dataframe information into the evaluation instance.
 
             Args:
@@ -299,7 +297,7 @@ class Evaluation(object):
             if (not rec_key in self.rec_evals.keys()):
                 self.rec_evals[rec_key] = dict()
 
-            if (type_res is None):
+            if (type_res == "evaluation"):
                 if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
                     # Returns all the rows that have in the column 'recommender'
                     # the recommender name.
@@ -353,6 +351,17 @@ class Evaluation(object):
                 self.rec_evals[rec_key]['positive'] = pos_col
                 self.rec_evals[rec_key]['negative'] = neg_col
                 self.rec_evals[rec_key]['neutral'] = neutral_col
+
+            elif (type_res == "item_pop_bin"):
+                if (rec_key in {"TopPop1", "TopPop2", "GlobalEffects1", "GlobalEffects2", "Random"}):
+                    rows_rec = df.loc[df.recommender == str(rec_key)]
+                else:
+                    rows_rec = df.loc[df.recommender == str(recommender)]
+
+                self.rec_evals[rec_key]['item_pop_bin'] = list(
+                    rows_rec[['bin_0', 'bin_1', 'bin_2', 'bin_3',
+                              'bin_4', 'bin_5', 'bin_6', 'bin_7',
+                              'bin_8', 'bin_9']].values[:read_iter].tolist())
 
     def eval(self, recommenders=None, minRatingsPerUser=1):
         """Performs the evaluation of the recommenders.
@@ -856,7 +865,6 @@ class Evaluation(object):
                         for rec_key in recommenders_to_evaluate:
                             rec = recommenders[rec_key] # load the recommender reference.
                             rec_eval = self.rec_evals[rec_key] # Load the recommender evaluation.
-
                             if (rec_key !='both'):
                                 k = 0
                                 for label in label_types:
