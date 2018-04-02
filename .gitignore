@@ -6,6 +6,9 @@ run-examples/commands.txt
 run-tuning/
 tune-knn.sh
 
+# Ignoring environment
+cotraining/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
