@@ -1,5 +1,5 @@
-Python==3.6.1
-Cython==0.25.2
+#Python==3.6.1
+Cython
 numpy==1.13.1
 pandas==0.20.2
 python-dateutil==2.6.0
